@@ -1222,7 +1222,11 @@ const ProjectApp = {
             doc.text(`Rs. ${Utils.formatNumber(spent)}`, col2 + 50, y);
             y += 7;
             doc.text('Remaining:', col1, y);
-            doc.setTextColor(budget - spent >= 0 ? [16, 185, 129] : [239, 68, 68]);
+            if (budget - spent >= 0) {
+                doc.setTextColor(16, 185, 129);
+            } else {
+                doc.setTextColor(239, 68, 68);
+            }
             doc.text(`Rs. ${Utils.formatNumber(budget - spent)}`, col1 + 50, y);
             doc.setTextColor(51, 65, 85);
             doc.text('Budget Used:', col2, y);
