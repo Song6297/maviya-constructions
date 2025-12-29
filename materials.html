@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Material Stock - Maviya Constructions</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="css/styles.css" rel="stylesheet">
+</head>
+<body class="min-h-screen">
+    <header class="header-main sticky top-0 z-40">
+        <div class="container mx-auto px-4 py-4 flex items-center justify-between">
+            <div class="flex items-center gap-4">
+                <a href="index.html" class="text-slate-300 hover:text-white transition">
+                    <i class="fas fa-arrow-left"></i>
+                </a>
+                <div class="flex items-center gap-3">
+                    <div class="w-8 h-8 bg-white rounded-lg flex items-center justify-center">
+                        <i class="fas fa-boxes text-sky-500 text-lg"></i>
+                    </div>
+                    <h1 class="text-lg font-bold text-white">Material Stock</h1>
+                </div>
+            </div>
+            <button id="addStockBtn" class="btn-primary text-sm flex items-center gap-2">
+                <i class="fas fa-plus"></i> Add Stock
+            </button>
+        </div>
+    </header>
+
+    <main class="container mx-auto px-4 py-6">
+        <!-- Summary Cards -->
+        <section class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+            <div class="metric-card rounded-lg p-4">
+                <p class="text-slate-600 text-sm">Total Items</p>
+                <p class="text-2xl font-bold text-slate-800" id="totalItems">0</p>
+            </div>
+            <div class="metric-card rounded-lg p-4">
+                <p class="text-slate-600 text-sm">Available</p>
+                <p class="text-2xl font-bold text-emerald-600" id="availableItems">0</p>
+            </div>
+            <div class="metric-card rounded-lg p-4">
+                <p class="text-slate-600 text-sm">Low Stock</p>
+                <p class="text-2xl font-bold text-rose-600" id="lowStockItems">0</p>
+            </div>
+            <div class="metric-card rounded-lg p-4">
+                <p class="text-slate-600 text-sm">Total Value</p>
+                <p class="text-xl font-bold text-sky-600" id="totalValue">₹0</p>
+            </div>
+        </section>
+
+        <!-- Filter -->
+        <div class="flex gap-3 mb-4">
+            <select id="statusFilter" class="form-input text-sm w-40">
+                <option value="all">All Status</option>
+                <option value="available">Available</option>
+                <option value="low">Low Stock</option>
+            </select>
+            <select id="categoryFilter" class="form-input text-sm w-40">
+                <option value="all">All Categories</option>
+            </select>
+        </div>
+
+        <!-- Stock Table -->
+        <div class="card overflow-hidden">
+            <div class="overflow-x-auto">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Material</th>
+                            <th>Category</th>
+                            <th>Available</th>
+                            <th>Used</th>
+                            <th>Recovered</th>
+                            <th>Min Stock</th>
+                            <th>Unit</th>
+                            <th>Rate</th>
+                            <th>Value</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="stockTableBody"></tbody>
+                </table>
+            </div>
+            <div id="emptyState" class="empty-state hidden">
+                <i class="fas fa-box-open"></i>
+                <p>No materials in stock</p>
+            </div>
+        </div>
+    </main>
+
+    <!-- Add/Edit Stock Modal -->
+    <div id="stockModal" class="modal-overlay fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 hidden">
+        <div class="modal-content rounded-xl w-full max-w-lg mx-4 max-h-[90vh] overflow-y-auto">
+            <div class="p-5 border-b border-gray-700 flex items-center justify-between">
+                <h3 id="modalTitle" class="text-lg font-semibold text-slate-800">Add Stock</h3>
+                <button class="close-modal text-slate-400 hover:text-sky-600 transition"><i class="fas fa-times text-xl"></i></button>
+            </div>
+            <form id="stockForm" class="p-5 space-y-4">
+                <input type="hidden" id="stockId">
+                <div>
+                    <label class="block text-sm font-medium text-gray-300 mb-1">Material Name *</label>
+                    <select id="materialSelect" class="form-input">
+                        <option value="">Select Material</option>
+                    </select>
+                </div>
+                <div id="customNameDiv" class="hidden">
+                    <label class="block text-sm font-medium text-gray-300 mb-1">Custom Material Name *</label>
+                    <input type="text" id="customMaterialName" class="form-input" placeholder="Enter material name">
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-300 mb-1">Category *</label>
+                        <select id="materialCategory" required class="form-input"></select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-300 mb-1">Unit *</label>
+                        <select id="materialUnit" required class="form-input"></select>
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-300 mb-1">Available Qty *</label>
+                        <input type="number" id="availableQty" required min="0" step="0.01" class="form-input">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-300 mb-1">Min Stock Level</label>
+                        <input type="number" id="minStock" min="0" step="0.01" class="form-input" value="0">
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-300 mb-1">Rate per Unit (₹) *</label>
+                        <input type="number" id="ratePerUnit" required min="0" step="0.01" class="form-input">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-300 mb-1">Supplier</label>
+                        <input type="text" id="supplier" class="form-input">
+                    </div>
+                </div>
+                <div class="flex gap-3 pt-4">
+                    <button type="button" class="cancel-modal flex-1 btn-secondary">Cancel</button>
+                    <button type="submit" class="flex-1 btn-primary">Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Delete Modal -->
+    <div id="deleteModal" class="modal-overlay fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 hidden">
+        <div class="modal-content rounded-xl w-full max-w-sm mx-4 p-6 text-center">
+            <div class="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <i class="fas fa-exclamation-triangle text-red-500 text-2xl"></i>
+            </div>
+            <h3 class="text-lg font-semibold text-slate-800 mb-2">Delete Material?</h3>
+            <p class="text-slate-600 text-sm mb-6">This will remove this material from stock.</p>
+            <div class="flex gap-3">
+                <button id="cancelDelete" class="flex-1 btn-secondary">Cancel</button>
+                <button id="confirmDelete" class="flex-1 btn-danger">Delete</button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { auth, onAuthStateChanged } from './js/firebase-config.js';
+        import Storage from './js/firebase-storage.js';
+        import { MaterialStock } from './js/materials-stock.js?v=2';
+        
+        window.Storage = Storage;
+        window.MaterialStock = MaterialStock;
+        
+        onAuthStateChanged(auth, async (user) => {
+            if (!user) {
+                window.location.href = 'login.html';
+                return;
+            }
+            
+            try {
+                await MaterialStock.init();
+            } catch (error) {
+                console.error('Error initializing materials:', error);
+            }
+        });
+    </script>
+</body>
+</html>

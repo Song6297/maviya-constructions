@@ -1,0 +1,12 @@
+{
+  "name": "maviya-constructions",
+  "version": "1.0.0",
+  "description": "Construction Management System",
+  "scripts": {
+    "start": "python3 -m http.server 8000",
+    "dev": "python3 -m http.server 8000"
+  },
+  "keywords": ["construction", "management", "firebase"],
+  "author": "Maviya Constructions",
+  "license": "ISC"
+}

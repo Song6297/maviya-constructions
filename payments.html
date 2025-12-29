@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payment Tracking - Maviya Constructions</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="css/styles.css" rel="stylesheet">
+</head>
+<body class="min-h-screen">
+    <header class="header-main sticky top-0 z-40">
+        <div class="container mx-auto px-4 py-4 flex items-center justify-between">
+            <div class="flex items-center gap-4">
+                <a href="index.html" class="text-slate-300 hover:text-white transition"><i class="fas fa-arrow-left"></i></a>
+                <div class="flex items-center gap-3">
+                    <div class="w-8 h-8 bg-white rounded-lg flex items-center justify-center">
+                        <i class="fas fa-wallet text-sky-500 text-lg"></i>
+                    </div>
+                    <h1 class="text-lg font-bold text-white">Payment Tracking</h1>
+                </div>
+            </div>
+            <button id="addPaymentBtn" class="btn-primary text-sm"><i class="fas fa-plus mr-2"></i>Add Payment</button>
+        </div>
+    </header>
+
+    <main class="container mx-auto px-4 py-6">
+        <!-- Summary -->
+        <section class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+            <div class="summary-card">
+                <p class="text-slate-600 text-sm">Total Payable</p>
+                <p class="text-2xl font-bold text-slate-800" id="totalPayable">₹0</p>
+            </div>
+            <div class="summary-card danger">
+                <p class="text-slate-600 text-sm">Pending</p>
+                <p class="text-2xl font-bold text-rose-600" id="totalPending">₹0</p>
+            </div>
+            <div class="summary-card success">
+                <p class="text-slate-600 text-sm">Paid</p>
+                <p class="text-2xl font-bold text-emerald-600" id="totalPaid">₹0</p>
+            </div>
+            <div class="summary-card accent">
+                <p class="text-slate-600 text-sm">Overdue</p>
+                <p class="text-2xl font-bold text-sky-600" id="totalOverdue">₹0</p>
+            </div>
+        </section>
+
+        <!-- Filters -->
+        <div class="flex flex-wrap gap-3 mb-4">
+            <select id="statusFilter" class="form-input text-sm w-32">
+                <option value="all">All</option>
+                <option value="pending">Pending</option>
+                <option value="paid">Paid</option>
+                <option value="overdue">Overdue</option>
+            </select>
+            <select id="typeFilter" class="form-input text-sm w-32">
+                <option value="all">All Types</option>
+                <option value="Vendor">Vendor</option>
+                <option value="Labour">Labour</option>
+                <option value="Contractor">Contractor</option>
+                <option value="Other">Other</option>
+            </select>
+            <select id="projectFilter" class="form-input text-sm w-40">
+                <option value="all">All Projects</option>
+            </select>
+        </div>
+
+        <!-- Payments Table -->
+        <div class="card rounded-lg overflow-hidden">
+            <div class="overflow-x-auto">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Vendor/Payee</th>
+                            <th>Type</th>
+                            <th>Project</th>
+                            <th>Amount</th>
+                            <th>Due Date</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="paymentsTableBody"></tbody>
+                </table>
+            </div>
+            <div id="emptyState" class="empty-state hidden"><i class="fas fa-wallet"></i><p>No payments recorded</p></div>
+        </div>
+    </main>
+
+    <!-- Payment Modal -->
+    <div id="paymentModal" class="modal-overlay fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 hidden">
+        <div class="modal-content rounded-xl w-full max-w-lg mx-4 max-h-[90vh] overflow-y-auto">
+            <div class="p-5 border-b border-gray-700 flex items-center justify-between">
+                <h3 id="modalTitle" class="text-lg font-semibold text-slate-800">Add Payment</h3>
+                <button class="close-modal text-slate-400 hover:text-sky-600 transition"><i class="fas fa-times text-xl"></i></button>
+            </div>
+            <form id="paymentForm" class="p-5 space-y-4">
+                <input type="hidden" id="paymentId">
+                <div><label class="block text-sm font-medium text-gray-300 mb-1">Vendor/Payee Name *</label><input type="text" id="vendorName" required class="form-input"></div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div><label class="block text-sm font-medium text-gray-300 mb-1">Type *</label>
+                        <select id="paymentType" required class="form-input">
+                            <option value="Vendor">Vendor</option><option value="Labour">Labour</option>
+                            <option value="Contractor">Contractor</option><option value="Other">Other</option>
+                        </select>
+                    </div>
+                    <div><label class="block text-sm font-medium text-gray-300 mb-1">Project</label>
+                        <select id="paymentProject" class="form-input"></select>
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div><label class="block text-sm font-medium text-gray-300 mb-1">Amount (₹) *</label><input type="number" id="paymentAmount" required min="1" class="form-input"></div>
+                    <div><label class="block text-sm font-medium text-gray-300 mb-1">Due Date *</label><input type="date" id="dueDate" required class="form-input"></div>
+                </div>
+                <div><label class="block text-sm font-medium text-gray-300 mb-1">Description</label><input type="text" id="paymentDesc" class="form-input"></div>
+                <div class="flex items-center gap-2">
+                    <input type="checkbox" id="isPaid" class="w-4 h-4 accent-amber-500">
+                    <label for="isPaid" class="text-gray-300 text-sm">Mark as Paid</label>
+                </div>
+                <div id="paidDateDiv" class="hidden">
+                    <label class="block text-sm font-medium text-gray-300 mb-1">Paid Date</label>
+                    <input type="date" id="paidDate" class="form-input">
+                </div>
+                <div class="flex gap-3 pt-4">
+                    <button type="button" class="cancel-modal flex-1 btn-secondary">Cancel</button>
+                    <button type="submit" class="flex-1 btn-primary">Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Delete Modal -->
+    <div id="deleteModal" class="modal-overlay fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 hidden">
+        <div class="modal-content rounded-xl w-full max-w-sm mx-4 p-6 text-center">
+            <div class="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <i class="fas fa-exclamation-triangle text-red-500 text-2xl"></i>
+            </div>
+            <h3 class="text-lg font-semibold text-slate-800 mb-2">Delete Payment?</h3>
+            <div class="flex gap-3">
+                <button id="cancelDelete" class="flex-1 btn-secondary">Cancel</button>
+                <button id="confirmDelete" class="flex-1 btn-danger">Delete</button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { auth, onAuthStateChanged } from './js/firebase-config.js';
+        import Storage from './js/firebase-storage.js';
+        import { PaymentsApp } from './js/payments.js?v=2';
+        
+        window.Storage = Storage;
+        window.PaymentsApp = PaymentsApp;
+        
+        onAuthStateChanged(auth, async (user) => {
+            if (!user) {
+                window.location.href = 'login.html';
+                return;
+            }
+            
+            try {
+                await PaymentsApp.init();
+            } catch (error) {
+                console.error('Error initializing payments:', error);
+            }
+        });
+    </script>
+</body>
+</html>

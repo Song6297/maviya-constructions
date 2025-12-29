@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>System Status - Maviya Constructions</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+</head>
+<body class="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 p-8">
+    <div class="max-w-4xl mx-auto">
+        <div class="text-center mb-8">
+            <h1 class="text-3xl font-bold text-white mb-2">System Status Check</h1>
+            <p class="text-slate-400">Verify your setup is correct</p>
+        </div>
+
+        <div class="bg-white rounded-2xl shadow-2xl p-8">
+            <div id="checks" class="space-y-4"></div>
+
+            <div class="mt-8 pt-6 border-t border-slate-200 flex gap-3">
+                <a href="login.html" class="flex-1 text-center px-4 py-3 bg-sky-600 text-white rounded-lg hover:bg-sky-700 transition">
+                    Try Login
+                </a>
+                <a href="login-test.html" class="flex-1 text-center px-4 py-3 bg-slate-200 text-slate-700 rounded-lg hover:bg-slate-300 transition">
+                    Test Mode
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        const checks = [
+            {
+                name: 'Server Running',
+                test: () => window.location.protocol === 'http:' || window.location.protocol === 'https:',
+                fix: 'Run: python3 -m http.server 8000'
+            },
+            {
+                name: 'Firebase Config',
+                test: async () => {
+                    try {
+                        const response = await fetch('./js/firebase-config.js');
+                        return response.ok;
+                    } catch {
+                        return false;
+                    }
+                },
+                fix: 'Check js/firebase-config.js exists'
+            },
+            {
+                name: 'Auth Module',
+                test: async () => {
+                    try {
+                        const response = await fetch('./js/auth.js');
+                        return response.ok;
+                    } catch {
+                        return false;
+                    }
+                },
+                fix: 'Check js/auth.js exists'
+            },
+            {
+                name: 'Storage Module',
+                test: async () => {
+                    try {
+                        const response = await fetch('./js/firebase-storage.js');
+                        return response.ok;
+                    } catch {
+                        return false;
+                    }
+                },
+                fix: 'Check js/firebase-storage.js exists'
+            },
+            {
+                name: 'Styles',
+                test: async () => {
+                    try {
+                        const response = await fetch('./css/styles.css');
+                        return response.ok;
+                    } catch {
+                        return false;
+                    }
+                },
+                fix: 'Check css/styles.css exists'
+            }
+        ];
+
+        const container = document.getElementById('checks');
+
+        async function runChecks() {
+            for (const check of checks) {
+                const div = document.createElement('div');
+                div.className = 'flex items-center justify-between p-4 rounded-lg bg-slate-50';
+                div.innerHTML = `
+                    <div class="flex items-center gap-3">
+                        <i class="fas fa-spinner fa-spin text-slate-400"></i>
+                        <span class="font-medium text-slate-700">${check.name}</span>
+                    </div>
+                    <span class="text-sm text-slate-500">Checking...</span>
+                `;
+                container.appendChild(div);
+
+                try {
+                    const result = await check.test();
+                    
+                    if (result) {
+                        div.innerHTML = `
+                            <div class="flex items-center gap-3">
+                                <i class="fas fa-check-circle text-emerald-500 text-xl"></i>
+                                <span class="font-medium text-slate-700">${check.name}</span>
+                            </div>
+                            <span class="text-sm font-semibold text-emerald-600">OK</span>
+                        `;
+                        div.className = 'flex items-center justify-between p-4 rounded-lg bg-emerald-50 border border-emerald-200';
+                    } else {
+                        div.innerHTML = `
+                            <div class="flex-1">
+                                <div class="flex items-center gap-3 mb-2">
+                                    <i class="fas fa-exclamation-circle text-rose-500 text-xl"></i>
+                                    <span class="font-medium text-slate-700">${check.name}</span>
+                                </div>
+                                <p class="text-xs text-slate-600 ml-8">${check.fix}</p>
+                            </div>
+                            <span class="text-sm font-semibold text-rose-600">FAILED</span>
+                        `;
+                        div.className = 'flex items-center justify-between p-4 rounded-lg bg-rose-50 border border-rose-200';
+                    }
+                } catch (error) {
+                    div.innerHTML = `
+                        <div class="flex-1">
+                            <div class="flex items-center gap-3 mb-2">
+                                <i class="fas fa-times-circle text-rose-500 text-xl"></i>
+                                <span class="font-medium text-slate-700">${check.name}</span>
+                            </div>
+                            <p class="text-xs text-slate-600 ml-8">${check.fix}</p>
+                        </div>
+                        <span class="text-sm font-semibold text-rose-600">ERROR</span>
+                    `;
+                    div.className = 'flex items-center justify-between p-4 rounded-lg bg-rose-50 border border-rose-200';
+                }
+            }
+
+            // Add Firebase status check
+            const firebaseDiv = document.createElement('div');
+            firebaseDiv.className = 'p-4 rounded-lg bg-blue-50 border border-blue-200 mt-4';
+            firebaseDiv.innerHTML = `
+                <div class="flex items-center gap-3 mb-2">
+                    <i class="fas fa-info-circle text-blue-500 text-xl"></i>
+                    <span class="font-medium text-slate-700">Firebase Configuration</span>
+                </div>
+                <p class="text-sm text-slate-600 ml-8">
+                    Make sure to enable Phone Authentication and create Firestore database in Firebase Console.
+                    <a href="FIREBASE_SETUP.md" class="text-blue-600 hover:underline ml-1">View Setup Guide →</a>
+                </p>
+            `;
+            container.appendChild(firebaseDiv);
+        }
+
+        runChecks();
+    </script>
+</body>
+</html>

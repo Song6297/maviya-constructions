@@ -1,0 +1,708 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Maviya Constructions</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="css/styles.css" rel="stylesheet">
+    <style>
+        @keyframes float {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-20px) rotate(5deg); }
+        }
+        
+        @keyframes glow {
+            0%, 100% { box-shadow: 0 0 20px rgba(14, 165, 233, 0.3); }
+            50% { box-shadow: 0 0 40px rgba(14, 165, 233, 0.6); }
+        }
+        
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        @keyframes shimmer {
+            0% { background-position: -1000px 0; }
+            100% { background-position: 1000px 0; }
+        }
+
+        body {
+            background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 50%, #0f172a 100%);
+            min-height: 100vh;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* Animated background particles */
+        .bg-particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            z-index: 0;
+        }
+
+        .particle {
+            position: absolute;
+            background: rgba(14, 165, 233, 0.1);
+            border-radius: 50%;
+            animation: float 20s infinite ease-in-out;
+        }
+
+        .particle:nth-child(1) { width: 80px; height: 80px; top: 10%; left: 10%; animation-delay: 0s; }
+        .particle:nth-child(2) { width: 60px; height: 60px; top: 60%; left: 80%; animation-delay: 2s; }
+        .particle:nth-child(3) { width: 100px; height: 100px; top: 80%; left: 20%; animation-delay: 4s; }
+        .particle:nth-child(4) { width: 40px; height: 40px; top: 30%; left: 70%; animation-delay: 1s; }
+        .particle:nth-child(5) { width: 70px; height: 70px; top: 50%; left: 50%; animation-delay: 3s; }
+
+        .login-container {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem 1rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .login-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 2rem;
+            box-shadow: 0 25px 80px rgba(0, 0, 0, 0.4);
+            max-width: 480px;
+            width: 100%;
+            animation: slideIn 0.6s ease-out;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .logo-circle {
+            width: 100px;
+            height: 100px;
+            background: linear-gradient(135deg, #0EA5E9 0%, #0284C7 100%);
+            border-radius: 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1.5rem;
+            box-shadow: 0 15px 40px rgba(14, 165, 233, 0.4);
+            animation: glow 3s infinite ease-in-out;
+            position: relative;
+        }
+
+        .logo-circle::before {
+            content: '';
+            position: absolute;
+            inset: -3px;
+            background: linear-gradient(135deg, #0EA5E9, #0284C7, #0EA5E9);
+            border-radius: 2rem;
+            z-index: -1;
+            opacity: 0.5;
+            filter: blur(10px);
+        }
+
+        .input-group {
+            margin-bottom: 1.5rem;
+            animation: slideIn 0.6s ease-out;
+        }
+
+        .input-label {
+            display: block;
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: #334155;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .input-wrapper {
+            position: relative;
+        }
+
+        .input-icon {
+            position: absolute;
+            left: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #94a3b8;
+            font-size: 1.1rem;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 1rem 1rem 1rem 3rem;
+            border: 2px solid #e2e8f0;
+            border-radius: 1rem;
+            font-size: 1rem;
+            color: #334155;
+            transition: all 0.3s;
+            background: white;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: #0EA5E9;
+            box-shadow: 0 0 0 4px rgba(14, 165, 233, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .btn-login {
+            width: 100%;
+            padding: 1rem 1.5rem;
+            background: linear-gradient(135deg, #0EA5E9 0%, #0284C7 100%);
+            color: white;
+            border: none;
+            border-radius: 1rem;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 8px 20px rgba(14, 165, 233, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-login::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            transition: left 0.5s;
+        }
+
+        .btn-login:hover::before {
+            left: 100%;
+        }
+
+        .btn-login:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 30px rgba(14, 165, 233, 0.4);
+        }
+
+        .btn-login:active {
+            transform: translateY(-1px);
+        }
+
+        .tab-button {
+            flex: 1;
+            padding: 0.875rem 1.5rem;
+            border-radius: 0.875rem;
+            font-weight: 600;
+            font-size: 0.875rem;
+            transition: all 0.3s;
+            cursor: pointer;
+            border: none;
+            background: transparent;
+            color: #64748b;
+        }
+
+        .tab-button.active {
+            background: linear-gradient(135deg, #0EA5E9 0%, #0284C7 100%);
+            color: white;
+            box-shadow: 0 4px 15px rgba(14, 165, 233, 0.3);
+        }
+
+        .tab-button:not(.active):hover {
+            background: #f1f5f9;
+            color: #334155;
+        }
+
+        .forgot-link {
+            color: #0EA5E9;
+            font-size: 0.875rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-decoration: none;
+        }
+
+        .forgot-link:hover {
+            color: #0284C7;
+            text-decoration: underline;
+        }
+
+        .back-button {
+            color: #0EA5E9;
+            font-size: 0.875rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            cursor: pointer;
+            margin-bottom: 1.5rem;
+            transition: all 0.2s;
+            background: none;
+            border: none;
+            padding: 0;
+        }
+
+        .back-button:hover {
+            color: #0284C7;
+            transform: translateX(-3px);
+        }
+
+        .loading-spinner {
+            display: inline-block;
+            width: 50px;
+            height: 50px;
+            border: 4px solid rgba(14, 165, 233, 0.2);
+            border-top-color: #0EA5E9;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .message-box {
+            animation: slideIn 0.3s ease-out;
+        }
+
+        .feature-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            background: rgba(14, 165, 233, 0.1);
+            border-radius: 2rem;
+            font-size: 0.75rem;
+            color: #0EA5E9;
+            font-weight: 600;
+            margin: 0.25rem;
+        }
+
+        .divider {
+            display: flex;
+            align-items: center;
+            text-align: center;
+            margin: 1.5rem 0;
+            color: #94a3b8;
+            font-size: 0.875rem;
+        }
+
+        .divider::before,
+        .divider::after {
+            content: '';
+            flex: 1;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .divider span {
+            padding: 0 1rem;
+        }
+    </style>
+</head>
+<body>
+    <!-- Animated Background Particles -->
+    <div class="bg-particles">
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+    </div>
+
+    <!-- Login Page -->
+    <div id="loginPage" class="login-container">
+        <div class="login-card">
+            <!-- Logo & Title -->
+            <div class="text-center p-8 pb-6">
+                <div class="logo-circle">
+                    <i class="fas fa-hard-hat text-white text-5xl"></i>
+                </div>
+                <h1 class="text-3xl font-bold text-slate-800 mb-2">Maviya Constructions</h1>
+                <p class="text-slate-500 text-sm mb-4">Construction Management System</p>
+                
+                <!-- Feature Badges -->
+                <div class="flex flex-wrap justify-center gap-2 mt-4">
+                    <span class="feature-badge">
+                        <i class="fas fa-shield-alt"></i>
+                        Secure
+                    </span>
+                    <span class="feature-badge">
+                        <i class="fas fa-cloud"></i>
+                        Cloud Sync
+                    </span>
+                    <span class="feature-badge">
+                        <i class="fas fa-mobile-alt"></i>
+                        Mobile Ready
+                    </span>
+                </div>
+            </div>
+
+            <!-- Login Form -->
+            <div class="px-8 pb-8">
+                <!-- Login/Signup Toggle -->
+                <div class="flex gap-2 mb-6 p-1 bg-slate-100 rounded-xl">
+                    <button id="loginTabBtn" class="tab-button active">
+                        <i class="fas fa-sign-in-alt mr-2"></i>
+                        Login
+                    </button>
+                    <button id="signupTabBtn" class="tab-button">
+                        <i class="fas fa-user-plus mr-2"></i>
+                        Sign Up
+                    </button>
+                </div>
+
+                <!-- Login Form -->
+                <div id="loginForm">
+                    <div class="input-group">
+                        <label class="input-label">
+                            <i class="fas fa-envelope text-sky-500"></i>
+                            Email Address
+                        </label>
+                        <div class="input-wrapper">
+                            <i class="fas fa-envelope input-icon"></i>
+                            <input type="email" id="loginEmail" class="form-input" placeholder="your@email.com" required>
+                        </div>
+                    </div>
+
+                    <div class="input-group">
+                        <label class="input-label">
+                            <i class="fas fa-lock text-sky-500"></i>
+                            Password
+                        </label>
+                        <div class="input-wrapper">
+                            <i class="fas fa-lock input-icon"></i>
+                            <input type="password" id="loginPassword" class="form-input" placeholder="Enter your password" required>
+                        </div>
+                    </div>
+
+                    <div class="flex justify-end mb-6">
+                        <button id="forgotPasswordBtn" class="forgot-link">
+                            <i class="fas fa-key mr-1"></i>
+                            Forgot Password?
+                        </button>
+                    </div>
+
+                    <button id="loginBtn" class="btn-login">
+                        <i class="fas fa-sign-in-alt mr-2"></i>
+                        Login to Dashboard
+                    </button>
+
+                    <div class="divider">
+                        <span>Quick Access</span>
+                    </div>
+
+                    <a href="login-test.html" class="block text-center text-sm text-slate-600 hover:text-sky-600 transition">
+                        <i class="fas fa-flask mr-1"></i>
+                        Try Test Mode (No Login Required)
+                    </a>
+                </div>
+
+                <!-- Signup Form -->
+                <div id="signupForm" class="hidden">
+                    <div class="input-group">
+                        <label class="input-label">
+                            <i class="fas fa-envelope text-sky-500"></i>
+                            Email Address
+                        </label>
+                        <div class="input-wrapper">
+                            <i class="fas fa-envelope input-icon"></i>
+                            <input type="email" id="signupEmail" class="form-input" placeholder="your@email.com" required>
+                        </div>
+                    </div>
+
+                    <div class="input-group">
+                        <label class="input-label">
+                            <i class="fas fa-lock text-sky-500"></i>
+                            Password
+                        </label>
+                        <div class="input-wrapper">
+                            <i class="fas fa-lock input-icon"></i>
+                            <input type="password" id="signupPassword" class="form-input" placeholder="At least 6 characters" required>
+                        </div>
+                        <p class="text-xs text-slate-500 mt-2 ml-1">
+                            <i class="fas fa-info-circle mr-1"></i>
+                            Minimum 6 characters required
+                        </p>
+                    </div>
+
+                    <div class="input-group">
+                        <label class="input-label">
+                            <i class="fas fa-check-circle text-sky-500"></i>
+                            Confirm Password
+                        </label>
+                        <div class="input-wrapper">
+                            <i class="fas fa-check-circle input-icon"></i>
+                            <input type="password" id="signupPasswordConfirm" class="form-input" placeholder="Re-enter password" required>
+                        </div>
+                    </div>
+
+                    <button id="signupBtn" class="btn-login">
+                        <i class="fas fa-user-plus mr-2"></i>
+                        Create Account
+                    </button>
+                </div>
+
+                <!-- Forgot Password Form -->
+                <div id="forgotPasswordForm" class="hidden">
+                    <button id="backToLoginBtn" class="back-button">
+                        <i class="fas fa-arrow-left"></i>
+                        Back to Login
+                    </button>
+
+                    <h2 class="text-xl font-bold text-slate-800 mb-2 text-center">Reset Password</h2>
+                    <p class="text-sm text-slate-600 mb-6 text-center">
+                        Enter your email to receive a password reset link
+                    </p>
+
+                    <div class="input-group">
+                        <label class="input-label">
+                            <i class="fas fa-envelope text-sky-500"></i>
+                            Email Address
+                        </label>
+                        <div class="input-wrapper">
+                            <i class="fas fa-envelope input-icon"></i>
+                            <input type="email" id="resetEmail" class="form-input" placeholder="your@email.com" required>
+                        </div>
+                    </div>
+
+                    <button id="resetPasswordBtn" class="btn-login">
+                        <i class="fas fa-paper-plane mr-2"></i>
+                        Send Reset Link
+                    </button>
+                </div>
+
+                <!-- Loading Indicator -->
+                <div id="loadingIndicator" class="hidden text-center py-8">
+                    <div class="loading-spinner mx-auto mb-4"></div>
+                    <p class="text-slate-600 font-medium">Please wait...</p>
+                </div>
+
+                <!-- Message Box -->
+                <div id="messageBox" class="hidden mt-4 p-4 rounded-xl text-sm font-medium message-box"></div>
+            </div>
+
+            <!-- Footer -->
+            <div class="px-8 pb-6 text-center border-t border-slate-100 pt-6">
+                <p class="text-slate-400 text-xs flex items-center justify-center gap-2">
+                    <i class="fas fa-shield-alt"></i>
+                    Secured by Firebase Authentication
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- App Content (Hidden until logged in) -->
+    <div id="appContent" class="hidden">
+        <header class="header-main sticky top-0 z-40">
+            <div class="container mx-auto px-4 py-4 flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <div class="w-8 h-8 bg-white rounded-lg flex items-center justify-center">
+                        <i class="fas fa-hard-hat text-sky-500 text-lg"></i>
+                    </div>
+                    <h1 class="text-lg font-bold text-white">Maviya Constructions</h1>
+                </div>
+                <div class="flex items-center gap-3">
+                    <span id="userPhone" class="text-white text-sm hidden sm:inline"></span>
+                    <button id="logoutBtn" class="btn-header">
+                        <i class="fas fa-sign-out-alt"></i>
+                        <span class="hidden sm:inline">Logout</span>
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <main class="container mx-auto px-4 py-6">
+            <div class="text-center">
+                <h2 class="text-2xl font-bold text-white mb-4">Welcome!</h2>
+                <p class="text-slate-400 mb-6">Redirecting to dashboard...</p>
+            </div>
+        </main>
+    </div>
+
+    <script type="module">
+        import Auth from './js/auth.js';
+
+        // Initialize auth
+        Auth.init();
+
+        const loginForm = document.getElementById('loginForm');
+        const signupForm = document.getElementById('signupForm');
+        const forgotPasswordForm = document.getElementById('forgotPasswordForm');
+        const loadingIndicator = document.getElementById('loadingIndicator');
+        const messageBox = document.getElementById('messageBox');
+
+        const loginTabBtn = document.getElementById('loginTabBtn');
+        const signupTabBtn = document.getElementById('signupTabBtn');
+
+        function showMessage(message, type = 'info') {
+            messageBox.textContent = message;
+            messageBox.className = `mt-4 p-3 rounded-lg text-sm font-medium ${
+                type === 'success' ? 'bg-emerald-100 text-emerald-800 border border-emerald-200' :
+                type === 'error' ? 'bg-rose-100 text-rose-800 border border-rose-200' :
+                'bg-sky-100 text-sky-800 border border-sky-200'
+            }`;
+            messageBox.classList.remove('hidden');
+            setTimeout(() => messageBox.classList.add('hidden'), 5000);
+        }
+
+        function showLoading(show) {
+            if (show) {
+                loginForm.classList.add('hidden');
+                signupForm.classList.add('hidden');
+                forgotPasswordForm.classList.add('hidden');
+                loadingIndicator.classList.remove('hidden');
+            } else {
+                loadingIndicator.classList.add('hidden');
+            }
+        }
+
+        // Tab switching
+        loginTabBtn.addEventListener('click', () => {
+            loginTabBtn.className = 'flex-1 py-2 px-4 rounded-md font-semibold text-sm transition bg-white text-sky-600 shadow-sm';
+            signupTabBtn.className = 'flex-1 py-2 px-4 rounded-md font-semibold text-sm transition text-slate-600 hover:text-slate-800';
+            loginForm.classList.remove('hidden');
+            signupForm.classList.add('hidden');
+            forgotPasswordForm.classList.add('hidden');
+            messageBox.classList.add('hidden');
+        });
+
+        signupTabBtn.addEventListener('click', () => {
+            signupTabBtn.className = 'flex-1 py-2 px-4 rounded-md font-semibold text-sm transition bg-white text-sky-600 shadow-sm';
+            loginTabBtn.className = 'flex-1 py-2 px-4 rounded-md font-semibold text-sm transition text-slate-600 hover:text-slate-800';
+            signupForm.classList.remove('hidden');
+            loginForm.classList.add('hidden');
+            forgotPasswordForm.classList.add('hidden');
+            messageBox.classList.add('hidden');
+        });
+
+        // Login
+        document.getElementById('loginBtn').addEventListener('click', async () => {
+            const email = document.getElementById('loginEmail').value.trim();
+            const password = document.getElementById('loginPassword').value;
+
+            if (!email || !password) {
+                showMessage('Please enter email and password', 'error');
+                return;
+            }
+
+            showLoading(true);
+            const result = await Auth.login(email, password);
+            showLoading(false);
+
+            if (result.success) {
+                showMessage(result.message, 'success');
+                setTimeout(() => {
+                    window.location.href = 'index.html';
+                }, 1000);
+            } else {
+                loginForm.classList.remove('hidden');
+                showMessage(result.message, 'error');
+            }
+        });
+
+        // Sign Up
+        document.getElementById('signupBtn').addEventListener('click', async () => {
+            const email = document.getElementById('signupEmail').value.trim();
+            const password = document.getElementById('signupPassword').value;
+            const confirmPassword = document.getElementById('signupPasswordConfirm').value;
+
+            if (!email || !password || !confirmPassword) {
+                showMessage('Please fill in all fields', 'error');
+                return;
+            }
+
+            if (password !== confirmPassword) {
+                showMessage('Passwords do not match', 'error');
+                return;
+            }
+
+            if (password.length < 6) {
+                showMessage('Password must be at least 6 characters', 'error');
+                return;
+            }
+
+            showLoading(true);
+            const result = await Auth.signUp(email, password);
+            showLoading(false);
+
+            if (result.success) {
+                showMessage(result.message, 'success');
+                setTimeout(() => {
+                    window.location.href = 'index.html';
+                }, 1000);
+            } else {
+                signupForm.classList.remove('hidden');
+                showMessage(result.message, 'error');
+            }
+        });
+
+        // Forgot Password
+        document.getElementById('forgotPasswordBtn').addEventListener('click', () => {
+            loginForm.classList.add('hidden');
+            forgotPasswordForm.classList.remove('hidden');
+            messageBox.classList.add('hidden');
+        });
+
+        document.getElementById('backToLoginBtn').addEventListener('click', () => {
+            forgotPasswordForm.classList.add('hidden');
+            loginForm.classList.remove('hidden');
+            messageBox.classList.add('hidden');
+        });
+
+        document.getElementById('resetPasswordBtn').addEventListener('click', async () => {
+            const email = document.getElementById('resetEmail').value.trim();
+
+            if (!email) {
+                showMessage('Please enter your email', 'error');
+                return;
+            }
+
+            showLoading(true);
+            const result = await Auth.resetPassword(email);
+            showLoading(false);
+
+            if (result.success) {
+                forgotPasswordForm.classList.remove('hidden');
+                showMessage(result.message, 'success');
+                setTimeout(() => {
+                    forgotPasswordForm.classList.add('hidden');
+                    loginForm.classList.remove('hidden');
+                }, 3000);
+            } else {
+                forgotPasswordForm.classList.remove('hidden');
+                showMessage(result.message, 'error');
+            }
+        });
+
+        // Logout
+        document.getElementById('logoutBtn')?.addEventListener('click', async () => {
+            const result = await Auth.logout();
+            if (result.success) {
+                showMessage(result.message, 'success');
+            }
+        });
+
+        // Display user email
+        if (Auth.getCurrentUser()) {
+            const userEmailEl = document.getElementById('userEmail');
+            if (userEmailEl) {
+                userEmailEl.textContent = Auth.getEmail();
+            }
+        }
+
+        // Enter key support
+        document.getElementById('loginEmail').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') document.getElementById('loginBtn').click();
+        });
+        document.getElementById('loginPassword').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') document.getElementById('loginBtn').click();
+        });
+        document.getElementById('signupPasswordConfirm').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') document.getElementById('signupBtn').click();
+        });
+    </script>
+</body>
+</html>

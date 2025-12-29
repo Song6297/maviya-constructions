@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Data Migration - Maviya Constructions</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="css/styles.css" rel="stylesheet">
+</head>
+<body class="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900">
+    <div class="container mx-auto px-4 py-8">
+        <div class="max-w-2xl mx-auto">
+            <div class="text-center mb-8">
+                <div class="w-20 h-20 bg-gradient-to-br from-sky-400 to-blue-500 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-2xl">
+                    <i class="fas fa-database text-white text-3xl"></i>
+                </div>
+                <h1 class="text-3xl font-bold text-white mb-2">Data Migration</h1>
+                <p class="text-slate-400">Transfer your data from local storage to Firebase</p>
+            </div>
+
+            <div class="card p-8">
+                <div id="loginRequired" class="text-center py-8">
+                    <i class="fas fa-lock text-sky-500 text-5xl mb-4"></i>
+                    <h2 class="text-xl font-bold text-slate-800 mb-2">Login Required</h2>
+                    <p class="text-slate-600 mb-4">Please login to migrate your data</p>
+                    <a href="login.html" class="btn-primary inline-block">
+                        <i class="fas fa-sign-in-alt mr-2"></i>
+                        Go to Login
+                    </a>
+                </div>
+
+                <div id="migrationPanel" class="hidden">
+                    <h2 class="text-xl font-bold text-slate-800 mb-4">Migration Status</h2>
+                    
+                    <div id="dataCheck" class="mb-6">
+                        <div class="flex items-center justify-between p-4 bg-slate-50 rounded-lg mb-2">
+                            <span class="text-slate-700">Local Data Found:</span>
+                            <span id="localDataCount" class="font-bold text-sky-600">Checking...</span>
+                        </div>
+                        <div class="flex items-center justify-between p-4 bg-slate-50 rounded-lg">
+                            <span class="text-slate-700">Cloud Data Found:</span>
+                            <span id="cloudDataCount" class="font-bold text-emerald-600">Checking...</span>
+                        </div>
+                    </div>
+
+                    <div id="migrationOptions" class="space-y-3 mb-6">
+                        <button id="migrateBtn" class="btn-primary w-full">
+                            <i class="fas fa-cloud-upload-alt mr-2"></i>
+                            Migrate Local Data to Cloud
+                        </button>
+                        <button id="downloadBackupBtn" class="btn-secondary w-full">
+                            <i class="fas fa-download mr-2"></i>
+                            Download Local Backup
+                        </button>
+                    </div>
+
+                    <div id="progressPanel" class="hidden mb-6">
+                        <div class="bg-slate-100 rounded-full h-4 mb-2">
+                            <div id="progressBar" class="bg-sky-600 h-4 rounded-full transition-all" style="width: 0%"></div>
+                        </div>
+                        <p id="progressText" class="text-sm text-slate-600 text-center">Starting migration...</p>
+                    </div>
+
+                    <div id="resultPanel" class="hidden p-4 rounded-lg"></div>
+
+                    <div class="mt-6 pt-6 border-t border-slate-200">
+                        <a href="index.html" class="btn-secondary w-full block text-center">
+                            <i class="fas fa-arrow-left mr-2"></i>
+                            Back to Dashboard
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import Auth from './js/auth.js';
+        import FirebaseStorage from './js/firebase-storage.js';
+
+        Auth.init();
+
+        const loginRequired = document.getElementById('loginRequired');
+        const migrationPanel = document.getElementById('migrationPanel');
+        const localDataCount = document.getElementById('localDataCount');
+        const cloudDataCount = document.getElementById('cloudDataCount');
+        const progressPanel = document.getElementById('progressPanel');
+        const progressBar = document.getElementById('progressBar');
+        const progressText = document.getElementById('progressText');
+        const resultPanel = document.getElementById('resultPanel');
+
+        // Check auth state
+        Auth.auth.onAuthStateChanged(async (user) => {
+            if (user) {
+                loginRequired.classList.add('hidden');
+                migrationPanel.classList.remove('hidden');
+                await checkData();
+            } else {
+                loginRequired.classList.remove('hidden');
+                migrationPanel.classList.add('hidden');
+            }
+        });
+
+        async function checkData() {
+            // Count local data
+            let localCount = 0;
+            const localKeys = ['contractorhub_projects', 'contractorhub_materials', 'contractorhub_labour', 
+                             'contractorhub_expenses', 'contractorhub_logs', 'contractorhub_documents',
+                             'contractorhub_budget_transfers', 'contractorhub_client_payments'];
+            
+            localKeys.forEach(key => {
+                const data = localStorage.getItem(key);
+                if (data) {
+                    try {
+                        const items = JSON.parse(data);
+                        localCount += items.length;
+                    } catch (e) {}
+                }
+            });
+
+            localDataCount.textContent = `${localCount} records`;
+
+            // Count cloud data
+            try {
+                const projects = await FirebaseStorage.projects.getAll();
+                cloudDataCount.textContent = `${projects.length} projects`;
+            } catch (error) {
+                cloudDataCount.textContent = 'Error loading';
+            }
+        }
+
+        // Migrate data
+        document.getElementById('migrateBtn').addEventListener('click', async () => {
+            if (!confirm('This will upload all your local data to the cloud. Continue?')) return;
+
+            progressPanel.classList.remove('hidden');
+            resultPanel.classList.add('hidden');
+
+            try {
+                const collections = [
+                    { key: 'contractorhub_projects', collection: 'projects' },
+                    { key: 'contractorhub_materials', collection: 'materials' },
+                    { key: 'contractorhub_labour', collection: 'labour' },
+                    { key: 'contractorhub_expenses', collection: 'expenses' },
+                    { key: 'contractorhub_logs', collection: 'logs' },
+                    { key: 'contractorhub_documents', collection: 'documents' },
+                    { key: 'contractorhub_budget_transfers', collection: 'budget_transfers' },
+                    { key: 'contractorhub_client_payments', collection: 'client_payments' },
+                    { key: 'contractorhub_material_stock', collection: 'material_stock' }
+                ];
+
+                let total = 0;
+                let migrated = 0;
+
+                // Count total items
+                collections.forEach(({ key }) => {
+                    const data = localStorage.getItem(key);
+                    if (data) {
+                        try {
+                            total += JSON.parse(data).length;
+                        } catch (e) {}
+                    }
+                });
+
+                // Migrate each collection
+                for (const { key, collection } of collections) {
+                    const data = localStorage.getItem(key);
+                    if (data) {
+                        try {
+                            const items = JSON.parse(data);
+                            progressText.textContent = `Migrating ${collection}... (${items.length} items)`;
+
+                            for (const item of items) {
+                                await FirebaseStorage.add(collection, item);
+                                migrated++;
+                                const percent = Math.round((migrated / total) * 100);
+                                progressBar.style.width = `${percent}%`;
+                            }
+                        } catch (error) {
+                            console.error(`Error migrating ${collection}:`, error);
+                        }
+                    }
+                }
+
+                progressBar.style.width = '100%';
+                progressText.textContent = 'Migration complete!';
+
+                resultPanel.className = 'p-4 rounded-lg bg-emerald-100 text-emerald-800 border border-emerald-200';
+                resultPanel.innerHTML = `
+                    <i class="fas fa-check-circle mr-2"></i>
+                    Successfully migrated ${migrated} records to cloud!
+                `;
+                resultPanel.classList.remove('hidden');
+
+                await checkData();
+            } catch (error) {
+                console.error('Migration error:', error);
+                resultPanel.className = 'p-4 rounded-lg bg-rose-100 text-rose-800 border border-rose-200';
+                resultPanel.innerHTML = `
+                    <i class="fas fa-exclamation-circle mr-2"></i>
+                    Migration failed: ${error.message}
+                `;
+                resultPanel.classList.remove('hidden');
+            }
+        });
+
+        // Download backup
+        document.getElementById('downloadBackupBtn').addEventListener('click', () => {
+            const backup = {};
+            for (let key in localStorage) {
+                if (key.startsWith('contractorhub_')) {
+                    backup[key] = localStorage[key];
+                }
+            }
+
+            const blob = new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `maviya_backup_${new Date().toISOString().split('T')[0]}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+
+            resultPanel.className = 'p-4 rounded-lg bg-sky-100 text-sky-800 border border-sky-200';
+            resultPanel.innerHTML = `
+                <i class="fas fa-check-circle mr-2"></i>
+                Backup downloaded successfully!
+            `;
+            resultPanel.classList.remove('hidden');
+        });
+    </script>
+</body>
+</html>
