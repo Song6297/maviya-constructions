@@ -3,529 +3,856 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - Maviya Constructions</title>
+    <title>Maviya Constructions - Modern Construction Management</title>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    <link href="css/styles.css" rel="stylesheet">
     <style>
-        @keyframes float {
-            0%, 100% { transform: translateY(0px) rotate(0deg); }
-            50% { transform: translateY(-20px) rotate(5deg); }
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; scroll-behavior: smooth; }
         
-        @keyframes glow {
-            0%, 100% { box-shadow: 0 0 20px rgba(14, 165, 233, 0.3); }
-            50% { box-shadow: 0 0 40px rgba(14, 165, 233, 0.6); }
-        }
-        
-        @keyframes slideIn {
-            from { opacity: 0; transform: translateY(30px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        
-        @keyframes shimmer {
-            0% { background-position: -1000px 0; }
-            100% { background-position: 1000px 0; }
-        }
-
         body {
-            background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 50%, #0f172a 100%);
-            min-height: 100vh;
-            position: relative;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: #0a0e27;
+            color: #fff;
             overflow-x: hidden;
         }
 
-        /* Animated background particles */
-        .bg-particles {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            overflow: hidden;
+        /* Animated gradient background */
+        .hero-bg {
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, #0a0e27 0%, #1a1f3a 50%, #0a0e27 100%);
             z-index: 0;
         }
 
-        .particle {
+        .hero-bg::before {
+            content: '';
             position: absolute;
-            background: rgba(14, 165, 233, 0.1);
-            border-radius: 50%;
-            animation: float 20s infinite ease-in-out;
+            inset: 0;
+            background: 
+                radial-gradient(circle at 20% 50%, rgba(14, 165, 233, 0.15) 0%, transparent 50%),
+                radial-gradient(circle at 80% 80%, rgba(59, 130, 246, 0.15) 0%, transparent 50%);
+            animation: pulse 8s ease-in-out infinite;
         }
 
-        .particle:nth-child(1) { width: 80px; height: 80px; top: 10%; left: 10%; animation-delay: 0s; }
-        .particle:nth-child(2) { width: 60px; height: 60px; top: 60%; left: 80%; animation-delay: 2s; }
-        .particle:nth-child(3) { width: 100px; height: 100px; top: 80%; left: 20%; animation-delay: 4s; }
-        .particle:nth-child(4) { width: 40px; height: 40px; top: 30%; left: 70%; animation-delay: 1s; }
-        .particle:nth-child(5) { width: 70px; height: 70px; top: 50%; left: 50%; animation-delay: 3s; }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
 
-        .login-container {
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 2rem 1rem;
-            position: relative;
+        /* Floating construction icons */
+        .construction-icons {
+            position: absolute;
+            inset: 0;
+            overflow: hidden;
+            z-index: 2;
+            pointer-events: none;
+        }
+
+        .construction-icon {
+            position: absolute;
+            font-size: 2rem;
+            opacity: 0.1;
+            animation: float-construction 20s infinite ease-in-out;
+        }
+
+        .construction-icon:nth-child(1) { 
+            top: 10%; 
+            left: 10%; 
+            animation-delay: 0s;
+            animation-duration: 15s;
+        }
+        .construction-icon:nth-child(2) { 
+            top: 20%; 
+            right: 15%; 
+            animation-delay: 2s;
+            animation-duration: 18s;
+        }
+        .construction-icon:nth-child(3) { 
+            top: 60%; 
+            left: 5%; 
+            animation-delay: 4s;
+            animation-duration: 20s;
+        }
+        .construction-icon:nth-child(4) { 
+            top: 70%; 
+            right: 10%; 
+            animation-delay: 1s;
+            animation-duration: 16s;
+        }
+        .construction-icon:nth-child(5) { 
+            top: 40%; 
+            left: 20%; 
+            animation-delay: 3s;
+            animation-duration: 19s;
+        }
+        .construction-icon:nth-child(6) { 
+            top: 50%; 
+            right: 25%; 
+            animation-delay: 5s;
+            animation-duration: 17s;
+        }
+
+        @keyframes float-construction {
+            0%, 100% { 
+                transform: translateY(0px) rotate(0deg);
+                opacity: 0.1;
+            }
+            25% {
+                transform: translateY(-30px) rotate(5deg);
+                opacity: 0.15;
+            }
+            50% { 
+                transform: translateY(-60px) rotate(-5deg);
+                opacity: 0.08;
+            }
+            75% {
+                transform: translateY(-30px) rotate(3deg);
+                opacity: 0.12;
+            }
+        }
+
+        /* Grid pattern */
+        .grid-pattern {
+            position: absolute;
+            inset: 0;
+            background-image: 
+                linear-gradient(rgba(14, 165, 233, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(14, 165, 233, 0.03) 1px, transparent 1px);
+            background-size: 50px 50px;
             z-index: 1;
         }
 
-        .login-card {
-            background: rgba(255, 255, 255, 0.95);
+        /* Navbar */
+        nav {
             backdrop-filter: blur(20px);
-            border-radius: 2rem;
-            box-shadow: 0 25px 80px rgba(0, 0, 0, 0.4);
-            max-width: 480px;
-            width: 100%;
-            animation: slideIn 0.6s ease-out;
-            border: 1px solid rgba(255, 255, 255, 0.2);
+            background: rgba(10, 14, 39, 0.8);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
         }
 
-        .logo-circle {
-            width: 100px;
-            height: 100px;
-            background: linear-gradient(135deg, #0EA5E9 0%, #0284C7 100%);
-            border-radius: 2rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0 auto 1.5rem;
-            box-shadow: 0 15px 40px rgba(14, 165, 233, 0.4);
-            animation: glow 3s infinite ease-in-out;
-            position: relative;
+        .nav-link {
+            color: rgba(255, 255, 255, 0.7);
+            transition: color 0.3s;
+            font-size: 0.95rem;
         }
 
-        .logo-circle::before {
-            content: '';
-            position: absolute;
-            inset: -3px;
-            background: linear-gradient(135deg, #0EA5E9, #0284C7, #0EA5E9);
-            border-radius: 2rem;
-            z-index: -1;
-            opacity: 0.5;
-            filter: blur(10px);
-        }
+        .nav-link:hover { color: #fff; }
 
-        .input-group {
-            margin-bottom: 1.5rem;
-            animation: slideIn 0.6s ease-out;
-        }
-
-        .input-label {
-            display: block;
-            font-size: 0.875rem;
-            font-weight: 600;
-            color: #334155;
-            margin-bottom: 0.5rem;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .input-wrapper {
-            position: relative;
-        }
-
-        .input-icon {
-            position: absolute;
-            left: 1rem;
-            top: 50%;
-            transform: translateY(-50%);
-            color: #94a3b8;
-            font-size: 1.1rem;
-        }
-
-        .form-input {
-            width: 100%;
-            padding: 1rem 1rem 1rem 3rem;
-            border: 2px solid #e2e8f0;
-            border-radius: 1rem;
-            font-size: 1rem;
-            color: #334155;
-            transition: all 0.3s;
-            background: white;
-        }
-
-        .form-input:focus {
-            outline: none;
-            border-color: #0EA5E9;
-            box-shadow: 0 0 0 4px rgba(14, 165, 233, 0.1);
-            transform: translateY(-2px);
-        }
-
-        .btn-login {
-            width: 100%;
-            padding: 1rem 1.5rem;
-            background: linear-gradient(135deg, #0EA5E9 0%, #0284C7 100%);
+        /* Buttons */
+        .btn-primary {
+            background: linear-gradient(135deg, #0EA5E9, #3B82F6);
             color: white;
-            border: none;
-            border-radius: 1rem;
-            font-size: 1rem;
+            padding: 0.75rem 1.75rem;
+            border-radius: 0.5rem;
             font-weight: 600;
+            font-size: 0.95rem;
+            border: none;
             cursor: pointer;
             transition: all 0.3s;
-            box-shadow: 0 8px 20px rgba(14, 165, 233, 0.3);
+            box-shadow: 0 4px 20px rgba(14, 165, 233, 0.4);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(14, 165, 233, 0.5);
+        }
+
+        .btn-outline {
+            background: transparent;
+            color: #0EA5E9;
+            padding: 0.75rem 1.75rem;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            font-size: 0.95rem;
+            border: 2px solid #0EA5E9;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-outline:hover {
+            background: rgba(14, 165, 233, 0.1);
+        }
+
+        /* Hero Section */
+        .hero-section {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
             position: relative;
+            padding: 100px 0 60px;
             overflow: hidden;
         }
 
-        .btn-login::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
-            transition: left 0.5s;
+        .hero-title {
+            font-size: 3.5rem;
+            font-weight: 800;
+            line-height: 1.1;
+            background: linear-gradient(135deg, #fff 0%, #0EA5E9 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 1.5rem;
         }
 
-        .btn-login:hover::before {
-            left: 100%;
+        .hero-subtitle {
+            font-size: 1.25rem;
+            color: rgba(255, 255, 255, 0.7);
+            line-height: 1.6;
+            margin-bottom: 2rem;
         }
 
-        .btn-login:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 12px 30px rgba(14, 165, 233, 0.4);
-        }
-
-        .btn-login:active {
-            transform: translateY(-1px);
-        }
-
-        .tab-button {
-            flex: 1;
-            padding: 0.875rem 1.5rem;
-            border-radius: 0.875rem;
-            font-weight: 600;
-            font-size: 0.875rem;
+        /* Login Card */
+        .login-card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 1rem;
+            padding: 2rem;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
             transition: all 0.3s;
-            cursor: pointer;
-            border: none;
+        }
+
+        .login-card:hover {
+            background: rgba(255, 255, 255, 0.08);
+            box-shadow: 0 25px 70px rgba(14, 165, 233, 0.2);
+        }
+
+        .input-field {
+            width: 100%;
+            padding: 0.875rem 1rem;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 0.5rem;
+            color: #fff;
+            font-size: 0.95rem;
+            transition: all 0.3s;
+        }
+
+        .input-field:focus {
+            outline: none;
+            border-color: #0EA5E9;
+            background: rgba(255, 255, 255, 0.08);
+            box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.1);
+        }
+
+        .input-field::placeholder { color: rgba(255, 255, 255, 0.4); }
+
+        .tab-btn {
+            flex: 1;
+            padding: 0.75rem;
             background: transparent;
-            color: #64748b;
-        }
-
-        .tab-button.active {
-            background: linear-gradient(135deg, #0EA5E9 0%, #0284C7 100%);
-            color: white;
-            box-shadow: 0 4px 15px rgba(14, 165, 233, 0.3);
-        }
-
-        .tab-button:not(.active):hover {
-            background: #f1f5f9;
-            color: #334155;
-        }
-
-        .forgot-link {
-            color: #0EA5E9;
-            font-size: 0.875rem;
+            border: none;
+            color: rgba(255, 255, 255, 0.5);
             font-weight: 600;
+            font-size: 0.9rem;
             cursor: pointer;
-            transition: all 0.2s;
-            text-decoration: none;
+            transition: all 0.3s;
+            border-radius: 0.5rem;
         }
 
-        .forgot-link:hover {
-            color: #0284C7;
-            text-decoration: underline;
-        }
-
-        .back-button {
+        .tab-btn.active {
+            background: rgba(14, 165, 233, 0.2);
             color: #0EA5E9;
-            font-size: 0.875rem;
-            font-weight: 600;
+        }
+
+        /* Feature Cards */
+        .feature-card {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 1rem;
+            padding: 2rem;
+            transition: all 0.3s;
+        }
+
+        .feature-card:hover {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(14, 165, 233, 0.5);
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(14, 165, 233, 0.2);
+        }
+
+        .feature-icon {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, #0EA5E9, #3B82F6);
+            border-radius: 1rem;
             display: flex;
             align-items: center;
-            gap: 0.5rem;
-            cursor: pointer;
+            justify-content: center;
             margin-bottom: 1.5rem;
-            transition: all 0.2s;
-            background: none;
-            border: none;
-            padding: 0;
+            box-shadow: 0 8px 20px rgba(14, 165, 233, 0.3);
         }
 
-        .back-button:hover {
-            color: #0284C7;
-            transform: translateX(-3px);
+        .stat-number {
+            font-size: 3rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #0EA5E9, #3B82F6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
         }
+
+        /* Animations */
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .animate-fade-in-up {
+            animation: fadeInUp 0.8s ease-out forwards;
+            opacity: 0;
+        }
+
+        .delay-100 { animation-delay: 0.1s; }
+        .delay-200 { animation-delay: 0.2s; }
+        .delay-300 { animation-delay: 0.3s; }
+        .delay-400 { animation-delay: 0.4s; }
 
         .loading-spinner {
-            display: inline-block;
-            width: 50px;
-            height: 50px;
-            border: 4px solid rgba(14, 165, 233, 0.2);
+            width: 40px;
+            height: 40px;
+            border: 3px solid rgba(14, 165, 233, 0.2);
             border-top-color: #0EA5E9;
             border-radius: 50%;
             animation: spin 0.8s linear infinite;
         }
 
-        @keyframes spin {
-            to { transform: rotate(360deg); }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* Custom Cursor Trail */
+        .cursor-dot {
+            width: 8px;
+            height: 8px;
+            background: #0EA5E9;
+            border-radius: 50%;
+            position: fixed;
+            pointer-events: none;
+            z-index: 9999;
+            transition: transform 0.15s ease-out;
         }
 
-        .message-box {
-            animation: slideIn 0.3s ease-out;
+        .cursor-outline {
+            width: 32px;
+            height: 32px;
+            border: 2px solid rgba(14, 165, 233, 0.5);
+            border-radius: 50%;
+            position: fixed;
+            pointer-events: none;
+            z-index: 9998;
+            transition: transform 0.2s ease-out;
         }
 
-        .feature-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-            padding: 0.5rem 1rem;
-            background: rgba(14, 165, 233, 0.1);
-            border-radius: 2rem;
-            font-size: 0.75rem;
-            color: #0EA5E9;
-            font-weight: 600;
-            margin: 0.25rem;
+        /* Animated Gradient Background */
+        @keyframes gradient-shift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
         }
 
-        .divider {
-            display: flex;
-            align-items: center;
-            text-align: center;
-            margin: 1.5rem 0;
-            color: #94a3b8;
-            font-size: 0.875rem;
+        .animated-gradient {
+            background: linear-gradient(-45deg, #0a0e27, #1a1f3a, #0EA5E9, #3B82F6);
+            background-size: 400% 400%;
+            animation: gradient-shift 15s ease infinite;
         }
 
-        .divider::before,
-        .divider::after {
-            content: '';
-            flex: 1;
-            border-bottom: 1px solid #e2e8f0;
+        /* Animated Gradient Background */
+        @keyframes gradient-shift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
         }
 
-        .divider span {
-            padding: 0 1rem;
+        .animated-gradient {
+            background: linear-gradient(-45deg, #0a0e27, #1a1f3a, #0EA5E9, #3B82F6);
+            background-size: 400% 400%;
+            animation: gradient-shift 15s ease infinite;
+        }
+
+        /* Glassmorphism Enhanced */
+        .glass-enhanced {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(30px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+
+        /* 3D Isometric Construction Elements */
+        .isometric-building {
+            width: 100px;
+            height: 100px;
+            position: relative;
+            transform-style: preserve-3d;
+            animation: rotate3d 20s infinite linear;
+        }
+
+        @keyframes rotate3d {
+            0% { transform: rotateY(0deg) rotateX(20deg); }
+            100% { transform: rotateY(360deg) rotateX(20deg); }
+        }
+
+        .iso-cube {
+            position: absolute;
+            width: 60px;
+            height: 60px;
+            transform-style: preserve-3d;
+        }
+
+        .iso-face {
+            position: absolute;
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, #0EA5E9, #3B82F6);
+            opacity: 0.8;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .iso-face.front { transform: translateZ(30px); }
+        .iso-face.back { transform: translateZ(-30px) rotateY(180deg); }
+        .iso-face.right { transform: rotateY(90deg) translateZ(30px); }
+        .iso-face.left { transform: rotateY(-90deg) translateZ(30px); }
+        .iso-face.top { transform: rotateX(90deg) translateZ(30px); background: linear-gradient(135deg, #3B82F6, #0EA5E9); }
+        .iso-face.bottom { transform: rotateX(-90deg) translateZ(30px); }
+
+        /* Typewriter Effect */
+        .typewriter-text {
+            overflow: hidden;
+            white-space: nowrap;
+            display: inline-block;
+            animation: typing 3.5s steps(30, end);
+        }
+
+        @keyframes typing {
+            from { max-width: 0; }
+            to { max-width: 100%; }
+        }
+
+        @media (max-width: 768px) {
+            .hero-title { font-size: 2.5rem; }
+            .hero-subtitle { font-size: 1.1rem; }
+            .cursor-dot, .cursor-outline { display: none; }
         }
     </style>
 </head>
 <body>
-    <!-- Animated Background Particles -->
-    <div class="bg-particles">
-        <div class="particle"></div>
-        <div class="particle"></div>
-        <div class="particle"></div>
-        <div class="particle"></div>
-        <div class="particle"></div>
-    </div>
 
-    <!-- Login Page -->
-    <div id="loginPage" class="login-container">
-        <div class="login-card">
-            <!-- Logo & Title -->
-            <div class="text-center p-8 pb-6">
-                <div class="logo-circle">
-                    <i class="fas fa-hard-hat text-white text-5xl"></i>
+    <!-- Custom Cursor -->
+    <div class="cursor-dot"></div>
+    <div class="cursor-outline"></div>
+
+    <!-- Navigation -->
+    <nav class="fixed top-0 left-0 right-0 z-50">
+        <div class="max-w-7xl mx-auto px-6 py-4">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 bg-gradient-to-br from-sky-400 to-blue-500 rounded-lg flex items-center justify-center">
+                        <i class="fas fa-hard-hat text-white text-lg"></i>
+                    </div>
+                    <span class="text-white font-bold text-xl">Maviya Constructions</span>
                 </div>
-                <h1 class="text-3xl font-bold text-slate-800 mb-2">Maviya Constructions</h1>
-                <p class="text-slate-500 text-sm mb-4">Construction Management System</p>
-                
-                <!-- Feature Badges -->
-                <div class="flex flex-wrap justify-center gap-2 mt-4">
-                    <span class="feature-badge">
-                        <i class="fas fa-shield-alt"></i>
-                        Secure
-                    </span>
-                    <span class="feature-badge">
-                        <i class="fas fa-cloud"></i>
-                        Cloud Sync
-                    </span>
-                    <span class="feature-badge">
-                        <i class="fas fa-mobile-alt"></i>
-                        Mobile Ready
-                    </span>
+                <div class="hidden md:flex items-center gap-8">
+                    <a href="#features" class="nav-link">Features</a>
+                    <a href="#pricing" class="nav-link">Pricing</a>
+                    <a href="#about" class="nav-link">About</a>
+                    <button onclick="scrollToLogin()" class="btn-primary">Get Started</button>
+                </div>
+                <button onclick="scrollToLogin()" class="md:hidden btn-primary text-sm py-2 px-4">Login</button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero-section relative">
+        <div class="hero-bg"></div>
+        <div class="grid-pattern"></div>
+        
+        <!-- Floating Construction Icons -->
+        <div class="construction-icons">
+            <i class="fas fa-hard-hat construction-icon" style="color: #0EA5E9;"></i>
+            <i class="fas fa-hammer construction-icon" style="color: #3B82F6;"></i>
+            <i class="fas fa-tools construction-icon" style="color: #0EA5E9;"></i>
+            <i class="fas fa-drafting-compass construction-icon" style="color: #3B82F6;"></i>
+            <i class="fas fa-ruler-combined construction-icon" style="color: #0EA5E9;"></i>
+            <i class="fas fa-wrench construction-icon" style="color: #3B82F6;"></i>
+        </div>
+
+        <!-- 3D Isometric Elements - More cubes -->
+        <div style="position: absolute; top: 15%; right: 10%; z-index: 2; opacity: 0.3;">
+            <div class="isometric-building">
+                <div class="iso-cube">
+                    <div class="iso-face front"></div>
+                    <div class="iso-face back"></div>
+                    <div class="iso-face right"></div>
+                    <div class="iso-face left"></div>
+                    <div class="iso-face top"></div>
+                    <div class="iso-face bottom"></div>
                 </div>
             </div>
-
-            <!-- Login Form -->
-            <div class="px-8 pb-8">
-                <!-- Login/Signup Toggle -->
-                <div class="flex gap-2 mb-6 p-1 bg-slate-100 rounded-xl">
-                    <button id="loginTabBtn" class="tab-button active">
-                        <i class="fas fa-sign-in-alt mr-2"></i>
-                        Login
-                    </button>
-                    <button id="signupTabBtn" class="tab-button">
-                        <i class="fas fa-user-plus mr-2"></i>
-                        Sign Up
-                    </button>
+        </div>
+        <div style="position: absolute; bottom: 20%; left: 8%; z-index: 2; opacity: 0.25;">
+            <div class="isometric-building" style="animation-duration: 25s; animation-direction: reverse;">
+                <div class="iso-cube" style="width: 50px; height: 50px;">
+                    <div class="iso-face front" style="width: 50px; height: 50px;"></div>
+                    <div class="iso-face back" style="width: 50px; height: 50px;"></div>
+                    <div class="iso-face right" style="width: 50px; height: 50px;"></div>
+                    <div class="iso-face left" style="width: 50px; height: 50px;"></div>
+                    <div class="iso-face top" style="width: 50px; height: 50px;"></div>
+                    <div class="iso-face bottom" style="width: 50px; height: 50px;"></div>
                 </div>
-
-                <!-- Login Form -->
-                <div id="loginForm">
-                    <div class="input-group">
-                        <label class="input-label">
-                            <i class="fas fa-envelope text-sky-500"></i>
-                            Email Address
-                        </label>
-                        <div class="input-wrapper">
-                            <i class="fas fa-envelope input-icon"></i>
-                            <input type="email" id="loginEmail" class="form-input" placeholder="your@email.com" required>
-                        </div>
+            </div>
+        </div>
+        <div style="position: absolute; top: 50%; right: 25%; z-index: 2; opacity: 0.2;">
+            <div class="isometric-building" style="animation-duration: 18s;">
+                <div class="iso-cube" style="width: 40px; height: 40px;">
+                    <div class="iso-face front" style="width: 40px; height: 40px;"></div>
+                    <div class="iso-face back" style="width: 40px; height: 40px;"></div>
+                    <div class="iso-face right" style="width: 40px; height: 40px;"></div>
+                    <div class="iso-face left" style="width: 40px; height: 40px;"></div>
+                    <div class="iso-face top" style="width: 40px; height: 40px;"></div>
+                    <div class="iso-face bottom" style="width: 40px; height: 40px;"></div>
+                </div>
+            </div>
+        </div>
+        <div style="position: absolute; top: 30%; left: 15%; z-index: 2; opacity: 0.28;">
+            <div class="isometric-building" style="animation-duration: 22s; animation-direction: reverse;">
+                <div class="iso-cube" style="width: 45px; height: 45px;">
+                    <div class="iso-face front" style="width: 45px; height: 45px;"></div>
+                    <div class="iso-face back" style="width: 45px; height: 45px;"></div>
+                    <div class="iso-face right" style="width: 45px; height: 45px;"></div>
+                    <div class="iso-face left" style="width: 45px; height: 45px;"></div>
+                    <div class="iso-face top" style="width: 45px; height: 45px;"></div>
+                    <div class="iso-face bottom" style="width: 45px; height: 45px;"></div>
+                </div>
+            </div>
+        </div>
+        <div style="position: absolute; bottom: 35%; right: 5%; z-index: 2; opacity: 0.22;">
+            <div class="isometric-building" style="animation-duration: 28s;">
+                <div class="iso-cube" style="width: 55px; height: 55px;">
+                    <div class="iso-face front" style="width: 55px; height: 55px;"></div>
+                    <div class="iso-face back" style="width: 55px; height: 55px;"></div>
+                    <div class="iso-face right" style="width: 55px; height: 55px;"></div>
+                    <div class="iso-face left" style="width: 55px; height: 55px;"></div>
+                    <div class="iso-face top" style="width: 55px; height: 55px;"></div>
+                    <div class="iso-face bottom" style="width: 55px; height: 55px;"></div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="max-w-7xl mx-auto px-6 relative z-10">
+            <div class="grid lg:grid-cols-2 gap-12 items-center">
+                
+                <!-- Left: Hero Content -->
+                <div>
+                    <div class="inline-block px-4 py-2 bg-gradient-to-r from-sky-500/20 to-blue-500/20 rounded-full border border-sky-500/30 mb-6 animate-fade-in-up">
+                        <span class="text-sky-400 text-sm font-semibold">🚀 Modern Construction Management</span>
                     </div>
 
-                    <div class="input-group">
-                        <label class="input-label">
-                            <i class="fas fa-lock text-sky-500"></i>
-                            Password
-                        </label>
-                        <div class="input-wrapper">
-                            <i class="fas fa-lock input-icon"></i>
-                            <input type="password" id="loginPassword" class="form-input" placeholder="Enter your password" required>
+                    <!-- Logo in Hero -->
+                    <div class="flex items-center gap-4 mb-6 animate-fade-in-up delay-100">
+                        <div class="w-16 h-16 bg-gradient-to-br from-sky-400 to-blue-500 rounded-xl flex items-center justify-center shadow-lg shadow-sky-500/50">
+                            <i class="fas fa-hard-hat text-white text-2xl"></i>
+                        </div>
+                        <div>
+                            <h2 class="text-3xl font-bold text-white">Maviya Constructions</h2>
+                            <p class="text-sky-400 text-sm">Construction Management System</p>
                         </div>
                     </div>
+                    
+                    <h1 class="hero-title animate-fade-in-up delay-200">
+                        <span class="typewriter-text">Build Smarter,</span><br>
+                        <span class="typewriter-text" style="animation-delay: 1.8s;">Manage Better</span>
+                    </h1>
+                    
+                    <p class="hero-subtitle animate-fade-in-up delay-200">
+                        Complete construction management platform for Indian businesses. 
+                        Track projects, materials, labour, and finances - all in one place.
+                    </p>
 
-                    <div class="flex justify-end mb-6">
-                        <button id="forgotPasswordBtn" class="forgot-link">
-                            <i class="fas fa-key mr-1"></i>
-                            Forgot Password?
+                    <div class="mb-12 animate-fade-in-up delay-300">
+                        <button onclick="scrollToLogin()" class="btn-primary">
+                            <i class="fas fa-rocket mr-2"></i>Start Free Trial
                         </button>
                     </div>
 
-                    <button id="loginBtn" class="btn-login">
-                        <i class="fas fa-sign-in-alt mr-2"></i>
-                        Login to Dashboard
-                    </button>
-
-                    <div class="divider">
-                        <span>Quick Access</span>
-                    </div>
-
-                    <a href="login-test.html" class="block text-center text-sm text-slate-600 hover:text-sky-600 transition">
-                        <i class="fas fa-flask mr-1"></i>
-                        Try Test Mode (No Login Required)
-                    </a>
-                </div>
-
-                <!-- Signup Form -->
-                <div id="signupForm" class="hidden">
-                    <div class="input-group">
-                        <label class="input-label">
-                            <i class="fas fa-envelope text-sky-500"></i>
-                            Email Address
-                        </label>
-                        <div class="input-wrapper">
-                            <i class="fas fa-envelope input-icon"></i>
-                            <input type="email" id="signupEmail" class="form-input" placeholder="your@email.com" required>
+                    <!-- Stats -->
+                    <div class="grid grid-cols-2 gap-6 animate-fade-in-up delay-400">
+                        <div>
+                            <div class="stat-number">100%</div>
+                            <div class="text-sm text-gray-400">Cloud Secure</div>
+                        </div>
+                        <div>
+                            <div class="stat-number">24/7</div>
+                            <div class="text-sm text-gray-400">Access</div>
                         </div>
                     </div>
-
-                    <div class="input-group">
-                        <label class="input-label">
-                            <i class="fas fa-lock text-sky-500"></i>
-                            Password
-                        </label>
-                        <div class="input-wrapper">
-                            <i class="fas fa-lock input-icon"></i>
-                            <input type="password" id="signupPassword" class="form-input" placeholder="At least 6 characters" required>
-                        </div>
-                        <p class="text-xs text-slate-500 mt-2 ml-1">
-                            <i class="fas fa-info-circle mr-1"></i>
-                            Minimum 6 characters required
-                        </p>
-                    </div>
-
-                    <div class="input-group">
-                        <label class="input-label">
-                            <i class="fas fa-check-circle text-sky-500"></i>
-                            Confirm Password
-                        </label>
-                        <div class="input-wrapper">
-                            <i class="fas fa-check-circle input-icon"></i>
-                            <input type="password" id="signupPasswordConfirm" class="form-input" placeholder="Re-enter password" required>
-                        </div>
-                    </div>
-
-                    <button id="signupBtn" class="btn-login">
-                        <i class="fas fa-user-plus mr-2"></i>
-                        Create Account
-                    </button>
                 </div>
 
-                <!-- Forgot Password Form -->
-                <div id="forgotPasswordForm" class="hidden">
-                    <button id="backToLoginBtn" class="back-button">
-                        <i class="fas fa-arrow-left"></i>
-                        Back to Login
-                    </button>
+                <!-- Right: Login Card -->
+                <div id="loginSection" class="animate-fade-in-up delay-300">
+                    <div class="login-card glass-enhanced max-w-md mx-auto">
+                        <div class="text-center mb-6">
+                            <h2 class="text-2xl font-bold text-white mb-2">Get Started</h2>
+                            <p class="text-gray-400 text-sm">Create your account or sign in</p>
+                        </div>
 
-                    <h2 class="text-xl font-bold text-slate-800 mb-2 text-center">Reset Password</h2>
-                    <p class="text-sm text-slate-600 mb-6 text-center">
-                        Enter your email to receive a password reset link
-                    </p>
+                        <!-- Tabs -->
+                        <div class="flex gap-2 mb-6 p-1 bg-black/20 rounded-lg">
+                            <button id="loginTabBtn" class="tab-btn active">Login</button>
+                            <button id="signupTabBtn" class="tab-btn">Sign Up</button>
+                        </div>
 
-                    <div class="input-group">
-                        <label class="input-label">
-                            <i class="fas fa-envelope text-sky-500"></i>
-                            Email Address
-                        </label>
-                        <div class="input-wrapper">
-                            <i class="fas fa-envelope input-icon"></i>
-                            <input type="email" id="resetEmail" class="form-input" placeholder="your@email.com" required>
+                        <!-- Login Form -->
+                        <div id="loginForm">
+                            <div class="mb-4">
+                                <label class="block text-sm font-medium text-gray-300 mb-2">Email</label>
+                                <input type="email" id="loginEmail" class="input-field" placeholder="you@company.com">
+                            </div>
+                            <div class="mb-4">
+                                <label class="block text-sm font-medium text-gray-300 mb-2">Password</label>
+                                <input type="password" id="loginPassword" class="input-field" placeholder="••••••••">
+                            </div>
+                            <div class="flex justify-end mb-6">
+                                <button id="forgotPasswordBtn" class="text-sky-400 text-sm hover:text-sky-300">
+                                    Forgot password?
+                                </button>
+                            </div>
+                            <button id="loginBtn" class="btn-primary w-full">
+                                <i class="fas fa-sign-in-alt mr-2"></i>Sign In
+                            </button>
+                        </div>
+
+                        <!-- Signup Form -->
+                        <div id="signupForm" class="hidden">
+                            <div class="mb-4">
+                                <label class="block text-sm font-medium text-gray-300 mb-2">Email</label>
+                                <input type="email" id="signupEmail" class="input-field" placeholder="you@company.com">
+                            </div>
+                            <div class="mb-4">
+                                <label class="block text-sm font-medium text-gray-300 mb-2">Password</label>
+                                <input type="password" id="signupPassword" class="input-field" placeholder="Min 6 characters">
+                            </div>
+                            <div class="mb-6">
+                                <label class="block text-sm font-medium text-gray-300 mb-2">Confirm Password</label>
+                                <input type="password" id="signupPasswordConfirm" class="input-field" placeholder="Re-enter password">
+                            </div>
+                            <button id="signupBtn" class="btn-primary w-full">
+                                <i class="fas fa-user-plus mr-2"></i>Create Account
+                            </button>
+                        </div>
+
+                        <!-- Forgot Password Form -->
+                        <div id="forgotPasswordForm" class="hidden">
+                            <button id="backToLoginBtn" class="text-sky-400 text-sm mb-4 flex items-center gap-2 hover:text-sky-300">
+                                <i class="fas fa-arrow-left"></i>Back to Login
+                            </button>
+                            <h3 class="text-xl font-bold text-white mb-2">Reset Password</h3>
+                            <p class="text-gray-400 text-sm mb-4">We'll send you a reset link</p>
+                            <div class="mb-6">
+                                <input type="email" id="resetEmail" class="input-field" placeholder="you@company.com">
+                            </div>
+                            <button id="resetPasswordBtn" class="btn-primary w-full">
+                                <i class="fas fa-paper-plane mr-2"></i>Send Reset Link
+                            </button>
+                        </div>
+
+                        <!-- Loading -->
+                        <div id="loadingIndicator" class="hidden text-center py-8">
+                            <div class="loading-spinner mx-auto mb-3"></div>
+                            <p class="text-gray-400 text-sm">Please wait...</p>
+                        </div>
+
+                        <!-- Message -->
+                        <div id="messageBox" class="hidden mt-4 p-3 rounded-lg text-sm"></div>
+
+                        <!-- Footer -->
+                        <div class="mt-6 pt-6 border-t border-white/10 text-center">
+                            <p class="text-gray-500 text-xs flex items-center justify-center gap-2">
+                                <i class="fas fa-shield-alt text-sky-400"></i>
+                                Secured by Firebase Authentication
+                            </p>
                         </div>
                     </div>
-
-                    <button id="resetPasswordBtn" class="btn-login">
-                        <i class="fas fa-paper-plane mr-2"></i>
-                        Send Reset Link
-                    </button>
                 </div>
-
-                <!-- Loading Indicator -->
-                <div id="loadingIndicator" class="hidden text-center py-8">
-                    <div class="loading-spinner mx-auto mb-4"></div>
-                    <p class="text-slate-600 font-medium">Please wait...</p>
-                </div>
-
-                <!-- Message Box -->
-                <div id="messageBox" class="hidden mt-4 p-4 rounded-xl text-sm font-medium message-box"></div>
-            </div>
-
-            <!-- Footer -->
-            <div class="px-8 pb-6 text-center border-t border-slate-100 pt-6">
-                <p class="text-slate-400 text-xs flex items-center justify-center gap-2">
-                    <i class="fas fa-shield-alt"></i>
-                    Secured by Firebase Authentication
-                </p>
             </div>
         </div>
-    </div>
+    </section>
 
-    <!-- App Content (Hidden until logged in) -->
-    <div id="appContent" class="hidden">
-        <header class="header-main sticky top-0 z-40">
-            <div class="container mx-auto px-4 py-4 flex items-center justify-between">
-                <div class="flex items-center gap-3">
-                    <div class="w-8 h-8 bg-white rounded-lg flex items-center justify-center">
-                        <i class="fas fa-hard-hat text-sky-500 text-lg"></i>
+    <!-- Features Section -->
+    <section id="features" class="py-24 relative bg-gradient-to-b from-transparent to-black/30">
+        <div class="max-w-7xl mx-auto px-6">
+            <div class="text-center mb-16">
+                <h2 class="text-4xl font-bold text-white mb-4">Everything You Need</h2>
+                <p class="text-xl text-gray-400 max-w-2xl mx-auto">
+                    Powerful features designed for construction professionals
+                </p>
+            </div>
+
+            <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-project-diagram text-white text-2xl"></i>
                     </div>
-                    <h1 class="text-lg font-bold text-white">Maviya Constructions</h1>
+                    <h3 class="text-xl font-bold text-white mb-3">Project Management</h3>
+                    <p class="text-gray-400">Track multiple projects with budgets, timelines, and real-time progress monitoring.</p>
                 </div>
-                <div class="flex items-center gap-3">
-                    <span id="userPhone" class="text-white text-sm hidden sm:inline"></span>
-                    <button id="logoutBtn" class="btn-header">
-                        <i class="fas fa-sign-out-alt"></i>
-                        <span class="hidden sm:inline">Logout</span>
-                    </button>
-                </div>
-            </div>
-        </header>
 
-        <main class="container mx-auto px-4 py-6">
-            <div class="text-center">
-                <h2 class="text-2xl font-bold text-white mb-4">Welcome!</h2>
-                <p class="text-slate-400 mb-6">Redirecting to dashboard...</p>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-boxes text-white text-2xl"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-white mb-3">Material Tracking</h3>
+                    <p class="text-gray-400">Manage inventory, track costs, and monitor material usage across all projects.</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-users text-white text-2xl"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-white mb-3">Labour Management</h3>
+                    <p class="text-gray-400">Track attendance, wages, and productivity for all workers and contractors.</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-rupee-sign text-white text-2xl"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-white mb-3">Expense Tracking</h3>
+                    <p class="text-gray-400">Record and categorize all expenses with receipt uploads and budget alerts.</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-file-invoice text-white text-2xl"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-white mb-3">Payment Management</h3>
+                    <p class="text-gray-400">Track client payments, generate invoices, and share via WhatsApp instantly.</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-chart-line text-white text-2xl"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-white mb-3">Analytics & Reports</h3>
+                    <p class="text-gray-400">Generate PDF reports, export to CSV, and visualize data with charts.</p>
+                </div>
             </div>
-        </main>
-    </div>
+        </div>
+    </section>
+
+    <!-- Pricing Section -->
+    <section id="pricing" class="py-24 relative">
+        <div class="max-w-7xl mx-auto px-6">
+            <div class="text-center mb-16">
+                <h2 class="text-4xl font-bold text-white mb-4">Simple Pricing</h2>
+                <p class="text-xl text-gray-400">Start free, upgrade when you need</p>
+            </div>
+
+            <div class="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+                <!-- Free Plan -->
+                <div class="feature-card text-center">
+                    <h3 class="text-2xl font-bold text-white mb-2">Free</h3>
+                    <div class="text-4xl font-bold text-sky-400 mb-4">₹0</div>
+                    <p class="text-gray-400 mb-6">Perfect for getting started</p>
+                    <ul class="text-left space-y-3 mb-6">
+                        <li class="flex items-center gap-2 text-gray-300">
+                            <i class="fas fa-check text-sky-400"></i>1 Project
+                        </li>
+                        <li class="flex items-center gap-2 text-gray-300">
+                            <i class="fas fa-check text-sky-400"></i>Basic Features
+                        </li>
+                        <li class="flex items-center gap-2 text-gray-300">
+                            <i class="fas fa-check text-sky-400"></i>Cloud Storage
+                        </li>
+                    </ul>
+                    <button onclick="scrollToLogin()" class="btn-outline w-full">Get Started</button>
+                </div>
+
+                <!-- Pro Plan -->
+                <div class="feature-card text-center border-2 border-sky-500 relative">
+                    <div class="absolute -top-4 left-1/2 transform -translate-x-1/2 bg-gradient-to-r from-sky-500 to-blue-500 text-white px-4 py-1 rounded-full text-sm font-semibold">
+                        Popular
+                    </div>
+                    <h3 class="text-2xl font-bold text-white mb-2">Pro</h3>
+                    <div class="text-4xl font-bold text-sky-400 mb-4">₹999<span class="text-lg text-gray-400">/mo</span></div>
+                    <p class="text-gray-400 mb-6">For growing businesses</p>
+                    <ul class="text-left space-y-3 mb-6">
+                        <li class="flex items-center gap-2 text-gray-300">
+                            <i class="fas fa-check text-sky-400"></i>Unlimited Projects
+                        </li>
+                        <li class="flex items-center gap-2 text-gray-300">
+                            <i class="fas fa-check text-sky-400"></i>All Features
+                        </li>
+                        <li class="flex items-center gap-2 text-gray-300">
+                            <i class="fas fa-check text-sky-400"></i>Priority Support
+                        </li>
+                    </ul>
+                    <button onclick="scrollToLogin()" class="btn-primary w-full">Start Free Trial</button>
+                </div>
+
+                <!-- Enterprise Plan -->
+                <div class="feature-card text-center">
+                    <h3 class="text-2xl font-bold text-white mb-2">Enterprise</h3>
+                    <div class="text-4xl font-bold text-sky-400 mb-4">Custom</div>
+                    <p class="text-gray-400 mb-6">For large organizations</p>
+                    <ul class="text-left space-y-3 mb-6">
+                        <li class="flex items-center gap-2 text-gray-300">
+                            <i class="fas fa-check text-sky-400"></i>Custom Solutions
+                        </li>
+                        <li class="flex items-center gap-2 text-gray-300">
+                            <i class="fas fa-check text-sky-400"></i>Dedicated Support
+                        </li>
+                        <li class="flex items-center gap-2 text-gray-300">
+                            <i class="fas fa-check text-sky-400"></i>On-premise Option
+                        </li>
+                    </ul>
+                    <button class="btn-outline w-full">Contact Sales</button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- About Section -->
+    <section id="about" class="py-24 relative bg-gradient-to-b from-black/30 to-transparent">
+        <div class="max-w-4xl mx-auto px-6 text-center">
+            <h2 class="text-4xl font-bold text-white mb-6">Built for Indian Construction</h2>
+            <p class="text-xl text-gray-400 mb-8 leading-relaxed">
+                Maviya Constructions is designed specifically for Indian construction businesses. 
+                With support for Indian Rupees, WhatsApp integration, and Google Drive storage, 
+                we understand your needs and deliver the tools you need to succeed.
+            </p>
+            <div class="grid grid-cols-3 gap-8 mt-12">
+                <div>
+                    <i class="fas fa-rupee-sign text-4xl text-sky-400 mb-3"></i>
+                    <p class="text-gray-300">Indian Rupee</p>
+                </div>
+                <div>
+                    <i class="fab fa-whatsapp text-4xl text-sky-400 mb-3"></i>
+                    <p class="text-gray-300">WhatsApp</p>
+                </div>
+                <div>
+                    <i class="fab fa-google-drive text-4xl text-sky-400 mb-3"></i>
+                    <p class="text-gray-300">Google Drive</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="py-12 border-t border-white/10">
+        <div class="max-w-7xl mx-auto px-6">
+            <div class="flex flex-col md:flex-row items-center justify-between gap-4">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 bg-gradient-to-br from-sky-400 to-blue-500 rounded-lg flex items-center justify-center">
+                        <i class="fas fa-hard-hat text-white"></i>
+                    </div>
+                    <span class="text-white font-bold text-lg">Maviya Constructions</span>
+                </div>
+                <p class="text-gray-500 text-sm">© 2025 Maviya Constructions. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
 
     <script type="module">
         import Auth from './js/auth.js';
-
-        // Initialize auth
         Auth.init();
 
         const loginForm = document.getElementById('loginForm');
@@ -534,15 +861,17 @@
         const loadingIndicator = document.getElementById('loadingIndicator');
         const messageBox = document.getElementById('messageBox');
 
-        const loginTabBtn = document.getElementById('loginTabBtn');
-        const signupTabBtn = document.getElementById('signupTabBtn');
+        function scrollToLogin() {
+            document.getElementById('loginSection').scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+        window.scrollToLogin = scrollToLogin;
 
         function showMessage(message, type = 'info') {
             messageBox.textContent = message;
             messageBox.className = `mt-4 p-3 rounded-lg text-sm font-medium ${
-                type === 'success' ? 'bg-emerald-100 text-emerald-800 border border-emerald-200' :
-                type === 'error' ? 'bg-rose-100 text-rose-800 border border-rose-200' :
-                'bg-sky-100 text-sky-800 border border-sky-200'
+                type === 'success' ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30' :
+                type === 'error' ? 'bg-rose-500/20 text-rose-300 border border-rose-500/30' :
+                'bg-sky-500/20 text-sky-300 border border-sky-500/30'
             }`;
             messageBox.classList.remove('hidden');
             setTimeout(() => messageBox.classList.add('hidden'), 5000);
@@ -559,87 +888,63 @@
             }
         }
 
-        // Tab switching
-        loginTabBtn.addEventListener('click', () => {
-            loginTabBtn.className = 'flex-1 py-2 px-4 rounded-md font-semibold text-sm transition bg-white text-sky-600 shadow-sm';
-            signupTabBtn.className = 'flex-1 py-2 px-4 rounded-md font-semibold text-sm transition text-slate-600 hover:text-slate-800';
-            loginForm.classList.remove('hidden');
-            signupForm.classList.add('hidden');
+        function switchTab(tab) {
+            const loginTabBtn = document.getElementById('loginTabBtn');
+            const signupTabBtn = document.getElementById('signupTabBtn');
+            
+            if (tab === 'login') {
+                loginTabBtn.classList.add('active');
+                signupTabBtn.classList.remove('active');
+                loginForm.classList.remove('hidden');
+                signupForm.classList.add('hidden');
+            } else {
+                signupTabBtn.classList.add('active');
+                loginTabBtn.classList.remove('active');
+                signupForm.classList.remove('hidden');
+                loginForm.classList.add('hidden');
+            }
             forgotPasswordForm.classList.add('hidden');
             messageBox.classList.add('hidden');
-        });
+        }
 
-        signupTabBtn.addEventListener('click', () => {
-            signupTabBtn.className = 'flex-1 py-2 px-4 rounded-md font-semibold text-sm transition bg-white text-sky-600 shadow-sm';
-            loginTabBtn.className = 'flex-1 py-2 px-4 rounded-md font-semibold text-sm transition text-slate-600 hover:text-slate-800';
-            signupForm.classList.remove('hidden');
-            loginForm.classList.add('hidden');
-            forgotPasswordForm.classList.add('hidden');
-            messageBox.classList.add('hidden');
-        });
+        document.getElementById('loginTabBtn').addEventListener('click', () => switchTab('login'));
+        document.getElementById('signupTabBtn').addEventListener('click', () => switchTab('signup'));
 
-        // Login
         document.getElementById('loginBtn').addEventListener('click', async () => {
             const email = document.getElementById('loginEmail').value.trim();
             const password = document.getElementById('loginPassword').value;
-
-            if (!email || !password) {
-                showMessage('Please enter email and password', 'error');
-                return;
-            }
-
+            if (!email || !password) { showMessage('Please enter email and password', 'error'); return; }
             showLoading(true);
             const result = await Auth.login(email, password);
             showLoading(false);
-
             if (result.success) {
-                showMessage(result.message, 'success');
-                setTimeout(() => {
-                    window.location.href = 'index.html';
-                }, 1000);
+                showMessage('Login successful! Redirecting...', 'success');
+                setTimeout(() => window.location.href = 'index.html', 1000);
             } else {
                 loginForm.classList.remove('hidden');
                 showMessage(result.message, 'error');
             }
         });
 
-        // Sign Up
         document.getElementById('signupBtn').addEventListener('click', async () => {
             const email = document.getElementById('signupEmail').value.trim();
             const password = document.getElementById('signupPassword').value;
             const confirmPassword = document.getElementById('signupPasswordConfirm').value;
-
-            if (!email || !password || !confirmPassword) {
-                showMessage('Please fill in all fields', 'error');
-                return;
-            }
-
-            if (password !== confirmPassword) {
-                showMessage('Passwords do not match', 'error');
-                return;
-            }
-
-            if (password.length < 6) {
-                showMessage('Password must be at least 6 characters', 'error');
-                return;
-            }
-
+            if (!email || !password || !confirmPassword) { showMessage('Please fill in all fields', 'error'); return; }
+            if (password !== confirmPassword) { showMessage('Passwords do not match', 'error'); return; }
+            if (password.length < 6) { showMessage('Password must be at least 6 characters', 'error'); return; }
             showLoading(true);
             const result = await Auth.signUp(email, password);
             showLoading(false);
-
             if (result.success) {
-                showMessage(result.message, 'success');
-                setTimeout(() => {
-                    window.location.href = 'index.html';
-                }, 1000);
+                showMessage('Account created! Redirecting...', 'success');
+                setTimeout(() => window.location.href = 'index.html', 1000);
             } else {
                 signupForm.classList.remove('hidden');
                 showMessage(result.message, 'error');
             }
         });
 
-        // Forgot Password
         document.getElementById('forgotPasswordBtn').addEventListener('click', () => {
             loginForm.classList.add('hidden');
             forgotPasswordForm.classList.remove('hidden');
@@ -654,54 +959,66 @@
 
         document.getElementById('resetPasswordBtn').addEventListener('click', async () => {
             const email = document.getElementById('resetEmail').value.trim();
-
-            if (!email) {
-                showMessage('Please enter your email', 'error');
-                return;
-            }
-
+            if (!email) { showMessage('Please enter your email', 'error'); return; }
             showLoading(true);
             const result = await Auth.resetPassword(email);
             showLoading(false);
-
             if (result.success) {
                 forgotPasswordForm.classList.remove('hidden');
                 showMessage(result.message, 'success');
-                setTimeout(() => {
-                    forgotPasswordForm.classList.add('hidden');
-                    loginForm.classList.remove('hidden');
-                }, 3000);
+                setTimeout(() => { forgotPasswordForm.classList.add('hidden'); loginForm.classList.remove('hidden'); }, 3000);
             } else {
                 forgotPasswordForm.classList.remove('hidden');
                 showMessage(result.message, 'error');
             }
         });
 
-        // Logout
-        document.getElementById('logoutBtn')?.addEventListener('click', async () => {
-            const result = await Auth.logout();
-            if (result.success) {
-                showMessage(result.message, 'success');
-            }
-        });
-
-        // Display user email
-        if (Auth.getCurrentUser()) {
-            const userEmailEl = document.getElementById('userEmail');
-            if (userEmailEl) {
-                userEmailEl.textContent = Auth.getEmail();
-            }
-        }
-
-        // Enter key support
-        document.getElementById('loginEmail').addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') document.getElementById('loginBtn').click();
-        });
-        document.getElementById('loginPassword').addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') document.getElementById('loginBtn').click();
+        ['loginEmail', 'loginPassword'].forEach(id => {
+            document.getElementById(id).addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') document.getElementById('loginBtn').click();
+            });
         });
         document.getElementById('signupPasswordConfirm').addEventListener('keypress', (e) => {
             if (e.key === 'Enter') document.getElementById('signupBtn').click();
+        });
+
+        // Custom Cursor Trail
+        const cursorDot = document.querySelector('.cursor-dot');
+        const cursorOutline = document.querySelector('.cursor-outline');
+
+        let mouseX = 0, mouseY = 0;
+        let outlineX = 0, outlineY = 0;
+
+        document.addEventListener('mousemove', (e) => {
+            mouseX = e.clientX;
+            mouseY = e.clientY;
+            
+            cursorDot.style.left = mouseX + 'px';
+            cursorDot.style.top = mouseY + 'px';
+        });
+
+        function animateOutline() {
+            outlineX += (mouseX - outlineX) * 0.15;
+            outlineY += (mouseY - outlineY) * 0.15;
+            
+            cursorOutline.style.left = outlineX + 'px';
+            cursorOutline.style.top = outlineY + 'px';
+            
+            requestAnimationFrame(animateOutline);
+        }
+        animateOutline();
+
+        // Cursor hover effects
+        const hoverElements = document.querySelectorAll('button, a, input, .feature-card');
+        hoverElements.forEach(el => {
+            el.addEventListener('mouseenter', () => {
+                cursorDot.style.transform = 'scale(1.5)';
+                cursorOutline.style.transform = 'scale(1.5)';
+            });
+            el.addEventListener('mouseleave', () => {
+                cursorDot.style.transform = 'scale(1)';
+                cursorOutline.style.transform = 'scale(1)';
+            });
         });
     </script>
 </body>
