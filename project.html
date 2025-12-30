@@ -160,6 +160,9 @@
                         Labour Management
                     </h2>
                     <div class="flex gap-2">
+                        <button id="markAttendanceBtn" class="btn-icon" style="background: linear-gradient(135deg, #8B5CF6 0%, #7C3AED 100%);" title="Mark Attendance">
+                            <i class="fas fa-calendar-check text-white"></i>
+                        </button>
                         <button onclick="ProjectApp.generateInvoice('labour')" class="btn-icon" style="background: linear-gradient(135deg, #10B981 0%, #059669 100%);" title="Generate Invoice">
                             <i class="fas fa-file-invoice text-white"></i>
                         </button>
@@ -173,8 +176,34 @@
                     </div>
                 </div>
                 
+                <!-- Today's Attendance Summary -->
+                <div id="attendanceSummary" class="mb-4 p-4 bg-gradient-to-br from-violet-50 to-purple-50 border border-violet-200 rounded-lg hidden">
+                    <div class="flex items-center justify-between mb-2">
+                        <h3 class="font-semibold text-slate-800"><i class="fas fa-calendar-day mr-2 text-violet-500"></i>Today's Attendance</h3>
+                        <span id="attendanceDate" class="text-sm text-slate-600"></span>
+                    </div>
+                    <div class="grid grid-cols-4 gap-3 text-center">
+                        <div class="bg-white rounded-lg p-2">
+                            <p class="text-2xl font-bold text-slate-800" id="totalWorkers">0</p>
+                            <p class="text-xs text-slate-500">Total</p>
+                        </div>
+                        <div class="bg-white rounded-lg p-2">
+                            <p class="text-2xl font-bold text-emerald-600" id="presentWorkers">0</p>
+                            <p class="text-xs text-slate-500">Present</p>
+                        </div>
+                        <div class="bg-white rounded-lg p-2">
+                            <p class="text-2xl font-bold text-rose-600" id="absentWorkers">0</p>
+                            <p class="text-xs text-slate-500">Absent</p>
+                        </div>
+                        <div class="bg-white rounded-lg p-2">
+                            <p class="text-2xl font-bold text-amber-600" id="halfDayWorkers">0</p>
+                            <p class="text-xs text-slate-500">Half Day</p>
+                        </div>
+                    </div>
+                </div>
+                
                 <div id="labourCardsContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
-                <div id="labourEmpty" class="empty-state hidden"><i class="fas fa-hard-hat"></i><p>No labour records</p></div>
+                <div id="labourEmpty" class="empty-state hidden"><i class="fas fa-hard-hat"></i><p>No workers assigned to this project</p><p class="text-sm mt-2">Click "Add Worker" to assign workers</p></div>
                 <div id="labourTotalRow" class="mt-4 p-4 bg-gradient-to-br from-emerald-50 to-green-50 border-2 border-emerald-200 rounded-lg hidden">
                     <div class="grid grid-cols-3 gap-4">
                         <div>
@@ -412,7 +441,7 @@
         </div>
     </div>
 
-    <!-- Labour Modal -->
+    <!-- Worker Modal (Add/Edit Worker) -->
     <div id="labourModal" class="modal-overlay fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 hidden">
         <div class="modal-content rounded-xl w-full max-w-lg mx-4 max-h-[90vh] overflow-y-auto">
             <div class="p-5 border-b border-gray-700 flex items-center justify-between">
@@ -421,18 +450,103 @@
             </div>
             <form id="labourForm" class="p-5 space-y-4">
                 <input type="hidden" id="labourId">
-                <div><label class="block text-sm font-semibold text-slate-700 mb-2">Worker Name *</label><input type="text" id="workerName" required class="form-input"></div>
-                <div><label class="block text-sm font-semibold text-slate-700 mb-2">Role *</label><select id="workerRole" required class="form-input"><option value="Foreman">Foreman</option><option value="Mason">Mason</option><option value="Carpenter">Carpenter</option><option value="Electrician">Electrician</option><option value="Plumber">Plumber</option><option value="Painter">Painter</option><option value="Helper">Helper</option><option value="Other">Other</option></select></div>
-                <div class="grid grid-cols-2 gap-4">
-                    <div><label class="block text-sm font-semibold text-slate-700 mb-2">Daily Wage (₹) *</label><input type="number" id="dailyWage" required min="0" class="form-input"></div>
-                    <div><label class="block text-sm font-semibold text-slate-700 mb-2">Total Amount (₹) *</label><input type="number" id="totalAmount" required min="0" class="form-input"></div>
+                <input type="hidden" id="workerId">
+                
+                <!-- Select Existing Worker or Create New -->
+                <div>
+                    <label class="block text-sm font-semibold text-slate-700 mb-2">Select Worker</label>
+                    <select id="workerSelect" class="form-input">
+                        <option value="">-- Create New Worker --</option>
+                    </select>
                 </div>
-                <div><label class="block text-sm font-semibold text-slate-700 mb-2">Amount Paid (₹)</label><input type="number" id="labourPaidAmount" min="0" step="0.01" class="form-input" placeholder="0"></div>
+                
+                <div id="newWorkerFields">
+                    <div class="mb-4"><label class="block text-sm font-semibold text-slate-700 mb-2">Worker Name *</label><input type="text" id="workerName" class="form-input" placeholder="Enter worker name"></div>
+                    <div class="mb-4"><label class="block text-sm font-semibold text-slate-700 mb-2">Phone Number</label><input type="tel" id="workerPhone" class="form-input" placeholder="Mobile number"></div>
+                </div>
+                
+                <div><label class="block text-sm font-semibold text-slate-700 mb-2">Role/Job Title *</label><select id="workerRole" required class="form-input"><option value="Foreman">Foreman</option><option value="Mason">Mason</option><option value="Carpenter">Carpenter</option><option value="Electrician">Electrician</option><option value="Plumber">Plumber</option><option value="Painter">Painter</option><option value="Welder">Welder</option><option value="Tile Worker">Tile Worker</option><option value="Helper">Helper</option><option value="Supervisor">Supervisor</option><option value="Other">Other</option></select></div>
+                
+                <div class="grid grid-cols-2 gap-4">
+                    <div><label class="block text-sm font-semibold text-slate-700 mb-2">Daily Wage (₹) *</label><input type="number" id="dailyWage" required min="0" class="form-input" placeholder="500"></div>
+                    <div><label class="block text-sm font-semibold text-slate-700 mb-2">Overtime Rate (₹/hr)</label><input type="number" id="overtimeRate" min="0" class="form-input" placeholder="100"></div>
+                </div>
+                
                 <div class="grid grid-cols-2 gap-4">
                     <div><label class="block text-sm font-semibold text-slate-700 mb-2">Start Date *</label><input type="date" id="labourStartDate" required class="form-input"></div>
                     <div><label class="block text-sm font-semibold text-slate-700 mb-2">End Date</label><input type="date" id="labourEndDate" class="form-input"></div>
                 </div>
-                <div class="flex gap-3 pt-4"><button type="button" class="cancel-modal flex-1 btn-secondary">Cancel</button><button type="submit" class="flex-1 btn-primary">Save</button></div>
+                
+                <div class="flex gap-3 pt-4"><button type="button" class="cancel-modal flex-1 btn-secondary">Cancel</button><button type="submit" class="flex-1 btn-primary">Save Worker</button></div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Attendance Sheet Modal -->
+    <div id="attendanceModal" class="modal-overlay fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 hidden">
+        <div class="modal-content rounded-xl w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto">
+            <div class="p-5 border-b border-gray-700 flex items-center justify-between">
+                <h3 class="text-lg font-semibold text-slate-800"><i class="fas fa-calendar-check mr-2 text-violet-500"></i>Mark Attendance</h3>
+                <button class="close-modal text-slate-400 hover:text-sky-600 transition"><i class="fas fa-times text-xl"></i></button>
+            </div>
+            <div class="p-5">
+                <div class="flex items-center justify-between mb-4">
+                    <input type="date" id="attendanceDateInput" class="form-input w-auto">
+                    <button id="markAllPresentBtn" class="btn-secondary text-sm"><i class="fas fa-check-double mr-1"></i>Mark All Present</button>
+                </div>
+                <div id="attendanceList" class="space-y-3 max-h-96 overflow-y-auto"></div>
+                <div class="flex gap-3 pt-4 border-t border-slate-200 mt-4">
+                    <button type="button" class="cancel-modal flex-1 btn-secondary">Close</button>
+                    <button id="saveAttendanceBtn" class="flex-1 btn-primary"><i class="fas fa-save mr-2"></i>Save Attendance</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Worker Profile Modal -->
+    <div id="workerProfileModal" class="modal-overlay fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 hidden">
+        <div class="modal-content rounded-xl w-full max-w-3xl mx-4 max-h-[90vh] overflow-y-auto">
+            <div class="p-5 border-b border-gray-700 flex items-center justify-between">
+                <h3 class="text-lg font-semibold text-slate-800"><i class="fas fa-user-hard-hat mr-2 text-sky-500"></i>Worker Profile</h3>
+                <button class="close-modal text-slate-400 hover:text-sky-600 transition"><i class="fas fa-times text-xl"></i></button>
+            </div>
+            <div id="workerProfileContent" class="p-5"></div>
+        </div>
+    </div>
+
+    <!-- Worker Payment Modal -->
+    <div id="workerPaymentModal" class="modal-overlay fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 hidden">
+        <div class="modal-content rounded-xl w-full max-w-lg mx-4 max-h-[90vh] overflow-y-auto">
+            <div class="p-5 border-b border-gray-700 flex items-center justify-between">
+                <h3 class="text-lg font-semibold text-slate-800"><i class="fas fa-money-bill-wave mr-2 text-emerald-500"></i>Pay Worker</h3>
+                <button class="close-modal text-slate-400 hover:text-sky-600 transition"><i class="fas fa-times text-xl"></i></button>
+            </div>
+            <form id="workerPaymentForm" class="p-5 space-y-4">
+                <input type="hidden" id="paymentWorkerId">
+                <input type="hidden" id="paymentAssignmentId">
+                
+                <div class="p-4 bg-slate-50 rounded-lg mb-4">
+                    <p class="text-sm text-slate-600">Worker: <span id="paymentWorkerName" class="font-semibold text-slate-800"></span></p>
+                    <p class="text-sm text-slate-600">Pending Amount: <span id="paymentPendingAmount" class="font-bold text-rose-600"></span></p>
+                </div>
+                
+                <div><label class="block text-sm font-semibold text-slate-700 mb-2">Amount (₹) *</label><input type="number" id="paymentAmount" required min="1" class="form-input" placeholder="Enter amount"></div>
+                
+                <div><label class="block text-sm font-semibold text-slate-700 mb-2">Payment Mode *</label>
+                    <select id="paymentMode" required class="form-input">
+                        <option value="Cash">Cash</option>
+                        <option value="UPI">UPI</option>
+                        <option value="Bank Transfer">Bank Transfer</option>
+                        <option value="Cheque">Cheque</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+                
+                <div><label class="block text-sm font-semibold text-slate-700 mb-2">Date *</label><input type="date" id="paymentDate" required class="form-input"></div>
+                
+                <div><label class="block text-sm font-semibold text-slate-700 mb-2">Notes</label><input type="text" id="paymentNotes" class="form-input" placeholder="Optional notes"></div>
+                
+                <div class="flex gap-3 pt-4"><button type="button" class="cancel-modal flex-1 btn-secondary">Cancel</button><button type="submit" class="flex-1 btn-primary"><i class="fas fa-check mr-2"></i>Record Payment</button></div>
             </form>
         </div>
     </div>
@@ -566,10 +680,14 @@
     <script type="module">
         import { auth, onAuthStateChanged } from './js/firebase-config.js';
         import Storage from './js/firebase-storage.js';
-        import { ProjectApp } from './js/project.js?v=9';
+        import { ProjectApp } from './js/project.js?v=17';
+        import WorkerManagement from './js/worker-management.js?v=7';
         
         window.Storage = Storage;
         window.ProjectApp = ProjectApp;
+        window.WorkerManagement = WorkerManagement;
+        
+        console.log('Modules loaded, WorkerManagement:', !!WorkerManagement);
         
         // Wait for auth state before initializing
         onAuthStateChanged(auth, async (user) => {
@@ -588,3 +706,4 @@
     </script>
 </body>
 </html>
+
