@@ -197,7 +197,11 @@ const Storage = {
         DOCUMENTS: 'documents',
         PAYMENTS: 'payments',
         ATTENDANCE: 'attendance',
-        CLIENT_PAYMENTS: 'client_payments'
+        CLIENT_PAYMENTS: 'client_payments',
+        WORKERS: 'workers',
+        WORKER_ATTENDANCE: 'worker_attendance',
+        WORKER_PAYMENTS: 'worker_payments',
+        WORKER_ASSIGNMENTS: 'worker_assignments'
     },
 
     generateId() {
@@ -337,6 +341,66 @@ const Storage = {
         async add(cp) { return await FirebaseStorage.add(Storage.COLLECTIONS.CLIENT_PAYMENTS, cp); },
         async update(id, u) { return await FirebaseStorage.update(Storage.COLLECTIONS.CLIENT_PAYMENTS, id, u); },
         async delete(id) { return await FirebaseStorage.delete(Storage.COLLECTIONS.CLIENT_PAYMENTS, id); }
+    },
+
+    // Workers Master Database (global, not project-specific)
+    workers: {
+        async getAll() { return await FirebaseStorage.getAll(Storage.COLLECTIONS.WORKERS); },
+        async getById(id) { return await FirebaseStorage.getById(Storage.COLLECTIONS.WORKERS, id); },
+        async add(w) { return await FirebaseStorage.add(Storage.COLLECTIONS.WORKERS, w); },
+        async update(id, u) { return await FirebaseStorage.update(Storage.COLLECTIONS.WORKERS, id, u); },
+        async delete(id) { return await FirebaseStorage.delete(Storage.COLLECTIONS.WORKERS, id); }
+    },
+
+    // Worker Assignments (links workers to projects)
+    workerAssignments: {
+        async getAll() { return await FirebaseStorage.getAll(Storage.COLLECTIONS.WORKER_ASSIGNMENTS); },
+        async getByProject(pid) { return await FirebaseStorage.getByProject(Storage.COLLECTIONS.WORKER_ASSIGNMENTS, pid); },
+        async getByWorker(workerId) {
+            const all = await FirebaseStorage.getAll(Storage.COLLECTIONS.WORKER_ASSIGNMENTS);
+            return all.filter(a => a.workerId === workerId);
+        },
+        async add(a) { return await FirebaseStorage.add(Storage.COLLECTIONS.WORKER_ASSIGNMENTS, a); },
+        async update(id, u) { return await FirebaseStorage.update(Storage.COLLECTIONS.WORKER_ASSIGNMENTS, id, u); },
+        async delete(id) { return await FirebaseStorage.delete(Storage.COLLECTIONS.WORKER_ASSIGNMENTS, id); }
+    },
+
+    // Worker Daily Attendance
+    workerAttendance: {
+        async getAll() { return await FirebaseStorage.getAll(Storage.COLLECTIONS.WORKER_ATTENDANCE); },
+        async getByProject(pid) { return await FirebaseStorage.getByProject(Storage.COLLECTIONS.WORKER_ATTENDANCE, pid); },
+        async getByWorker(workerId) {
+            const all = await FirebaseStorage.getAll(Storage.COLLECTIONS.WORKER_ATTENDANCE);
+            return all.filter(a => a.workerId === workerId);
+        },
+        async getByWorkerAndProject(workerId, projectId) {
+            const all = await FirebaseStorage.getAll(Storage.COLLECTIONS.WORKER_ATTENDANCE);
+            return all.filter(a => a.workerId === workerId && a.projectId === projectId);
+        },
+        async getByDate(projectId, date) {
+            const all = await FirebaseStorage.getByProject(Storage.COLLECTIONS.WORKER_ATTENDANCE, projectId);
+            return all.filter(a => a.date === date);
+        },
+        async add(a) { return await FirebaseStorage.add(Storage.COLLECTIONS.WORKER_ATTENDANCE, a); },
+        async update(id, u) { return await FirebaseStorage.update(Storage.COLLECTIONS.WORKER_ATTENDANCE, id, u); },
+        async delete(id) { return await FirebaseStorage.delete(Storage.COLLECTIONS.WORKER_ATTENDANCE, id); }
+    },
+
+    // Worker Payments
+    workerPayments: {
+        async getAll() { return await FirebaseStorage.getAll(Storage.COLLECTIONS.WORKER_PAYMENTS); },
+        async getByProject(pid) { return await FirebaseStorage.getByProject(Storage.COLLECTIONS.WORKER_PAYMENTS, pid); },
+        async getByWorker(workerId) {
+            const all = await FirebaseStorage.getAll(Storage.COLLECTIONS.WORKER_PAYMENTS);
+            return all.filter(p => p.workerId === workerId);
+        },
+        async getByWorkerAndProject(workerId, projectId) {
+            const all = await FirebaseStorage.getAll(Storage.COLLECTIONS.WORKER_PAYMENTS);
+            return all.filter(p => p.workerId === workerId && p.projectId === projectId);
+        },
+        async add(p) { return await FirebaseStorage.add(Storage.COLLECTIONS.WORKER_PAYMENTS, p); },
+        async update(id, u) { return await FirebaseStorage.update(Storage.COLLECTIONS.WORKER_PAYMENTS, id, u); },
+        async delete(id) { return await FirebaseStorage.delete(Storage.COLLECTIONS.WORKER_PAYMENTS, id); }
     }
 };
 
