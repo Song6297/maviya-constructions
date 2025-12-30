@@ -77,6 +77,7 @@ const ProjectApp = {
     docFilter: 'all',
 
     async init() {
+        console.log('ProjectApp.init() starting...');
         this.projectId = new URLSearchParams(window.location.search).get('id');
         if (!this.projectId) { window.location.href = 'index.html'; return; }
         
@@ -90,8 +91,10 @@ const ProjectApp = {
         await this.checkBudgetAlerts();
         await this.renderOverview();
         this.bindEvents();
+        console.log('ProjectApp.bindEvents() completed');
         await this.renderAllTabs();
         this.showLoading(false);
+        console.log('ProjectApp.init() completed successfully');
     },
 
     showLoading(show) {
@@ -241,12 +244,52 @@ const ProjectApp = {
         });
 
         document.getElementById('addMaterialBtn').addEventListener('click', () => this.openModal('material'));
-        document.getElementById('addLabourBtn').addEventListener('click', () => this.openModal('labour'));
+        
+        const addLabourBtn = document.getElementById('addLabourBtn');
+        console.log('addLabourBtn found:', !!addLabourBtn);
+        if (addLabourBtn) {
+            addLabourBtn.addEventListener('click', () => {
+                console.log('Add Worker button clicked');
+                this.openModal('labour');
+            });
+        }
+        
         document.getElementById('addExpenseBtn').addEventListener('click', () => this.openModal('expense'));
         document.getElementById('addDocBtn').addEventListener('click', () => this.openModal('document'));
         document.getElementById('addTransferBtn').addEventListener('click', () => this.openModal('transfer'));
         document.getElementById('addLogBtn').addEventListener('click', () => this.openModal('log'));
         document.getElementById('addClientPaymentBtn').addEventListener('click', () => this.openModal('clientPayment'));
+
+        // Worker Management Event Listeners
+        const markAttendanceBtn = document.getElementById('markAttendanceBtn');
+        console.log('markAttendanceBtn found:', !!markAttendanceBtn);
+        if (markAttendanceBtn) {
+            markAttendanceBtn.addEventListener('click', () => {
+                console.log('Mark Attendance button clicked');
+                this.openAttendanceSheet();
+            });
+        }
+        
+        const workerSelect = document.getElementById('workerSelect');
+        console.log('workerSelect found:', !!workerSelect);
+        if (workerSelect) {
+            workerSelect.addEventListener('change', (e) => this.onWorkerSelect(e.target.value));
+        }
+        
+        const attendanceDateInput = document.getElementById('attendanceDateInput');
+        if (attendanceDateInput) {
+            attendanceDateInput.addEventListener('change', (e) => this.loadAttendanceForDate(e.target.value));
+        }
+        
+        const markAllPresentBtn = document.getElementById('markAllPresentBtn');
+        if (markAllPresentBtn) {
+            markAllPresentBtn.addEventListener('click', () => this.markAllPresent());
+        }
+        
+        const saveAttendanceBtn = document.getElementById('saveAttendanceBtn');
+        if (saveAttendanceBtn) {
+            saveAttendanceBtn.addEventListener('click', () => this.saveAttendance());
+        }
 
         document.getElementById('materialForm').addEventListener('submit', e => this.handleMaterialSubmit(e));
         document.getElementById('labourForm').addEventListener('submit', e => this.handleLabourSubmit(e));
@@ -255,6 +298,7 @@ const ProjectApp = {
         document.getElementById('transferForm').addEventListener('submit', e => this.handleTransferSubmit(e));
         document.getElementById('logForm').addEventListener('submit', e => this.handleLogSubmit(e));
         document.getElementById('clientPaymentForm').addEventListener('submit', e => this.handleClientPaymentSubmit(e));
+        document.getElementById('workerPaymentForm').addEventListener('submit', e => this.handleWorkerPaymentSubmit(e));
 
         document.getElementById('materialSelect').addEventListener('change', e => {
             document.getElementById('customMaterialDiv').classList.toggle('hidden', e.target.value !== 'Other');
@@ -355,86 +399,43 @@ const ProjectApp = {
     },
 
 
-    // Labour
+    // Labour - Using new Worker Management System
     async renderLabour() {
-        const labour = await Storage.labour.getByProject(this.projectId);
-        const container = document.getElementById('labourCardsContainer');
-        const empty = document.getElementById('labourEmpty');
-        const totalRow = document.getElementById('labourTotalRow');
-
-        if (!labour.length) { container.innerHTML = ''; empty.classList.remove('hidden'); totalRow.classList.add('hidden'); return; }
-        empty.classList.add('hidden'); totalRow.classList.remove('hidden');
-
-        let total = 0, totalPaid = 0;
-        container.innerHTML = labour.map(l => {
-            const totalAmount = l.totalAmount || (l.dailyWage * (l.daysWorked || 0));
-            const paidAmount = l.paidAmount || 0;
-            const balance = totalAmount - paidAmount;
-            total += totalAmount; totalPaid += paidAmount;
-            const attendance = l.attendance || 'P';
-            
-            return `<div class="card p-4 hover:shadow-lg transition">
-                <div class="flex justify-between items-start mb-3">
-                    <div>
-                        <h3 class="font-bold text-slate-800 text-lg">${Utils.escapeHtml(l.workerName)}</h3>
-                        <span class="inline-block px-2 py-1 bg-slate-100 text-slate-700 rounded text-xs mt-1">${l.role}</span>
-                    </div>
-                    <div class="flex gap-1">
-                        <button type="button" class="action-btn" onclick="ProjectApp.shareItemWhatsApp('labour','${l.id}')"><i class="fab fa-whatsapp text-xs"></i></button>
-                        <button type="button" class="action-btn" onclick="ProjectApp.openModal('labour','${l.id}')"><i class="fas fa-pen text-xs"></i></button>
-                        <button type="button" class="action-btn delete" onclick="ProjectApp.openDeleteModal('labour','${l.id}')"><i class="fas fa-trash text-xs"></i></button>
-                    </div>
-                </div>
-                <div class="space-y-2 mb-3">
-                    <div class="flex justify-between text-sm"><span class="text-slate-600">Daily Wage</span><span class="font-semibold text-slate-800">₹${Utils.formatNumber(l.dailyWage)}</span></div>
-                    <div class="flex justify-between text-sm"><span class="text-slate-600">Total Amount</span><span class="font-bold text-sky-600">₹${Utils.formatNumber(totalAmount)}</span></div>
-                    <div class="flex justify-between text-sm"><span class="text-slate-600">Paid</span><span class="font-semibold text-emerald-600">₹${Utils.formatNumber(paidAmount)}</span></div>
-                    <div class="flex justify-between text-sm"><span class="text-slate-600">Balance</span><span class="font-semibold ${balance > 0 ? 'text-rose-600' : 'text-slate-500'}">₹${Utils.formatNumber(balance)}</span></div>
-                    ${l.startDate ? `<div class="text-xs text-slate-500">${Utils.formatDate(l.startDate)}${l.endDate ? ' - ' + Utils.formatDate(l.endDate) : ''}</div>` : ''}
-                </div>
-                <div class="pt-3 border-t border-slate-200">
-                    <div class="flex items-center justify-between">
-                        <span class="text-xs text-slate-600">Attendance</span>
-                        <div class="flex gap-1">
-                            <button type="button" onclick="ProjectApp.updateAttendance('${l.id}','P')" class="px-3 py-1 rounded text-xs font-semibold ${attendance === 'P' ? 'bg-emerald-500 text-white' : 'bg-slate-100 text-slate-600'}">P</button>
-                            <button type="button" onclick="ProjectApp.updateAttendance('${l.id}','A')" class="px-3 py-1 rounded text-xs font-semibold ${attendance === 'A' ? 'bg-rose-500 text-white' : 'bg-slate-100 text-slate-600'}">A</button>
-                        </div>
-                    </div>
-                </div>
-            </div>`;
-        }).join('');
-        
-        const totalBalance = total - totalPaid;
-        document.getElementById('labourTotalAmount').textContent = `₹${Utils.formatNumber(total)}`;
-        document.getElementById('labourTotalPaid').textContent = `₹${Utils.formatNumber(totalPaid)}`;
-        document.getElementById('labourTotalBalance').textContent = `₹${Utils.formatNumber(Math.max(0, totalBalance))}`;
-    },
-
-    async updateAttendance(labourId, status) {
-        await Storage.labour.update(labourId, { attendance: status });
-        await this.renderLabour();
-        this.showToast(`Attendance marked: ${status === 'P' ? 'Present' : 'Absent'}`, 'success');
+        if (window.WorkerManagement) {
+            await window.WorkerManagement.renderLabour(this.projectId);
+        } else {
+            // Fallback to old system if WorkerManagement not loaded
+            const container = document.getElementById('labourCardsContainer');
+            const empty = document.getElementById('labourEmpty');
+            container.innerHTML = '';
+            empty.classList.remove('hidden');
+            document.getElementById('labourTotalRow').classList.add('hidden');
+            document.getElementById('attendanceSummary').classList.add('hidden');
+        }
     },
 
     async handleLabourSubmit(e) {
         e.preventDefault();
-        const id = document.getElementById('labourId').value;
-        const data = {
-            projectId: this.projectId,
-            workerName: document.getElementById('workerName').value.trim(),
-            role: document.getElementById('workerRole').value,
-            dailyWage: parseFloat(document.getElementById('dailyWage').value),
-            totalAmount: parseFloat(document.getElementById('totalAmount').value),
-            startDate: document.getElementById('labourStartDate').value,
-            endDate: document.getElementById('labourEndDate').value || null,
-            paidAmount: parseFloat(document.getElementById('labourPaidAmount').value) || 0,
-            attendance: 'P'
-        };
         this.showLoading(true);
-        if (id) await Storage.labour.update(id, data); else await Storage.labour.add(data);
-        this.closeAllModals(); await this.renderLabour(); await this.renderOverview(); await this.checkBudgetAlerts();
+        
+        try {
+            if (window.WorkerManagement) {
+                const success = await window.WorkerManagement.handleLabourSubmit(e, this.projectId);
+                if (success) {
+                    await window.WorkerManagement.loadWorkerDropdown();
+                    this.closeAllModals();
+                    await this.renderLabour();
+                    await this.renderOverview();
+                    await this.checkBudgetAlerts();
+                    this.showToast('Worker assigned successfully', 'success');
+                }
+            }
+        } catch (error) {
+            console.error('Error saving worker:', error);
+            this.showToast('Error saving worker', 'error');
+        }
+        
         this.showLoading(false);
-        this.showToast('Labour saved', 'success');
     },
 
     // Expenses
@@ -899,26 +900,55 @@ const ProjectApp = {
                 }
             } else { document.getElementById('materialModalTitle').textContent = 'Add Material'; }
         } else if (type === 'labour') {
-            document.getElementById('labourId').value = '';
-            document.getElementById('labourStartDate').value = today;
-            document.getElementById('labourEndDate').value = '';
-            document.getElementById('labourPaidAmount').value = '0';
+            const labourIdEl = document.getElementById('labourId');
+            const workerIdEl = document.getElementById('workerId');
+            const startDateEl = document.getElementById('labourStartDate');
+            const endDateEl = document.getElementById('labourEndDate');
+            const workerNameEl = document.getElementById('workerName');
+            const workerPhoneEl = document.getElementById('workerPhone');
+            const dailyWageEl = document.getElementById('dailyWage');
+            const overtimeRateEl = document.getElementById('overtimeRate');
+            const newWorkerFieldsEl = document.getElementById('newWorkerFields');
+            const workerSelectEl = document.getElementById('workerSelect');
+            
+            if (labourIdEl) labourIdEl.value = '';
+            if (workerIdEl) workerIdEl.value = '';
+            if (startDateEl) startDateEl.value = today;
+            if (endDateEl) endDateEl.value = '';
+            if (workerNameEl) workerNameEl.value = '';
+            if (workerPhoneEl) workerPhoneEl.value = '';
+            if (dailyWageEl) dailyWageEl.value = '';
+            if (overtimeRateEl) overtimeRateEl.value = '';
+            if (newWorkerFieldsEl) newWorkerFieldsEl.style.display = 'block';
+            
+            // Load workers dropdown
+            if (window.WorkerManagement) {
+                await window.WorkerManagement.loadWorkerDropdown();
+            }
+            if (workerSelectEl) workerSelectEl.value = '';
             
             if (id) {
-                const labour = await Storage.labour.getByProject(this.projectId);
-                const l = labour.find(lab => lab.id === id);
-                if (l) {
-                    document.getElementById('labourModalTitle').textContent = 'Edit Worker';
-                    document.getElementById('labourId').value = l.id;
-                    document.getElementById('workerName').value = l.workerName;
-                    document.getElementById('workerRole').value = l.role;
-                    document.getElementById('dailyWage').value = l.dailyWage;
-                    document.getElementById('totalAmount').value = l.totalAmount || (l.dailyWage * (l.daysWorked || 0));
-                    document.getElementById('labourStartDate').value = l.startDate;
-                    document.getElementById('labourEndDate').value = l.endDate || '';
-                    document.getElementById('labourPaidAmount').value = l.paidAmount || 0;
+                // Edit existing assignment
+                const assignments = await Storage.workerAssignments.getByProject(this.projectId);
+                const assignment = assignments.find(a => a.id === id);
+                if (assignment) {
+                    const titleEl = document.getElementById('labourModalTitle');
+                    const roleEl = document.getElementById('workerRole');
+                    if (titleEl) titleEl.textContent = 'Edit Worker Assignment';
+                    if (labourIdEl) labourIdEl.value = assignment.id;
+                    if (workerIdEl) workerIdEl.value = assignment.workerId;
+                    if (workerSelectEl) workerSelectEl.value = assignment.workerId;
+                    if (roleEl) roleEl.value = assignment.role;
+                    if (dailyWageEl) dailyWageEl.value = assignment.dailyWage;
+                    if (overtimeRateEl) overtimeRateEl.value = assignment.overtimeRate || '';
+                    if (startDateEl) startDateEl.value = assignment.startDate;
+                    if (endDateEl) endDateEl.value = assignment.endDate || '';
+                    if (newWorkerFieldsEl) newWorkerFieldsEl.style.display = 'none';
                 }
-            } else { document.getElementById('labourModalTitle').textContent = 'Add Worker'; }
+            } else { 
+                const titleEl = document.getElementById('labourModalTitle');
+                if (titleEl) titleEl.textContent = 'Add Worker'; 
+            }
         } else if (type === 'expense') {
             document.getElementById('expenseId').value = '';
             document.getElementById('expenseDate').value = today;
@@ -978,8 +1008,8 @@ const ProjectApp = {
 
     closeAllModals() {
         document.querySelectorAll('.modal-overlay').forEach(m => {
+            m.classList.add('hidden');
             m.classList.remove('active');
-            setTimeout(() => m.classList.add('hidden'), 300);
         });
     },
 
@@ -1001,6 +1031,7 @@ const ProjectApp = {
         this.showLoading(true);
         if (type === 'material') await Storage.materials.delete(id);
         else if (type === 'labour') await Storage.labour.delete(id);
+        else if (type === 'workerAssignment') await Storage.workerAssignments.delete(id);
         else if (type === 'expense') await Storage.expenses.delete(id);
         else if (type === 'document') await Storage.documents.delete(id);
         else if (type === 'transfer') await Storage.budgetTransfers.delete(id);
@@ -1084,6 +1115,77 @@ const ProjectApp = {
         }));
         Utils.exportToCSV(data, `${this.project.name}_Expenses.csv`);
     },
+
+    // ===== WORKER MANAGEMENT FUNCTIONS =====
+    
+    async openAttendanceSheet() {
+        console.log('openAttendanceSheet called, WorkerManagement:', !!window.WorkerManagement);
+        if (window.WorkerManagement) {
+            try {
+                await window.WorkerManagement.openAttendanceSheet(this.projectId);
+                console.log('openAttendanceSheet completed');
+            } catch (error) {
+                console.error('Error in openAttendanceSheet:', error);
+                this.showToast('Error opening attendance sheet', 'error');
+            }
+        } else {
+            console.error('WorkerManagement not loaded');
+            this.showToast('Worker Management not loaded', 'error');
+        }
+    },
+
+    async saveAttendance() {
+        this.showLoading(true);
+        try {
+            const success = await window.WorkerManagement.saveAttendance(this.projectId);
+            if (success) {
+                this.closeAllModals();
+                await this.renderLabour();
+                this.showToast('Attendance saved successfully', 'success');
+            }
+        } catch (error) {
+            console.error('Error saving attendance:', error);
+            this.showToast('Error saving attendance', 'error');
+        }
+        this.showLoading(false);
+    },
+
+    markAllPresent() {
+        if (window.WorkerManagement) {
+            window.WorkerManagement.markAllPresent();
+        }
+    },
+
+    async loadAttendanceForDate(date) {
+        if (window.WorkerManagement) {
+            await window.WorkerManagement.loadAttendanceForDate(date, this.projectId);
+        }
+    },
+
+    onWorkerSelect(value) {
+        if (window.WorkerManagement) {
+            window.WorkerManagement.onWorkerSelect(value);
+        }
+    },
+
+    async handleWorkerPaymentSubmit(e) {
+        e.preventDefault();
+        this.showLoading(true);
+        try {
+            const success = await window.WorkerManagement.handleWorkerPaymentSubmit(e, this.projectId);
+            if (success) {
+                this.closeAllModals();
+                await this.renderLabour();
+                this.showToast('Payment recorded successfully', 'success');
+            }
+        } catch (error) {
+            console.error('Error recording payment:', error);
+            this.showToast('Error recording payment', 'error');
+        }
+        this.showLoading(false);
+    },
+
+    // ===== END WORKER MANAGEMENT =====
 
     // Utilities
     async getEffectiveBudget() {
