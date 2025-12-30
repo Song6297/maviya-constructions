@@ -863,3 +863,26 @@ body {
     font-size: 1.125rem;
     flex-shrink: 0;
 }
+
+
+/* Worker Management - Attendance Buttons */
+.attendance-btn {
+    padding: 0.5rem 0.75rem;
+    border-radius: 0.5rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    border: 1px solid #e2e8f0;
+    cursor: pointer;
+    transition: all 0.3s;
+    display: inline-flex;
+    align-items: center;
+}
+
+.attendance-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.attendance-btn.bg-emerald-500 { background: #10B981; border-color: #10B981; }
+.attendance-btn.bg-amber-500 { background: #F59E0B; border-color: #F59E0B; }
+.attendance-btn.bg-rose-500 { background: #F43F5E; border-color: #F43F5E; }
