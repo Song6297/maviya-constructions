@@ -65,6 +65,15 @@
                                 <p class="text-xs text-slate-500">Export labour records</p>
                             </div>
                         </button>
+                        <button onclick="ProjectApp.exportVendors()" class="export-menu-item">
+                            <div class="export-icon bg-orange-100">
+                                <i class="fas fa-file-csv text-orange-600"></i>
+                            </div>
+                            <div class="flex-1 text-left">
+                                <p class="font-semibold text-slate-800">Vendors CSV</p>
+                                <p class="text-xs text-slate-500">Export vendor data</p>
+                            </div>
+                        </button>
                         <button onclick="ProjectApp.exportExpenses()" class="export-menu-item">
                             <div class="export-icon bg-violet-100">
                                 <i class="fas fa-file-csv text-violet-600"></i>
@@ -94,11 +103,13 @@
         <nav class="card rounded-t-2xl border-b-0 flex overflow-x-auto">
             <button class="tab-btn active" data-tab="materials"><i class="fas fa-boxes mr-2"></i>Materials</button>
             <button class="tab-btn" data-tab="labour"><i class="fas fa-users mr-2"></i>Labour</button>
+            <button class="tab-btn" data-tab="vendors"><i class="fas fa-handshake mr-2"></i>Vendors</button>
             <button class="tab-btn" data-tab="expenses"><i class="fas fa-receipt mr-2"></i>Expenses</button>
             <button class="tab-btn" data-tab="documents"><i class="fas fa-folder mr-2"></i>Documents</button>
-            <button class="tab-btn" data-tab="budget"><i class="fas fa-exchange-alt mr-2"></i>Budget</button>
+
             <button class="tab-btn" data-tab="logs"><i class="fas fa-clipboard-list mr-2"></i>Logs</button>
             <button class="tab-btn" data-tab="summary"><i class="fas fa-chart-pie mr-2"></i>Summary</button>
+            <button class="tab-btn" data-tab="funds"><i class="fas fa-wallet mr-2"></i>Fund Status</button>
         </nav>
 
         <div class="card rounded-t-none border-t-0">
@@ -222,6 +233,49 @@
                 </div>
             </div>
 
+            <!-- Vendors Tab -->
+            <div id="vendorsTab" class="tab-content p-5 hidden">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+                    <h2 class="text-xl font-bold text-slate-800 flex items-center gap-3">
+                        <div class="w-10 h-10 bg-gradient-to-br from-orange-400 to-red-500 rounded-xl flex items-center justify-center shadow-lg">
+                            <i class="fas fa-handshake text-white text-lg"></i>
+                        </div>
+                        Vendor Management
+                    </h2>
+                    <div class="flex gap-2">
+                        <button onclick="ProjectApp.generateInvoice('vendors')" class="btn-icon" style="background: linear-gradient(135deg, #F97316 0%, #EA580C 100%);" title="Generate Invoice">
+                            <i class="fas fa-file-invoice text-white"></i>
+                        </button>
+                        <button onclick="ProjectApp.shareVendorsWhatsApp()" class="btn-icon btn-whatsapp" title="Share on WhatsApp">
+                            <i class="fab fa-whatsapp"></i>
+                        </button>
+                        <button id="addVendorBtn" class="btn-add">
+                            <i class="fas fa-plus"></i>
+                            <span>Add Vendor</span>
+                        </button>
+                    </div>
+                </div>
+                
+                <div id="vendorCardsContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+                <div id="vendorEmpty" class="empty-state hidden"><i class="fas fa-handshake"></i><p>No vendors assigned to this project</p><p class="text-sm mt-2">Click "Add Vendor" to add vendor services</p></div>
+                <div id="vendorTotalRow" class="mt-4 p-4 bg-gradient-to-br from-orange-50 to-red-50 border-2 border-orange-200 rounded-lg hidden">
+                    <div class="grid grid-cols-3 gap-4">
+                        <div>
+                            <p class="text-xs text-slate-600">Total Cost</p>
+                            <p id="vendorTotalAmount" class="text-xl font-bold text-orange-600">₹0</p>
+                        </div>
+                        <div>
+                            <p class="text-xs text-slate-600">Total Paid</p>
+                            <p id="vendorTotalPaid" class="text-xl font-bold text-emerald-600">₹0</p>
+                        </div>
+                        <div>
+                            <p class="text-xs text-slate-600">Balance Due</p>
+                            <p id="vendorTotalBalance" class="text-xl font-bold text-rose-600">₹0</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!-- Expenses Tab -->
             <div id="expensesTab" class="tab-content p-5 hidden">
                 <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
@@ -273,28 +327,6 @@
             </div>
 
             <!-- Budget Tab -->
-            <div id="budgetTab" class="tab-content p-5 hidden">
-                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
-                    <h2 class="text-xl font-bold text-slate-800 flex items-center gap-3">
-                        <div class="w-10 h-10 bg-gradient-to-br from-indigo-400 to-blue-500 rounded-xl flex items-center justify-center shadow-lg">
-                            <i class="fas fa-exchange-alt text-white text-lg"></i>
-                        </div>
-                        Budget Transfers
-                    </h2>
-                    <button id="addTransferBtn" class="btn-add">
-                        <i class="fas fa-plus"></i>
-                        <span>New Transfer</span>
-                    </button>
-                </div>
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                    <div class="summary-card"><p class="text-slate-600 text-sm">Original Budget</p><p id="originalBudget" class="text-2xl font-bold text-slate-800">₹0</p></div>
-                    <div class="summary-card accent"><p class="text-slate-600 text-sm">Transferred Out</p><p id="transferredOut" class="text-2xl font-bold text-sky-600">₹0</p></div>
-                    <div class="summary-card success"><p class="text-slate-600 text-sm">Received</p><p id="transferredIn" class="text-2xl font-bold text-emerald-600">₹0</p></div>
-                </div>
-                <div class="overflow-x-auto"><table class="data-table"><thead><tr><th>Type</th><th>Project</th><th>Amount</th><th>Reason</th><th>Date</th><th>Actions</th></tr></thead><tbody id="transfersTableBody"></tbody></table></div>
-                <div id="transfersEmpty" class="empty-state hidden"><i class="fas fa-exchange-alt"></i><p>No transfers</p></div>
-            </div>
-
             <!-- Logs Tab -->
             <div id="logsTab" class="tab-content p-5 hidden">
                 <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
@@ -346,6 +378,100 @@
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                     <div class="bg-gradient-to-br from-slate-50 to-gray-50 border-2 border-slate-200 rounded-lg p-4"><h3 class="text-slate-700 font-semibold mb-4">Expense Breakdown</h3><div class="chart-container"><canvas id="expenseChart"></canvas></div></div>
                     <div class="bg-gradient-to-br from-slate-50 to-gray-50 border-2 border-slate-200 rounded-lg p-4"><h3 class="text-slate-700 font-semibold mb-4">Budget vs Spent</h3><div class="chart-container"><canvas id="budgetChart"></canvas></div></div>
+                </div>
+            </div>
+
+            <!-- Fund Status Tab -->
+            <div id="fundsTab" class="tab-content p-5 hidden">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+                    <h2 class="text-xl font-bold text-slate-800 flex items-center gap-3">
+                        <div class="w-10 h-10 bg-gradient-to-br from-emerald-400 to-green-500 rounded-xl flex items-center justify-center shadow-lg">
+                            <i class="fas fa-wallet text-white text-lg"></i>
+                        </div>
+                        Fund Management Status
+                    </h2>
+                    <div class="flex gap-2">
+                        <button onclick="ProjectApp.generateFundStatusPDF()" class="btn-primary text-sm px-4 py-2 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700">
+                            <i class="fas fa-file-pdf mr-2"></i>Fund Status PDF
+                        </button>
+                        <button onclick="window.open('funds.html', '_blank')" class="btn-secondary text-sm px-4 py-2 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-600 hover:to-blue-700 text-white">
+                            <i class="fas fa-external-link-alt mr-2"></i>Fund Management
+                        </button>
+                        <button id="refreshFundStatusBtn" class="btn-secondary text-sm px-3 py-2 rounded-lg shadow-md hover:shadow-lg transition-all duration-200">
+                            <i class="fas fa-sync-alt mr-1"></i>Refresh
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Virtual Wallet Status -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                    <div class="metric-card">
+                        <p class="text-slate-600 text-sm">Virtual Balance</p>
+                        <p id="virtualBalance" class="font-bold text-2xl text-sky-600">₹0</p>
+                        <p class="text-xs text-slate-500 mt-1">Available funds</p>
+                    </div>
+                    <div class="metric-card">
+                        <p class="text-slate-600 text-sm">Loans Given</p>
+                        <p id="loansGiven" class="font-bold text-2xl text-amber-600">₹0</p>
+                        <p class="text-xs text-slate-500 mt-1">To other projects</p>
+                    </div>
+                    <div class="metric-card">
+                        <p class="text-slate-600 text-sm">Loans Received</p>
+                        <p id="loansReceived" class="font-bold text-2xl text-rose-600">₹0</p>
+                        <p class="text-xs text-slate-500 mt-1">From other projects</p>
+                    </div>
+                    <div class="metric-card">
+                        <p class="text-slate-600 text-sm">Net Available</p>
+                        <p id="netAvailable" class="font-bold text-2xl text-emerald-600">₹0</p>
+                        <p class="text-xs text-slate-500 mt-1">After loans</p>
+                    </div>
+                </div>
+
+                <!-- Fund Details Sections -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <!-- Payment Allocations -->
+                    <div class="card p-4">
+                        <h3 class="font-semibold text-slate-800 mb-3 flex items-center gap-2">
+                            <i class="fas fa-money-bill-wave text-emerald-500"></i>
+                            Payment Allocations Received
+                        </h3>
+                        <div id="paymentAllocationsContainer" class="space-y-2 max-h-64 overflow-y-auto">
+                            <!-- Dynamic content -->
+                        </div>
+                    </div>
+
+                    <!-- Active Loans Given -->
+                    <div class="card p-4">
+                        <h3 class="font-semibold text-slate-800 mb-3 flex items-center gap-2">
+                            <i class="fas fa-hand-holding-usd text-amber-500"></i>
+                            Loans Given to Projects
+                        </h3>
+                        <div id="loansGivenContainer" class="space-y-2 max-h-64 overflow-y-auto">
+                            <!-- Dynamic content -->
+                        </div>
+                    </div>
+
+                    <!-- Active Loans Received -->
+                    <div class="card p-4">
+                        <h3 class="font-semibold text-slate-800 mb-3 flex items-center gap-2">
+                            <i class="fas fa-handshake text-rose-500"></i>
+                            Loans Received from Projects
+                        </h3>
+                        <div id="loansReceivedContainer" class="space-y-2 max-h-64 overflow-y-auto">
+                            <!-- Dynamic content -->
+                        </div>
+                    </div>
+
+                    <!-- Cross-Project Expenses -->
+                    <div class="card p-4">
+                        <h3 class="font-semibold text-slate-800 mb-3 flex items-center gap-2">
+                            <i class="fas fa-exchange-alt text-violet-500"></i>
+                            Cross-Project Expenses
+                        </h3>
+                        <div id="crossProjectExpensesContainer" class="space-y-2 max-h-64 overflow-y-auto">
+                            <!-- Dynamic content -->
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -551,6 +677,98 @@
         </div>
     </div>
 
+    <!-- Vendor Modal (Add/Edit Vendor) -->
+    <div id="vendorModal" class="modal-overlay fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 hidden">
+        <div class="modal-content rounded-xl w-full max-w-lg mx-4 max-h-[90vh] overflow-y-auto">
+            <div class="p-5 border-b border-gray-700 flex items-center justify-between">
+                <h3 id="vendorModalTitle" class="text-lg font-semibold text-slate-800">Add Vendor</h3>
+                <button class="close-modal text-slate-400 hover:text-sky-600 transition"><i class="fas fa-times text-xl"></i></button>
+            </div>
+            <form id="vendorForm" class="p-5 space-y-4">
+                <input type="hidden" id="vendorId">
+                
+                <div>
+                    <label class="block text-sm font-semibold text-slate-700 mb-2">Vendor Name *</label>
+                    <input type="text" id="vendorName" required class="form-input" placeholder="Enter vendor name">
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-semibold text-slate-700 mb-2">Phone Number</label>
+                    <input type="tel" id="vendorPhone" class="form-input" placeholder="Enter phone number">
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-semibold text-slate-700 mb-2">Service Type *</label>
+                    <select id="vendorServiceType" required class="form-input">
+                        <option value="">Select service type</option>
+                    </select>
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-semibold text-slate-700 mb-2">Work Description *</label>
+                    <textarea id="vendorWorkDescription" required class="form-input" rows="3" placeholder="Describe the work to be done"></textarea>
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-semibold text-slate-700 mb-2">Agreed Cost (₹) *</label>
+                    <input type="number" id="vendorAgreedCost" required min="0" step="0.01" class="form-input" placeholder="Enter agreed cost">
+                </div>
+                
+                <div class="flex gap-3 pt-4">
+                    <button type="button" class="cancel-modal flex-1 btn-secondary">Cancel</button>
+                    <button type="submit" class="flex-1 btn-primary"><i class="fas fa-check mr-2"></i>Save Vendor</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Vendor Payment Modal -->
+    <div id="vendorPaymentModal" class="modal-overlay fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 hidden">
+        <div class="modal-content rounded-xl w-full max-w-lg mx-4 max-h-[90vh] overflow-y-auto">
+            <div class="p-5 border-b border-gray-700 flex items-center justify-between">
+                <h3 class="text-lg font-semibold text-slate-800">Pay Vendor</h3>
+                <button class="close-modal text-slate-400 hover:text-sky-600 transition"><i class="fas fa-times text-xl"></i></button>
+            </div>
+            <form id="vendorPaymentForm" class="p-5 space-y-4">
+                <input type="hidden" id="vendorPaymentVendorId">
+                
+                <div class="bg-slate-50 p-4 rounded-lg">
+                    <p class="text-sm text-slate-600">Vendor</p>
+                    <p id="vendorPaymentVendorName" class="font-semibold text-slate-800">-</p>
+                    <p class="text-sm text-slate-600 mt-2">Pending Amount</p>
+                    <p id="vendorPaymentPendingAmount" class="text-xl font-bold text-rose-600">₹0</p>
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-semibold text-slate-700 mb-2">Payment Amount (₹) *</label>
+                    <input type="number" id="vendorPaymentAmount" required min="0" step="0.01" class="form-input" placeholder="Enter payment amount">
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-semibold text-slate-700 mb-2">Payment Method *</label>
+                    <select id="vendorPaymentMethod" required class="form-input">
+                        <option value="">Select payment method</option>
+                    </select>
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-semibold text-slate-700 mb-2">Payment Date *</label>
+                    <input type="date" id="vendorPaymentDate" required class="form-input">
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-semibold text-slate-700 mb-2">Notes</label>
+                    <input type="text" id="vendorPaymentNotes" class="form-input" placeholder="Optional notes">
+                </div>
+                
+                <div class="flex gap-3 pt-4">
+                    <button type="button" class="cancel-modal flex-1 btn-secondary">Cancel</button>
+                    <button type="submit" class="flex-1 btn-primary"><i class="fas fa-check mr-2"></i>Record Payment</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <!-- Expense Modal -->
     <div id="expenseModal" class="modal-overlay fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 hidden">
         <div class="modal-content rounded-xl w-full max-w-lg mx-4 max-h-[90vh] overflow-y-auto">
@@ -597,24 +815,6 @@
             <button class="close-modal absolute top-4 right-4 text-white text-2xl hover:text-sky-400 transition"><i class="fas fa-times"></i></button>
             <div id="previewContent" class="flex items-center justify-center"></div>
             <p id="previewTitle" class="text-center text-white mt-4"></p>
-        </div>
-    </div>
-
-    <!-- Transfer Modal -->
-    <div id="transferModal" class="modal-overlay fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 hidden">
-        <div class="modal-content rounded-xl w-full max-w-lg mx-4 max-h-[90vh] overflow-y-auto">
-            <div class="p-5 border-b border-gray-700 flex items-center justify-between">
-                <h3 class="text-lg font-semibold text-slate-800">Budget Transfer</h3>
-                <button class="close-modal text-slate-400 hover:text-sky-600 transition"><i class="fas fa-times text-xl"></i></button>
-            </div>
-            <form id="transferForm" class="p-5 space-y-4">
-                <div><label class="block text-sm font-medium text-gray-300 mb-1">Transfer Type *</label><select id="transferType" required class="form-input"><option value="out">Transfer OUT</option><option value="in">Receive IN</option></select></div>
-                <div><label class="block text-sm font-medium text-gray-300 mb-1">Project *</label><select id="transferProject" required class="form-input"></select></div>
-                <div><label class="block text-sm font-medium text-gray-300 mb-1">Amount (₹) *</label><input type="number" id="transferAmount" required min="1" class="form-input"></div>
-                <div><label class="block text-sm font-medium text-gray-300 mb-1">Reason *</label><input type="text" id="transferReason" required class="form-input"></div>
-                <div><label class="block text-sm font-medium text-gray-300 mb-1">Date *</label><input type="date" id="transferDate" required class="form-input"></div>
-                <div class="flex gap-3 pt-4"><button type="button" class="cancel-modal flex-1 btn-secondary">Cancel</button><button type="submit" class="flex-1 btn-primary">Transfer</button></div>
-            </form>
         </div>
     </div>
 
@@ -680,14 +880,18 @@
     <script type="module">
         import { auth, onAuthStateChanged } from './js/firebase-config.js';
         import Storage from './js/firebase-storage.js';
-        import { ProjectApp } from './js/project.js?v=17';
+        import { ProjectApp } from './js/project.js?v=20';
         import WorkerManagement from './js/worker-management.js?v=7';
+        import VendorManagement from './js/vendor-management.js?v=1';
+        import FundManagement from './js/fund-management.js?v=2';
         
         window.Storage = Storage;
         window.ProjectApp = ProjectApp;
         window.WorkerManagement = WorkerManagement;
+        window.VendorManagement = VendorManagement;
+        window.FundManagement = FundManagement;
         
-        console.log('Modules loaded, WorkerManagement:', !!WorkerManagement);
+        console.log('Modules loaded, WorkerManagement:', !!WorkerManagement, 'VendorManagement:', !!VendorManagement);
         
         // Wait for auth state before initializing
         onAuthStateChanged(auth, async (user) => {
@@ -706,4 +910,3 @@
     </script>
 </body>
 </html>
-
