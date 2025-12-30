@@ -18,7 +18,7 @@
                     <div class="w-10 h-10 bg-white rounded-xl flex items-center justify-center shadow-lg">
                         <i class="fas fa-hard-hat text-sky-500 text-xl"></i>
                     </div>
-                    <h1 class="logo">Maviya Constructions</h1>
+                    <h1 class="logo">Maviya Constructions Management</h1>
                 </div>
                 <nav class="flex items-center gap-2 sm:gap-3">
                     <a href="compare.html" class="btn btn-secondary text-xs sm:text-sm">
@@ -32,6 +32,10 @@
                     <a href="materials.html" class="btn btn-secondary text-xs sm:text-sm">
                         <i class="fas fa-boxes"></i>
                         <span class="hidden sm:inline">Stock</span>
+                    </a>
+                    <a href="funds.html" class="btn btn-secondary text-xs sm:text-sm">
+                        <i class="fas fa-wallet"></i>
+                        <span class="hidden sm:inline">Funds</span>
                     </a>
                     <!-- User Menu -->
                     <div class="relative">
@@ -376,14 +380,9 @@
         }
 
         async function getEffectiveBudget(project) {
-            const transfers = await Storage.budgetTransfers.getByProject(project.id);
-            let adj = 0;
-            transfers.forEach(t => {
-                const amount = parseFloat(t.amount) || 0;
-                if (t.fromProjectId === project.id) adj -= amount;
-                if (t.toProjectId === project.id) adj += amount;
-            });
-            return (parseFloat(project.budget) || 0) + adj;
+            // With Fund Management system, we use the original project budget
+            // Cross-project funding is handled through the virtual wallet system
+            return parseFloat(project.budget) || 0;
         }
 
         function getDaysElapsed(startDate) {
