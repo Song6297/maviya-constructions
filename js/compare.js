@@ -81,14 +81,10 @@ const CompareApp = {
             const materials = await Storage.materials.getByProject(p.id);
             const labour = await Storage.labour.getByProject(p.id);
             const expenses = await Storage.expenses.getByProject(p.id);
-            const transfers = await Storage.budgetTransfers.getByProject(p.id);
 
-            let budgetAdj = 0;
-            transfers.forEach(t => {
-                const amount = parseFloat(t.amount) || 0;
-                if (t.fromProjectId === p.id) budgetAdj -= amount;
-                if (t.toProjectId === p.id) budgetAdj += amount;
-            });
+            // With Fund Management system, we use original budget
+            // Cross-project funding is handled through virtual wallet system
+            const budgetAdj = 0;
 
             const matCost = materials.filter(m => m.status === 'used').reduce((s, m) => {
                 const qty = parseFloat(m.quantity) || 0;

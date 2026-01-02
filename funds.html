@@ -1,0 +1,1474 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fund Management - Maviya Constructions</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+    <link href="css/styles-sidebar.css?v=10" rel="stylesheet">
+    <style>
+        .page-title { font-size: 2rem; font-weight: 800; color: var(--text); }
+        .section-card { background: var(--white); border-radius: var(--radius-xl); padding: 2rem; box-shadow: var(--shadow-soft); margin-bottom: 2rem; }
+        .summary-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.5rem; margin-bottom: 2rem; }
+        .summary-item { background: var(--white); border-radius: var(--radius-xl); padding: 1.5rem; text-align: center; box-shadow: var(--shadow-soft); border: 3px solid transparent; transition: all 0.3s; }
+        .summary-item:hover { transform: translateY(-4px); }
+        .summary-item.total { border-color: var(--blueprint-blue); }
+        .summary-item.loans { border-color: var(--brick-orange); }
+        .summary-item.projects { border-color: var(--mint-green); }
+        .summary-item.status { border-color: var(--safety-yellow); }
+        .summary-label { font-size: 0.875rem; font-weight: 700; color: var(--text-light); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.5rem; }
+        .summary-value { font-size: 1.75rem; font-weight: 800; }
+        .summary-value.total { color: var(--blueprint-blue); }
+        .summary-value.loans { color: var(--brick-orange); }
+        .summary-value.projects { color: var(--mint-green); }
+        .summary-value.status { color: var(--safety-yellow); }
+        
+        /* Tabs */
+        .tabs-nav { display: flex; gap: 0.5rem; margin-bottom: 1.5rem; flex-wrap: wrap; }
+        .tab-btn { padding: 0.875rem 1.5rem; background: var(--white); border: 3px solid #E8F4F8; border-radius: var(--radius-pill); font-weight: 700; color: var(--text); cursor: pointer; transition: all 0.3s; display: inline-flex; align-items: center; gap: 0.5rem; }
+        .tab-btn:hover { border-color: var(--blueprint-blue); transform: translateY(-2px); }
+        .tab-btn.active { background: var(--blueprint-blue); color: var(--white); border-color: var(--blueprint-blue); }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        
+        /* Data Table */
+        .data-table { width: 100%; border-collapse: separate; border-spacing: 0; }
+        .data-table th { background: linear-gradient(135deg, #F0F4F8, #E8F4F8); padding: 1rem; text-align: left; font-weight: 700; color: var(--text); font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.05em; border-bottom: 3px solid var(--blueprint-blue); }
+        .data-table td { padding: 0.875rem; border-bottom: 2px solid #F0F4F8; color: var(--text); font-weight: 600; font-size: 0.8125rem; }
+        .data-table tr:hover td { background: #F8FAFC; }
+        
+        /* Wallet Cards */
+        .wallet-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1.5rem; }
+        .wallet-card { background: var(--white); border-radius: var(--radius-xl); padding: 1.5rem; box-shadow: var(--shadow-soft); border: 3px solid #E8F4F8; transition: all 0.3s; }
+        .wallet-card:hover { border-color: var(--blueprint-blue); transform: translateY(-4px); }
+        
+        /* Loan Cards */
+        .loan-card { background: var(--white); border-radius: var(--radius-lg); padding: 1rem; box-shadow: var(--shadow-soft); border-left: 4px solid var(--brick-orange); margin-bottom: 1rem; }
+        .settlement-card { background: var(--white); border-radius: var(--radius-lg); padding: 1rem; box-shadow: var(--shadow-soft); border-left: 4px solid var(--mint-green); margin-bottom: 1rem; }
+        
+        /* Action Buttons */
+        .action-btn { padding: 0.5rem 0.75rem; border-radius: var(--radius-lg); font-weight: 700; font-size: 0.75rem; transition: all 0.3s; border: none; cursor: pointer; }
+        .btn-success { background: linear-gradient(135deg, var(--mint-green), #56C596); color: var(--white); }
+        .btn-success:hover { transform: translateY(-2px); }
+        
+        @media (max-width: 1024px) { .summary-grid { grid-template-columns: repeat(2, 1fr); } }
+    </style>
+</head>
+<body>
+    <!-- Loading Overlay -->
+    <div id="pageLoader" class="loading-overlay">
+        <div class="cartoon-icon icon-funds loading" style="width: 80px; height: 80px; border-radius: 24px; margin-bottom: 1rem;">
+            <div class="icon-funds-wallet" style="width: 36px; height: 28px;"></div>
+        </div>
+        <div class="loader-blocks">
+            <div class="loader-block"></div>
+            <div class="loader-block"></div>
+            <div class="loader-block"></div>
+            <div class="loader-block"></div>
+        </div>
+        <p class="loading-text">Loading fund data<span class="loading-text-dots"></span></p>
+    </div>
+
+    <div class="app-container">
+        <aside class="sidebar">
+            <div class="sidebar-logo">
+                <div class="logo-icon"><i class="fas fa-hard-hat"></i></div>
+                <div class="logo-text">Maviya</div>
+                <div class="logo-subtitle">Construction Management</div>
+            </div>
+            <nav class="sidebar-nav">
+                <a href="index.html" class="sidebar-btn">
+                    <div class="sidebar-btn-icon" style="background: linear-gradient(135deg, #FFE8B3, var(--safety-yellow));">🏗️</div>
+                    <span class="sidebar-btn-text">Dashboard</span>
+                </a>
+                <a href="compare.html" class="sidebar-btn compare">
+                    <div class="sidebar-btn-icon">📊</div>
+                    <span class="sidebar-btn-text">Compare</span>
+                </a>
+                <a href="payments.html" class="sidebar-btn payment">
+                    <div class="sidebar-btn-icon">💳</div>
+                    <span class="sidebar-btn-text">Payment</span>
+                </a>
+                <a href="materials.html" class="sidebar-btn stock">
+                    <div class="sidebar-btn-icon">📦</div>
+                    <span class="sidebar-btn-text">Stock</span>
+                </a>
+                <a href="funds.html" class="sidebar-btn funds" style="border: 3px solid var(--blueprint-blue);">
+                    <div class="sidebar-btn-icon">💰</div>
+                    <span class="sidebar-btn-text">Funds</span>
+                </a>
+            </nav>
+            <div class="relative">
+                <button id="userMenuBtn" class="sidebar-logout">👤<span id="userEmailDisplay" class="text-xs max-w-[120px] truncate"></span></button>
+                <div id="userMenu" class="hidden absolute bottom-full left-0 right-0 mb-2 bg-white rounded-lg shadow-xl border border-slate-200 py-2 z-50">
+                    <div class="px-4 py-2 border-b border-slate-200">
+                        <p class="text-xs text-slate-500">Signed in as</p>
+                        <p id="userEmailFull" class="text-sm font-semibold text-slate-800 truncate"></p>
+                    </div>
+                    <a href="migrate.html" class="flex items-center gap-3 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 transition">
+                        <i class="fas fa-database text-sky-500"></i>Data Migration
+                    </a>
+                    <button id="logoutBtn" class="w-full flex items-center gap-3 px-4 py-2 text-sm text-rose-600 hover:bg-rose-50 transition">
+                        <i class="fas fa-sign-out-alt"></i>Logout
+                    </button>
+                </div>
+            </div>
+        </aside>
+
+        <main class="main-content">
+            <div class="content-header">
+                <h1 class="page-title">💰 Fund Management</h1>
+                <div class="flex gap-3 flex-wrap">
+                    <button id="generateCompleteFundReportBtn" class="btn btn-primary"><i class="fas fa-file-pdf"></i> Complete Report</button>
+                    <button id="generateFundUnderstandingBtn" class="btn btn-secondary"><i class="fas fa-book"></i> Guide</button>
+                    <button id="reconcileBtn" class="btn btn-secondary"><i class="fas fa-balance-scale"></i> Reconcile</button>
+                    <button id="addPaymentBtn" class="btn-add-project"><i class="fas fa-plus"></i> Add Payment</button>
+                </div>
+            </div>
+
+            <!-- Overall Fund Status -->
+            <div class="summary-grid" id="overallStatus">
+                <!-- Dynamic content -->
+            </div>
+
+            <!-- Tabs -->
+            <div class="tabs-nav">
+                <button class="tab-btn active" data-tab="wallets"><i class="fas fa-wallet"></i> Project Wallets</button>
+                <button class="tab-btn" data-tab="payments"><i class="fas fa-money-bill-wave"></i> Payment Allocation</button>
+                <button class="tab-btn" data-tab="loans"><i class="fas fa-handshake"></i> Inter-Project Loans</button>
+                <button class="tab-btn" data-tab="unallocated"><i class="fas fa-question-circle"></i> Unallocated Funds</button>
+            </div>
+
+            <!-- Project Wallets Tab -->
+            <div id="walletsTab" class="tab-content active">
+                <div class="section-card">
+                    <div class="flex justify-between items-center mb-6">
+                        <h2 class="text-xl font-bold text-slate-800 flex items-center gap-2">
+                            <span>🏦</span> Virtual Project Wallets
+                        </h2>
+                        <button id="refreshWalletsBtn" class="btn btn-secondary"><i class="fas fa-sync-alt"></i> Refresh</button>
+                    </div>
+                    <div id="projectWalletsGrid" class="wallet-grid">
+                        <!-- Dynamic content -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Payment Allocation Tab -->
+            <div id="paymentsTab" class="tab-content">
+                <div class="section-card">
+                    <div class="flex justify-between items-center mb-6">
+                        <h2 class="text-xl font-bold text-slate-800 flex items-center gap-2">
+                            <span>💸</span> Payment Allocation History
+                        </h2>
+                        <button id="allocatePaymentBtn" class="btn-add-project"><i class="fas fa-plus"></i> Allocate Payment</button>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>From</th>
+                                    <th>Total Amount</th>
+                                    <th>Projects</th>
+                                    <th>Method & Type</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="paymentAllocationsTable">
+                                <!-- Dynamic content -->
+                            </tbody>
+                        </table>
+                    </div>
+                    <div id="paymentsEmpty" class="empty-state hidden">
+                        <i class="fas fa-money-bill-wave"></i>
+                        <p>No payment allocations yet</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Inter-Project Loans Tab -->
+            <div id="loansTab" class="tab-content">
+                <div class="section-card">
+                    <div class="flex justify-between items-center mb-6">
+                        <h2 class="text-xl font-bold text-slate-800 flex items-center gap-2">
+                            <span>🤝</span> Inter-Project Loans
+                        </h2>
+                        <button id="recordExpenseBtn" class="btn-add-project"><i class="fas fa-plus"></i> Record Cross-Project Expense</button>
+                    </div>
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <div>
+                            <h3 class="font-bold text-slate-800 mb-3 flex items-center gap-2"><span>⏳</span> Active Loans</h3>
+                            <div id="activeLoansContainer">
+                                <!-- Dynamic content -->
+                            </div>
+                        </div>
+                        <div>
+                            <h3 class="font-bold text-slate-800 mb-3 flex items-center gap-2"><span>✅</span> Recent Settlements</h3>
+                            <div id="recentSettlementsContainer">
+                                <!-- Dynamic content -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Unallocated Funds Tab -->
+            <div id="unallocatedTab" class="tab-content">
+                <div class="section-card">
+                    <div class="flex justify-between items-center mb-6">
+                        <h2 class="text-xl font-bold text-slate-800 flex items-center gap-2">
+                            <span>❓</span> Unallocated Funds
+                        </h2>
+                    </div>
+                    <div id="unallocatedFundsContainer">
+                        <!-- Dynamic content -->
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Payment Allocation Modal -->
+    <div id="paymentAllocationModal" class="modal-overlay fixed inset-0 flex items-center justify-center z-50 hidden">
+        <div class="modal-content w-full mx-4 max-h-[85vh] overflow-y-auto">
+            <div class="p-4 border-b border-gray-200">
+                <div class="flex items-center justify-between">
+                    <h3 class="text-lg font-bold text-slate-800">💸 Allocate Payment</h3>
+                    <button class="close-modal text-gray-400 hover:text-gray-600"><i class="fas fa-times"></i></button>
+                </div>
+            </div>
+            <form id="paymentAllocationForm" class="p-4">
+                <div class="grid grid-cols-4 gap-3 mb-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 mb-1">Amount (₹) *</label>
+                        <input type="number" id="totalPaymentAmount" required min="1" step="0.01" class="form-input text-sm py-2">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 mb-1">Date *</label>
+                        <input type="date" id="paymentDate" required class="form-input text-sm py-2">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 mb-1">From (Client) *</label>
+                        <input type="text" id="paymentFrom" required class="form-input text-sm py-2" placeholder="Client">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 mb-1">Received By *</label>
+                        <input type="text" id="paymentReceivedBy" required class="form-input text-sm py-2" placeholder="Receiver">
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-3 mb-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 mb-1">Method</label>
+                        <select id="paymentMethod" class="form-input text-sm py-2">
+                            <option value="Bank Transfer">Bank Transfer</option>
+                            <option value="Cash">Cash</option>
+                            <option value="Cheque">Cheque</option>
+                            <option value="UPI">UPI</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 mb-1">Notes</label>
+                        <input type="text" id="paymentNotes" class="form-input text-sm py-2" placeholder="Optional">
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <div class="flex justify-between items-center mb-2">
+                        <label class="text-xs font-semibold text-slate-700">Project Allocations</label>
+                        <button type="button" id="addAllocationBtn" class="text-xs text-sky-600 hover:text-sky-800"><i class="fas fa-plus mr-1"></i>Add</button>
+                    </div>
+                    <div id="allocationsList" class="space-y-2 max-h-32 overflow-y-auto"></div>
+                </div>
+                <div class="bg-slate-50 p-2 rounded-lg mb-3 flex justify-between text-sm">
+                    <span>Allocated: <strong id="totalAllocated">₹0</strong></span>
+                    <span>Remaining: <strong id="remainingAmount" class="text-rose-600">₹0</strong></span>
+                </div>
+                <div class="flex gap-3">
+                    <button type="button" class="cancel-modal flex-1 btn btn-secondary py-2">Cancel</button>
+                    <button type="submit" class="flex-1 btn btn-primary py-2">Allocate</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Cross-Project Expense Modal -->
+    <div id="crossProjectExpenseModal" class="modal-overlay fixed inset-0 flex items-center justify-center z-50 hidden">
+        <div class="modal-content w-full mx-4 max-h-[85vh] overflow-y-auto">
+            <div class="p-4 border-b border-gray-200">
+                <div class="flex items-center justify-between">
+                    <h3 class="text-lg font-bold text-slate-800">🔄 Cross-Project Expense</h3>
+                    <button class="close-modal text-gray-400 hover:text-gray-600"><i class="fas fa-times"></i></button>
+                </div>
+            </div>
+            <form id="crossProjectExpenseForm" class="p-4">
+                <div class="grid grid-cols-3 gap-3 mb-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 mb-1">Beneficiary Project *</label>
+                        <select id="beneficiaryProject" required class="form-input text-sm py-2">
+                            <option value="">Select project</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 mb-1">Type *</label>
+                        <select id="expenseType" required class="form-input text-sm py-2">
+                            <option value="material">Material</option>
+                            <option value="labour">Labour</option>
+                            <option value="expense">Other</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 mb-1">Amount (₹) *</label>
+                        <input type="number" id="expenseAmount" required min="1" step="0.01" class="form-input text-sm py-2">
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-3 mb-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 mb-1">Description *</label>
+                        <input type="text" id="expenseDescription" required class="form-input text-sm py-2" placeholder="What was purchased">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 mb-1">Date *</label>
+                        <input type="date" id="expenseDate" required class="form-input text-sm py-2">
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <div class="flex justify-between items-center mb-2">
+                        <label class="text-xs font-semibold text-slate-700">Payment Sources</label>
+                        <button type="button" id="addPaymentSourceBtn" class="text-xs text-sky-600 hover:text-sky-800"><i class="fas fa-plus mr-1"></i>Add</button>
+                    </div>
+                    <div id="paymentSourcesList" class="space-y-2 max-h-32 overflow-y-auto"></div>
+                </div>
+                <div class="bg-slate-50 p-2 rounded-lg mb-3 flex justify-between text-sm">
+                    <span>Paid: <strong id="totalPaid">₹0</strong></span>
+                    <span>Remaining: <strong id="remainingExpense" class="text-rose-600">₹0</strong></span>
+                </div>
+                <div class="flex gap-3">
+                    <button type="button" class="cancel-modal flex-1 btn btn-secondary py-2">Cancel</button>
+                    <button type="submit" class="flex-1 btn btn-primary py-2">Record</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script type="module">
+        import { auth, onAuthStateChanged } from './js/firebase-config.js';
+        import { initAuthHeader } from './js/auth-header.js';
+        import Storage from './js/firebase-storage.js';
+        import FundManagement from './js/fund-management.js?v=2';
+        
+        window.Storage = Storage;
+        window.FundManagement = FundManagement;
+        
+        onAuthStateChanged(auth, async (user) => {
+            if (!user) {
+                window.location.href = 'login.html';
+                return;
+            }
+            
+            initAuthHeader({ requireAuth: false });
+            
+            try {
+                await FundsApp.init();
+            } catch (error) {
+                console.error('Error initializing funds app:', error);
+            }
+        });
+
+        const FundsApp = {
+            projects: [],
+            allocationCount: 0,
+            paymentSourceCount: 0,
+
+            showLoader(show) {
+                const loader = document.getElementById('pageLoader');
+                if (loader) {
+                    if (show) {
+                        loader.classList.remove('hidden');
+                    } else {
+                        loader.classList.add('hidden');
+                    }
+                }
+            },
+
+            async init() {
+                this.showLoader(true);
+                try {
+                    // Load projects first
+                    this.projects = await Storage.projects.getAll();
+                    this.bindEvents();
+                    // Render all data in parallel for faster loading
+                    await Promise.all([
+                        this.renderOverallStatus(),
+                        this.renderProjectWallets()
+                    ]);
+                } catch (error) {
+                    console.error('Error loading fund data:', error);
+                } finally {
+                    this.showLoader(false);
+                }
+            },
+
+            bindEvents() {
+                document.querySelectorAll('.tab-btn').forEach(btn => 
+                    btn.addEventListener('click', () => this.switchTab(btn.dataset.tab))
+                );
+                document.querySelectorAll('.close-modal, .cancel-modal').forEach(btn => 
+                    btn.addEventListener('click', () => this.closeAllModals())
+                );
+                document.getElementById('addPaymentBtn').addEventListener('click', () => this.openPaymentAllocationModal());
+                document.getElementById('allocatePaymentBtn').addEventListener('click', () => this.openPaymentAllocationModal());
+                document.getElementById('recordExpenseBtn').addEventListener('click', () => this.openCrossProjectExpenseModal());
+                document.getElementById('refreshWalletsBtn').addEventListener('click', () => this.renderProjectWallets());
+                document.getElementById('generateCompleteFundReportBtn').addEventListener('click', () => this.generateCompleteFundReport());
+                document.getElementById('generateFundUnderstandingBtn').addEventListener('click', () => this.generateFundUnderstandingGuide());
+                document.getElementById('reconcileBtn').addEventListener('click', () => this.reconcileSystem());
+                document.getElementById('paymentAllocationForm').addEventListener('submit', (e) => this.handlePaymentAllocation(e));
+                document.getElementById('crossProjectExpenseForm').addEventListener('submit', (e) => this.handleCrossProjectExpense(e));
+                document.getElementById('addAllocationBtn').addEventListener('click', () => this.addAllocationRow());
+                document.getElementById('addPaymentSourceBtn').addEventListener('click', () => this.addPaymentSourceRow());
+                document.getElementById('totalPaymentAmount').addEventListener('input', () => this.updateAllocationCalculations());
+                document.getElementById('expenseAmount').addEventListener('input', () => this.updatePaymentSourceCalculations());
+            },
+
+            async switchTab(tabName) {
+                document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                document.querySelector(`[data-tab="${tabName}"]`).classList.add('active');
+                const tabContent = document.getElementById(`${tabName}Tab`);
+                tabContent.classList.add('active');
+                
+                try {
+                    if (tabName === 'wallets') await this.renderProjectWallets();
+                    if (tabName === 'payments') await this.renderPaymentAllocations();
+                    if (tabName === 'loans') await this.renderInterProjectLoans();
+                    if (tabName === 'unallocated') await this.renderUnallocatedFunds();
+                } catch (error) {
+                    console.error('Error loading tab:', error);
+                }
+            },
+
+            async renderAll() {
+                await this.renderOverallStatus();
+                await this.renderProjectWallets();
+            },
+
+            async renderOverallStatus() {
+                const status = await FundManagement.getOverallFundStatus();
+                const container = document.getElementById('overallStatus');
+                
+                container.innerHTML = `
+                    <div class="summary-item total">
+                        <p class="summary-label">Total Virtual Balance</p>
+                        <p class="summary-value total">₹${this.formatNumber(status.totalVirtualBalance)}</p>
+                    </div>
+                    <div class="summary-item loans">
+                        <p class="summary-label">Active Inter-Project Loans</p>
+                        <p class="summary-value loans">₹${this.formatNumber(status.totalActiveLoans)}</p>
+                    </div>
+                    <div class="summary-item projects">
+                        <p class="summary-label">Projects</p>
+                        <p class="summary-value projects">${status.projectSummaries.length}</p>
+                    </div>
+                    <div class="summary-item status">
+                        <p class="summary-label">System Status</p>
+                        <p class="summary-value ${status.isBalanced ? 'text-green-600' : 'text-red-600'}">
+                            ${status.isBalanced ? '✓ Balanced' : '⚠ Unbalanced'}
+                        </p>
+                    </div>
+                `;
+            },
+
+            async renderProjectWallets() {
+                const status = await FundManagement.getOverallFundStatus();
+                const container = document.getElementById('projectWalletsGrid');
+                
+                if (!status.projectSummaries.length) {
+                    container.innerHTML = '<div class="col-span-full text-center text-slate-500 py-8">No projects found</div>';
+                    return;
+                }
+
+                container.innerHTML = status.projectSummaries.map(project => `
+                    <div class="wallet-card">
+                        <div class="flex items-start justify-between mb-3">
+                            <div>
+                                <h3 class="font-bold text-slate-800">${project.projectName}</h3>
+                                <p class="text-xs text-slate-500">ID: ${project.projectId}</p>
+                            </div>
+                            <div class="text-right">
+                                <p class="text-xs text-slate-600">Net Available</p>
+                                <p class="font-bold text-lg ${project.netAvailableBalance >= 0 ? 'text-green-600' : 'text-red-600'}">
+                                    ₹${this.formatNumber(project.netAvailableBalance)}
+                                </p>
+                            </div>
+                        </div>
+                        <div class="space-y-2 text-sm">
+                            <div class="flex justify-between"><span class="text-slate-600">Virtual Balance</span><span class="font-semibold">₹${this.formatNumber(project.virtualBalance)}</span></div>
+                            <div class="flex justify-between"><span class="text-slate-600">Loans Given</span><span class="font-semibold text-amber-600">₹${this.formatNumber(project.activeLoansGiven)}</span></div>
+                            <div class="flex justify-between"><span class="text-slate-600">Loans Received</span><span class="font-semibold text-rose-600">₹${this.formatNumber(project.activeLoansReceived)}</span></div>
+                            <div class="flex justify-between"><span class="text-slate-600">Advance Received</span><span class="font-semibold text-green-600">₹${this.formatNumber(project.advanceReceived)}</span></div>
+                        </div>
+                        <div class="mt-3 pt-3 border-t border-slate-200">
+                            <button onclick="window.location.href='project.html?id=${project.projectId}'" class="btn btn-secondary text-xs w-full"><i class="fas fa-external-link-alt mr-1"></i>View Project</button>
+                        </div>
+                    </div>
+                `).join('');
+            },
+
+            async renderPaymentAllocations() {
+                try {
+                    const allPayments = await Storage.clientPayments.getAll();
+                    const allAllocations = await Storage.paymentAllocations.getAll();
+                    const allocatedPaymentIds = [...new Set(allAllocations.map(a => a.paymentId))];
+                    const allocatedPayments = allPayments.filter(p => p.isMultiProject || allocatedPaymentIds.includes(p.id));
+                    
+                    const container = document.getElementById('paymentAllocationsTable');
+                    const emptyState = document.getElementById('paymentsEmpty');
+                    
+                    if (!allocatedPayments.length) {
+                        container.innerHTML = '';
+                        emptyState.classList.remove('hidden');
+                        return;
+                    }
+                    
+                    emptyState.classList.add('hidden');
+                    allocatedPayments.sort((a, b) => new Date(b.date) - new Date(a.date));
+                    
+                    const rows = await Promise.all(allocatedPayments.map(async (payment) => {
+                        const allocations = await Storage.paymentAllocations.getByPayment(payment.id);
+                        const projectNames = await Promise.all(allocations.map(async (alloc) => {
+                            const project = await Storage.projects.getById(alloc.projectId);
+                            return `${project ? project.name : 'Unknown'} (₹${this.formatNumber(alloc.amount)})`;
+                        }));
+                        const paymentType = payment.isMultiProject ? 'Multi-Project' : 'Auto-Allocated';
+                        const typeClass = payment.isMultiProject ? 'bg-blue-100 text-blue-800' : 'bg-green-100 text-green-800';
+                        
+                        return `
+                            <tr>
+                                <td>${this.formatDate(payment.date)}</td>
+                                <td class="font-medium">${payment.from || 'N/A'}</td>
+                                <td class="font-bold text-green-600">₹${this.formatNumber(payment.amount)}</td>
+                                <td class="text-sm"><div class="space-y-1">${projectNames.map(name => `<div class="px-2 py-1 bg-slate-100 rounded text-xs">${name}</div>`).join('')}</div></td>
+                                <td><div class="space-y-1"><div>${payment.method || 'N/A'}</div><div class="px-2 py-1 ${typeClass} rounded text-xs font-medium">${paymentType}</div></div></td>
+                                <td>
+                                    <div class="flex gap-1">
+                                        <button class="action-btn btn-primary" onclick="FundsApp.viewPaymentDetails('${payment.id}')" title="View"><i class="fas fa-eye"></i></button>
+                                        <button class="action-btn btn-success" onclick="FundsApp.generatePaymentAllocationInvoice('${payment.id}')" title="Invoice"><i class="fas fa-file-invoice"></i></button>
+                                    </div>
+                                </td>
+                            </tr>
+                        `;
+                    }));
+                    
+                    container.innerHTML = rows.join('');
+                } catch (error) {
+                    console.error('Error rendering payment allocations:', error);
+                    document.getElementById('paymentAllocationsTable').innerHTML = '<tr><td colspan="6" class="text-center text-rose-500 py-4">Error loading payment allocations</td></tr>';
+                }
+            },
+
+            async renderInterProjectLoans() {
+                try {
+                    const allTransactions = await Storage.crossProjectTransactions.getAll();
+                    const activeLoans = allTransactions.filter(t => t.status === 'active');
+                    const recentSettlements = await Storage.settlementRecords.getAll();
+                    
+                    const activeContainer = document.getElementById('activeLoansContainer');
+                    if (!activeLoans.length) {
+                        activeContainer.innerHTML = `<div class="text-center py-6"><i class="fas fa-coins text-4xl text-slate-300 mb-3"></i><p class="text-slate-500 text-sm">No active loans</p></div>`;
+                    } else {
+                        const loanCards = await Promise.all(activeLoans.map(async (loan) => {
+                            const lenderProject = await Storage.projects.getById(loan.lenderProjectId);
+                            const borrowerProject = await Storage.projects.getById(loan.borrowerProjectId);
+                            const balance = loan.amount - (loan.settlementAmount || 0);
+                            
+                            return `
+                                <div class="loan-card">
+                                    <div class="flex justify-between items-start mb-2">
+                                        <div>
+                                            <p class="font-semibold text-slate-800 text-sm">${lenderProject ? lenderProject.name : 'Unknown'} → ${borrowerProject ? borrowerProject.name : 'Unknown'}</p>
+                                            <p class="text-xs text-slate-500">${this.formatDate(loan.date)}</p>
+                                        </div>
+                                        <div class="text-right">
+                                            <p class="font-bold text-amber-600">₹${this.formatNumber(balance)}</p>
+                                            <p class="text-xs text-slate-500">Outstanding</p>
+                                        </div>
+                                    </div>
+                                    <p class="text-xs text-slate-600">${loan.description}</p>
+                                    <div class="mt-2 flex justify-between text-xs">
+                                        <span class="text-slate-500">Original: ₹${this.formatNumber(loan.amount)}</span>
+                                        <span class="text-slate-500">Paid: ₹${this.formatNumber(loan.settlementAmount || 0)}</span>
+                                    </div>
+                                    <div class="mt-2 flex gap-1">
+                                        <button onclick="FundsApp.generateCrossProjectExpenseInvoice('${loan.id}')" class="action-btn btn-primary"><i class="fas fa-file-invoice mr-1"></i>Invoice</button>
+                                        <button onclick="FundsApp.repayLoan('${loan.id}')" class="action-btn btn-success"><i class="fas fa-money-bill-wave mr-1"></i>Repay</button>
+                                        <button onclick="FundsApp.settleLoan('${loan.id}')" class="action-btn btn btn-secondary text-xs"><i class="fas fa-handshake mr-1"></i>Settle</button>
+                                    </div>
+                                </div>
+                            `;
+                        }));
+                        activeContainer.innerHTML = loanCards.join('');
+                    }
+                    
+                    const settlementsContainer = document.getElementById('recentSettlementsContainer');
+                    if (!recentSettlements.length) {
+                        settlementsContainer.innerHTML = `<div class="text-center py-6"><i class="fas fa-handshake text-4xl text-slate-300 mb-3"></i><p class="text-slate-500 text-sm">No settlements yet</p></div>`;
+                    } else {
+                        recentSettlements.sort((a, b) => new Date(b.settlementDate) - new Date(a.settlementDate));
+                        const recentSettlementsLimited = recentSettlements.slice(0, 10);
+                        
+                        const settlementCards = await Promise.all(recentSettlementsLimited.map(async (settlement) => {
+                            const lenderProject = await Storage.projects.getById(settlement.lenderProjectId);
+                            const borrowerProject = await Storage.projects.getById(settlement.borrowerProjectId);
+                            
+                            return `
+                                <div class="settlement-card">
+                                    <div class="flex justify-between items-start mb-2">
+                                        <div>
+                                            <p class="font-semibold text-slate-800 text-sm">${borrowerProject ? borrowerProject.name : 'Unknown'} → ${lenderProject ? lenderProject.name : 'Unknown'}</p>
+                                            <p class="text-xs text-slate-500">${this.formatDate(settlement.settlementDate)}</p>
+                                        </div>
+                                        <div class="text-right">
+                                            <p class="font-bold text-green-600">₹${this.formatNumber(settlement.settlementAmount)}</p>
+                                            <p class="text-xs text-slate-500">Settled</p>
+                                        </div>
+                                    </div>
+                                    <p class="text-xs text-slate-600">${settlement.settlementType === 'auto' ? 'Auto-settled' : 'Manual settlement'}</p>
+                                    <div class="mt-2">
+                                        <button onclick="FundsApp.generateSettlementInvoice('${settlement.id}')" class="action-btn btn-primary"><i class="fas fa-file-invoice mr-1"></i>Invoice</button>
+                                    </div>
+                                </div>
+                            `;
+                        }));
+                        settlementsContainer.innerHTML = settlementCards.join('');
+                    }
+                } catch (error) {
+                    console.error('Error rendering inter-project loans:', error);
+                }
+            },
+
+            async renderUnallocatedFunds() {
+                try {
+                    const unallocatedFunds = await Storage.unallocatedFunds.getAll();
+                    const container = document.getElementById('unallocatedFundsContainer');
+                    
+                    if (!unallocatedFunds.length) {
+                        container.innerHTML = '<p class="text-slate-500 text-center py-8">No unallocated funds</p>';
+                        return;
+                    }
+                    
+                    const cards = unallocatedFunds.map(fund => `
+                        <div class="loan-card" style="border-left-color: var(--brick-orange);">
+                            <div class="flex justify-between items-start mb-2">
+                                <div>
+                                    <p class="font-semibold text-slate-800">₹${this.formatNumber(fund.amount)}</p>
+                                    <p class="text-sm text-slate-600">${fund.description}</p>
+                                    <p class="text-xs text-slate-500">${this.formatDate(fund.date)}</p>
+                                </div>
+                                <div class="flex gap-2">
+                                    <button class="btn btn-primary text-sm" onclick="FundsApp.allocateUnallocatedFund('${fund.id}')"><i class="fas fa-check mr-1"></i>Allocate</button>
+                                    <button class="btn btn-secondary text-sm" onclick="FundsApp.generateUnallocatedFundInvoice('${fund.id}')"><i class="fas fa-file-invoice mr-1"></i>Invoice</button>
+                                </div>
+                            </div>
+                        </div>
+                    `);
+                    container.innerHTML = cards.join('');
+                } catch (error) {
+                    console.error('Error rendering unallocated funds:', error);
+                }
+            },
+
+            openPaymentAllocationModal() {
+                this.populateProjectDropdowns();
+                this.resetAllocationForm();
+                document.getElementById('paymentDate').value = new Date().toISOString().split('T')[0];
+                document.getElementById('paymentAllocationModal').classList.remove('hidden');
+                document.getElementById('paymentAllocationModal').classList.add('active');
+            },
+
+            openCrossProjectExpenseModal() {
+                this.populateProjectDropdowns();
+                this.resetExpenseForm();
+                document.getElementById('expenseDate').value = new Date().toISOString().split('T')[0];
+                document.getElementById('crossProjectExpenseModal').classList.remove('hidden');
+                document.getElementById('crossProjectExpenseModal').classList.add('active');
+            },
+
+            populateProjectDropdowns() {
+                const beneficiarySelect = document.getElementById('beneficiaryProject');
+                if (beneficiarySelect) {
+                    beneficiarySelect.innerHTML = '<option value="">Select project that benefits from this expense</option>' +
+                        this.projects.map(p => `<option value="${p.id}">${p.name}</option>`).join('');
+                }
+            },
+
+            resetAllocationForm() {
+                this.allocationCount = 0;
+                document.getElementById('allocationsList').innerHTML = '';
+                this.addAllocationRow();
+                this.updateAllocationCalculations();
+            },
+
+            resetExpenseForm() {
+                this.paymentSourceCount = 0;
+                document.getElementById('paymentSourcesList').innerHTML = '';
+                this.addPaymentSourceRow();
+                this.updatePaymentSourceCalculations();
+            },
+
+            addAllocationRow() {
+                const container = document.getElementById('allocationsList');
+                const row = document.createElement('div');
+                row.className = 'allocation-row grid grid-cols-1 md:grid-cols-4 gap-3 p-3 bg-slate-50 rounded-lg';
+                row.innerHTML = `
+                    <select class="form-input project-select" required>
+                        <option value="">Select Project</option>
+                        ${this.projects.map(p => `<option value="${p.id}">${p.name}</option>`).join('')}
+                    </select>
+                    <input type="number" class="form-input allocation-amount" placeholder="Amount" min="1" step="0.01" required>
+                    <input type="text" class="form-input" placeholder="Description (optional)">
+                    <button type="button" class="btn btn-danger text-sm" onclick="this.parentElement.remove(); FundsApp.updateAllocationCalculations();"><i class="fas fa-trash"></i></button>
+                `;
+                container.appendChild(row);
+                row.querySelector('.allocation-amount').addEventListener('input', () => this.updateAllocationCalculations());
+            },
+
+            addPaymentSourceRow() {
+                const container = document.getElementById('paymentSourcesList');
+                const row = document.createElement('div');
+                row.className = 'payment-source-row grid grid-cols-1 md:grid-cols-3 gap-3 p-3 bg-slate-50 rounded-lg';
+                row.innerHTML = `
+                    <select class="form-input project-select" required>
+                        <option value="">Select Paying Project</option>
+                        ${this.projects.map(p => `<option value="${p.id}">${p.name}</option>`).join('')}
+                    </select>
+                    <input type="number" class="form-input source-amount" placeholder="Amount" min="1" step="0.01" required>
+                    <button type="button" class="btn btn-danger text-sm" onclick="this.parentElement.remove(); FundsApp.updatePaymentSourceCalculations();"><i class="fas fa-trash"></i></button>
+                `;
+                container.appendChild(row);
+                row.querySelector('.source-amount').addEventListener('input', () => this.updatePaymentSourceCalculations());
+            },
+
+            updateAllocationCalculations() {
+                const totalAmount = parseFloat(document.getElementById('totalPaymentAmount').value) || 0;
+                const allocationAmounts = Array.from(document.querySelectorAll('.allocation-amount')).map(input => parseFloat(input.value) || 0);
+                const totalAllocated = allocationAmounts.reduce((sum, amount) => sum + amount, 0);
+                const remaining = totalAmount - totalAllocated;
+                
+                document.getElementById('totalAllocated').textContent = `₹${this.formatNumber(totalAllocated)}`;
+                document.getElementById('remainingAmount').textContent = `₹${this.formatNumber(remaining)}`;
+                document.getElementById('remainingAmount').className = `font-bold ${remaining === 0 ? 'text-green-600' : 'text-rose-600'}`;
+            },
+
+            updatePaymentSourceCalculations() {
+                const totalAmount = parseFloat(document.getElementById('expenseAmount').value) || 0;
+                const sourceAmounts = Array.from(document.querySelectorAll('.source-amount')).map(input => parseFloat(input.value) || 0);
+                const totalPaid = sourceAmounts.reduce((sum, amount) => sum + amount, 0);
+                const remaining = totalAmount - totalPaid;
+                
+                document.getElementById('totalPaid').textContent = `₹${this.formatNumber(totalPaid)}`;
+                document.getElementById('remainingExpense').textContent = `₹${this.formatNumber(remaining)}`;
+                document.getElementById('remainingExpense').className = `font-bold ${remaining === 0 ? 'text-green-600' : 'text-rose-600'}`;
+            },
+
+            async handlePaymentAllocation(e) {
+                e.preventDefault();
+                try {
+                    const totalAmount = parseFloat(document.getElementById('totalPaymentAmount').value);
+                    const paymentDate = document.getElementById('paymentDate').value;
+                    const from = document.getElementById('paymentFrom').value.trim();
+                    const receivedBy = document.getElementById('paymentReceivedBy').value.trim();
+                    const method = document.getElementById('paymentMethod').value;
+                    const notes = document.getElementById('paymentNotes').value.trim();
+                    
+                    const allocationRows = document.querySelectorAll('.allocation-row');
+                    const allocations = [];
+                    
+                    for (const row of allocationRows) {
+                        const projectId = row.querySelector('.project-select').value;
+                        const amount = parseFloat(row.querySelector('.allocation-amount').value);
+                        const description = row.querySelector('input[type="text"]').value.trim();
+                        if (projectId && amount > 0) {
+                            allocations.push({ projectId, amount, description: description || `Payment allocation from ${from}` });
+                        }
+                    }
+                    
+                    if (!allocations.length) {
+                        this.showToast('Please add at least one project allocation', 'error');
+                        return;
+                    }
+                    
+                    const totalAllocated = allocations.reduce((sum, alloc) => sum + alloc.amount, 0);
+                    if (Math.abs(totalAllocated - totalAmount) > 0.01) {
+                        this.showToast(`Total allocated must equal payment amount`, 'error');
+                        return;
+                    }
+                    
+                    const submitBtn = e.target.querySelector('button[type="submit"]');
+                    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Processing...';
+                    submitBtn.disabled = true;
+                    
+                    await FundManagement.allocatePayment({ totalAmount, allocations, paymentDate, receivedBy, from, method, notes });
+                    
+                    this.showToast('Payment allocated successfully!', 'success');
+                    this.closeAllModals();
+                    await this.renderAll();
+                } catch (error) {
+                    console.error('Error allocating payment:', error);
+                    this.showToast('Error allocating payment: ' + error.message, 'error');
+                } finally {
+                    const submitBtn = e.target.querySelector('button[type="submit"]');
+                    if (submitBtn) { submitBtn.innerHTML = 'Allocate Payment'; submitBtn.disabled = false; }
+                }
+            },
+
+            async handleCrossProjectExpense(e) {
+                e.preventDefault();
+                try {
+                    const beneficiaryProjectId = document.getElementById('beneficiaryProject').value;
+                    const expenseType = document.getElementById('expenseType').value;
+                    const totalAmount = parseFloat(document.getElementById('expenseAmount').value);
+                    const description = document.getElementById('expenseDescription').value.trim();
+                    const date = document.getElementById('expenseDate').value;
+                    
+                    if (!beneficiaryProjectId) {
+                        this.showToast('Please select the beneficiary project', 'error');
+                        return;
+                    }
+                    
+                    const sourceRows = document.querySelectorAll('.payment-source-row');
+                    const paymentSources = [];
+                    for (const row of sourceRows) {
+                        const projectId = row.querySelector('.project-select').value;
+                        const amount = parseFloat(row.querySelector('.source-amount').value);
+                        if (projectId && amount > 0) { paymentSources.push({ projectId, amount }); }
+                    }
+                    
+                    if (!paymentSources.length) {
+                        this.showToast('Please add at least one payment source', 'error');
+                        return;
+                    }
+                    
+                    const totalPaid = paymentSources.reduce((sum, source) => sum + source.amount, 0);
+                    if (Math.abs(totalPaid - totalAmount) > 0.01) {
+                        this.showToast(`Total paid must equal expense amount`, 'error');
+                        return;
+                    }
+                    
+                    const submitBtn = e.target.querySelector('button[type="submit"]');
+                    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Processing...';
+                    submitBtn.disabled = true;
+                    
+                    let expenseDetails;
+                    if (expenseType === 'material') {
+                        expenseDetails = { name: description, category: 'Cross-Project', quantity: 1, unit: 'item', rate: totalAmount, status: 'used', date: date, supplier: 'Cross-Project Purchase', paidAmount: totalAmount };
+                    } else if (expenseType === 'labour') {
+                        expenseDetails = { workerName: 'Cross-Project Worker', role: 'Cross-Project', dailyWage: totalAmount, totalAmount: totalAmount, startDate: date, endDate: date, paidAmount: totalAmount };
+                    } else {
+                        expenseDetails = { description: description, category: 'Cross-Project', amount: totalAmount, date: date };
+                    }
+                    
+                    await FundManagement.recordCrossProjectExpense({ beneficiaryProjectId, paymentSources, expenseDetails, expenseType });
+                    
+                    this.showToast('Cross-project expense recorded successfully!', 'success');
+                    this.closeAllModals();
+                    await this.renderAll();
+                } catch (error) {
+                    console.error('Error recording cross-project expense:', error);
+                    this.showToast('Error recording expense: ' + error.message, 'error');
+                } finally {
+                    const submitBtn = e.target.querySelector('button[type="submit"]');
+                    if (submitBtn) { submitBtn.innerHTML = 'Record Expense'; submitBtn.disabled = false; }
+                }
+            },
+
+            closeAllModals() {
+                document.querySelectorAll('.modal-overlay').forEach(modal => {
+                    modal.classList.add('hidden');
+                    modal.classList.remove('active');
+                });
+            },
+
+            formatNumber(num) {
+                if (num === null || num === undefined || isNaN(num)) return '0';
+                return new Intl.NumberFormat('en-IN').format(num);
+            },
+
+            formatDate(dateStr) {
+                return new Date(dateStr).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+            },
+
+            async viewPaymentDetails(paymentId) {
+                try {
+                    const payment = await Storage.clientPayments.getById(paymentId);
+                    const allocations = await Storage.paymentAllocations.getByPayment(paymentId);
+                    
+                    let details = `Payment Details:\n\nAmount: ₹${this.formatNumber(payment.amount)}\nDate: ${this.formatDate(payment.date)}\nFrom: ${payment.from}\nReceived By: ${payment.receivedBy}\nMethod: ${payment.method}\n\nProject Allocations:\n`;
+                    
+                    for (const alloc of allocations) {
+                        const project = await Storage.projects.getById(alloc.projectId);
+                        details += `• ${project ? project.name : 'Unknown'}: ₹${this.formatNumber(alloc.amount)}\n`;
+                    }
+                    alert(details);
+                } catch (error) {
+                    console.error('Error viewing payment details:', error);
+                    this.showToast('Error loading payment details', 'error');
+                }
+            },
+
+            async allocateUnallocatedFund(fundId) {
+                try {
+                    const fund = await Storage.unallocatedFunds.getById(fundId);
+                    if (fund) {
+                        this.openPaymentAllocationModal();
+                        document.getElementById('totalPaymentAmount').value = fund.amount;
+                        document.getElementById('paymentFrom').value = fund.description;
+                        document.getElementById('paymentDate').value = fund.date;
+                        this.updateAllocationCalculations();
+                    }
+                } catch (error) {
+                    console.error('Error loading unallocated fund:', error);
+                    this.showToast('Error loading fund details', 'error');
+                }
+            },
+
+            async reconcileSystem() {
+                try {
+                    const status = await FundManagement.getOverallFundStatus();
+                    let report = `FUND MANAGEMENT SYSTEM RECONCILIATION\n==========================================\n\nTotal Virtual Balance: ₹${this.formatNumber(status.totalVirtualBalance)}\nTotal Active Loans: ₹${this.formatNumber(status.totalActiveLoans)}\nSystem Balanced: ${status.isBalanced ? 'YES ✓' : 'NO ⚠'}\n\nPROJECT BREAKDOWN:\n------------------\n`;
+                    
+                    for (const project of status.projectSummaries) {
+                        report += `${project.projectName}:\n  Virtual Balance: ₹${this.formatNumber(project.virtualBalance)}\n  Loans Given: ₹${this.formatNumber(project.activeLoansGiven)}\n  Loans Received: ₹${this.formatNumber(project.activeLoansReceived)}\n  Net Available: ₹${this.formatNumber(project.netAvailableBalance)}\n\n`;
+                    }
+                    
+                    if (!status.isBalanced) {
+                        report += `⚠ SYSTEM UNBALANCED!\nThis indicates a data inconsistency that needs investigation.\n`;
+                    }
+                    alert(report);
+                } catch (error) {
+                    console.error('Error reconciling system:', error);
+                    this.showToast('Error during reconciliation', 'error');
+                }
+            },
+
+            async repayLoan(transactionId) {
+                try {
+                    const transaction = await Storage.crossProjectTransactions.getById(transactionId);
+                    if (!transaction) throw new Error('Transaction not found');
+                    
+                    const lenderProject = await Storage.projects.getById(transaction.lenderProjectId);
+                    const borrowerProject = await Storage.projects.getById(transaction.borrowerProjectId);
+                    const balance = transaction.amount - (transaction.settlementAmount || 0);
+                    
+                    const modal = document.createElement('div');
+                    modal.className = 'modal-overlay fixed inset-0 flex items-center justify-center z-50';
+                    modal.innerHTML = `
+                        <div class="modal-content w-full max-w-md mx-4">
+                            <div class="p-5 border-b border-gray-200 flex items-center justify-between">
+                                <h3 class="text-lg font-semibold text-slate-800">💵 Repay Loan</h3>
+                                <button class="close-modal text-slate-400 hover:text-sky-600 transition"><i class="fas fa-times text-xl"></i></button>
+                            </div>
+                            <div class="p-5 space-y-4">
+                                <div class="bg-slate-50 p-4 rounded-lg">
+                                    <h4 class="font-semibold text-slate-800 mb-2">Loan Details</h4>
+                                    <p class="text-sm text-slate-600">From: ${lenderProject ? lenderProject.name : 'Unknown'}</p>
+                                    <p class="text-sm text-slate-600">To: ${borrowerProject ? borrowerProject.name : 'Unknown'}</p>
+                                    <p class="text-sm text-slate-600">Original Amount: ₹${this.formatNumber(transaction.amount)}</p>
+                                    <p class="text-sm text-slate-600">Already Paid: ₹${this.formatNumber(transaction.settlementAmount || 0)}</p>
+                                    <p class="text-sm font-semibold text-rose-600">Outstanding: ₹${this.formatNumber(balance)}</p>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-semibold text-slate-700 mb-2">Repayment Amount (₹)</label>
+                                    <input type="number" id="repaymentAmount" class="form-input" min="1" max="${balance}" step="0.01" placeholder="Enter amount to repay">
+                                    <p class="text-xs text-slate-500 mt-1">Maximum: ₹${this.formatNumber(balance)}</p>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-semibold text-slate-700 mb-2">Payment Method</label>
+                                    <select id="repaymentMethod" class="form-input">
+                                        <option value="Cash">Cash</option>
+                                        <option value="Bank Transfer">Bank Transfer</option>
+                                        <option value="UPI">UPI</option>
+                                        <option value="Cheque">Cheque</option>
+                                        <option value="Adjustment">Adjustment</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-semibold text-slate-700 mb-2">Notes (Optional)</label>
+                                    <textarea id="repaymentNotes" class="form-input" rows="2" placeholder="Payment notes or reference"></textarea>
+                                </div>
+                                <div class="flex gap-3 pt-4">
+                                    <button class="cancel-repayment flex-1 btn btn-secondary">Cancel</button>
+                                    <button class="confirm-repayment flex-1 btn btn-primary">Record Repayment</button>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    document.body.appendChild(modal);
+                    
+                    modal.querySelector('.close-modal').addEventListener('click', () => modal.remove());
+                    modal.querySelector('.cancel-repayment').addEventListener('click', () => modal.remove());
+                    modal.querySelector('.confirm-repayment').addEventListener('click', async () => {
+                        const amount = parseFloat(document.getElementById('repaymentAmount').value);
+                        const method = document.getElementById('repaymentMethod').value;
+                        const notes = document.getElementById('repaymentNotes').value;
+                        
+                        if (!amount || amount <= 0 || amount > balance) {
+                            this.showToast('Please enter a valid repayment amount', 'error');
+                            return;
+                        }
+                        
+                        try {
+                            await FundManagement.settleCrossProjectTransaction(transactionId, amount, 'manual', { method: method, notes: notes, repaymentDate: new Date().toISOString() });
+                            modal.remove();
+                            this.showToast('Loan repayment recorded successfully!', 'success');
+                            await this.renderInterProjectLoans();
+                            await this.renderOverallStatus();
+                        } catch (error) {
+                            console.error('Error recording repayment:', error);
+                            this.showToast('Error recording repayment: ' + error.message, 'error');
+                        }
+                    });
+                } catch (error) {
+                    console.error('Error opening repayment modal:', error);
+                    this.showToast('Error opening repayment modal: ' + error.message, 'error');
+                }
+            },
+
+            async settleLoan(transactionId) {
+                try {
+                    const transaction = await Storage.crossProjectTransactions.getById(transactionId);
+                    if (!transaction) throw new Error('Transaction not found');
+                    
+                    const balance = transaction.amount - (transaction.settlementAmount || 0);
+                    const settlementAmount = prompt(`Enter settlement amount (Outstanding: Rs. ${this.formatNumber(balance)}):`);
+                    
+                    if (!settlementAmount || isNaN(settlementAmount) || parseFloat(settlementAmount) <= 0) return;
+                    
+                    const amount = parseFloat(settlementAmount);
+                    if (amount > balance) {
+                        this.showToast('Settlement amount cannot exceed outstanding balance', 'error');
+                        return;
+                    }
+                    
+                    await FundManagement.settleCrossProjectTransaction(transactionId, amount, 'manual');
+                    this.showToast('Loan settled successfully!', 'success');
+                    await this.renderInterProjectLoans();
+                } catch (error) {
+                    console.error('Error settling loan:', error);
+                    this.showToast('Error settling loan: ' + error.message, 'error');
+                }
+            },
+
+            async generatePaymentAllocationInvoice(paymentId) {
+                try {
+                    this.showToast('Generating payment allocation invoice...', 'info');
+                    const { jsPDF } = window.jspdf;
+                    const doc = new jsPDF();
+                    
+                    const payment = await Storage.clientPayments.getById(paymentId);
+                    const allocations = await Storage.paymentAllocations.getByPayment(paymentId);
+                    if (!payment || !allocations.length) throw new Error('Payment or allocation data not found');
+                    
+                    let y = 20;
+                    doc.setFontSize(24);
+                    doc.setTextColor(14, 165, 233);
+                    doc.text('Maviya Constructions', 105, y, { align: 'center' });
+                    y += 12;
+                    doc.setFontSize(18);
+                    doc.setTextColor(51, 65, 85);
+                    doc.text('Payment Allocation Invoice', 105, y, { align: 'center' });
+                    y += 20;
+                    
+                    doc.setFillColor(14, 165, 233);
+                    doc.roundedRect(20, y, 170, 15, 3, 3, 'F');
+                    doc.setFontSize(12);
+                    doc.setTextColor(255, 255, 255);
+                    doc.text(`Invoice #: PA-${payment.id.substring(0, 8).toUpperCase()}`, 30, y + 6);
+                    doc.text(`Date: ${this.formatDate(payment.date)}`, 130, y + 6);
+                    doc.text(`Amount: Rs. ${this.formatNumber(payment.amount)}`, 30, y + 12);
+                    doc.text(`From: ${payment.from}`, 130, y + 12);
+                    y += 25;
+                    
+                    doc.setFontSize(12);
+                    doc.setTextColor(51, 65, 85);
+                    doc.text('Payment Details', 20, y);
+                    y += 8;
+                    doc.setFontSize(10);
+                    doc.text(`Payment Method: ${payment.method}`, 20, y);
+                    doc.text(`Received By: ${payment.receivedBy}`, 120, y);
+                    y += 15;
+                    
+                    doc.setFontSize(12);
+                    doc.setTextColor(16, 185, 129);
+                    doc.text('Project Allocations', 20, y);
+                    y += 8;
+                    
+                    const allocationData = await Promise.all(allocations.map(async (alloc) => {
+                        const project = await Storage.projects.getById(alloc.projectId);
+                        return [project ? project.name : 'Unknown Project', `Rs. ${this.formatNumber(alloc.amount)}`, alloc.description || 'Payment allocation', this.formatDate(alloc.date)];
+                    }));
+                    
+                    doc.autoTable({ startY: y, head: [['Project', 'Amount', 'Description', 'Date']], body: allocationData, theme: 'striped', headStyles: { fillColor: [16, 185, 129] }, margin: { left: 20, right: 20 }, styles: { fontSize: 10 } });
+                    
+                    doc.setFontSize(8);
+                    doc.setTextColor(150, 150, 150);
+                    doc.text('Maviya Constructions - Payment Allocation Invoice', 20, 280);
+                    doc.text(`Generated: ${new Date().toLocaleString('en-IN')}`, 190, 280, { align: 'right' });
+                    
+                    doc.save(`Payment_Allocation_Invoice_${payment.id.substring(0, 8)}_${new Date().toISOString().split('T')[0]}.pdf`);
+                    this.showToast('Payment allocation invoice downloaded!', 'success');
+                } catch (error) {
+                    console.error('Error generating payment allocation invoice:', error);
+                    this.showToast('Error generating invoice: ' + error.message, 'error');
+                }
+            },
+
+            async generateCrossProjectExpenseInvoice(transactionId) {
+                try {
+                    this.showToast('Generating cross-project expense invoice...', 'info');
+                    const { jsPDF } = window.jspdf;
+                    const doc = new jsPDF();
+                    
+                    const transaction = await Storage.crossProjectTransactions.getById(transactionId);
+                    if (!transaction) throw new Error('Transaction not found');
+                    
+                    const lenderProject = await Storage.projects.getById(transaction.lenderProjectId);
+                    const borrowerProject = await Storage.projects.getById(transaction.borrowerProjectId);
+                    
+                    let y = 20;
+                    doc.setFontSize(24);
+                    doc.setTextColor(14, 165, 233);
+                    doc.text('Maviya Constructions', 105, y, { align: 'center' });
+                    y += 12;
+                    doc.setFontSize(18);
+                    doc.setTextColor(51, 65, 85);
+                    doc.text('Cross-Project Expense Invoice', 105, y, { align: 'center' });
+                    y += 20;
+                    
+                    doc.setFillColor(245, 158, 11);
+                    doc.roundedRect(20, y, 170, 20, 3, 3, 'F');
+                    doc.setFontSize(12);
+                    doc.setTextColor(255, 255, 255);
+                    doc.text(`Invoice #: CPE-${transaction.id.substring(0, 8).toUpperCase()}`, 30, y + 6);
+                    doc.text(`Date: ${this.formatDate(transaction.date)}`, 130, y + 6);
+                    doc.text(`Amount: Rs. ${this.formatNumber(transaction.amount)}`, 30, y + 12);
+                    doc.text(`Status: ${transaction.status}`, 130, y + 12);
+                    y += 30;
+                    
+                    doc.setFontSize(12);
+                    doc.setTextColor(51, 65, 85);
+                    doc.text('Transaction Details', 20, y);
+                    y += 8;
+                    doc.setFontSize(10);
+                    doc.text(`Beneficiary Project: ${borrowerProject ? borrowerProject.name : 'Unknown'}`, 20, y);
+                    y += 6;
+                    doc.text(`Paid by Project: ${lenderProject ? lenderProject.name : 'Unknown'}`, 20, y);
+                    y += 6;
+                    doc.text(`Description: ${transaction.description}`, 20, y);
+                    y += 15;
+                    
+                    doc.setFontSize(8);
+                    doc.setTextColor(150, 150, 150);
+                    doc.text('Maviya Constructions - Cross-Project Expense Invoice', 20, 280);
+                    doc.text(`Generated: ${new Date().toLocaleString('en-IN')}`, 190, 280, { align: 'right' });
+                    
+                    doc.save(`Cross_Project_Expense_Invoice_${transaction.id.substring(0, 8)}_${new Date().toISOString().split('T')[0]}.pdf`);
+                    this.showToast('Cross-project expense invoice downloaded!', 'success');
+                } catch (error) {
+                    console.error('Error generating cross-project expense invoice:', error);
+                    this.showToast('Error generating invoice: ' + error.message, 'error');
+                }
+            },
+
+            async generateSettlementInvoice(settlementId) {
+                try {
+                    this.showToast('Generating settlement invoice...', 'info');
+                    const { jsPDF } = window.jspdf;
+                    const doc = new jsPDF();
+                    
+                    const settlement = await Storage.settlementRecords.getById(settlementId);
+                    if (!settlement) throw new Error('Settlement record not found');
+                    
+                    const lenderProject = await Storage.projects.getById(settlement.lenderProjectId);
+                    const borrowerProject = await Storage.projects.getById(settlement.borrowerProjectId);
+                    
+                    let y = 20;
+                    doc.setFontSize(24);
+                    doc.setTextColor(14, 165, 233);
+                    doc.text('Maviya Constructions', 105, y, { align: 'center' });
+                    y += 12;
+                    doc.setFontSize(18);
+                    doc.setTextColor(51, 65, 85);
+                    doc.text('Loan Settlement Invoice', 105, y, { align: 'center' });
+                    y += 20;
+                    
+                    doc.setFillColor(16, 185, 129);
+                    doc.roundedRect(20, y, 170, 20, 3, 3, 'F');
+                    doc.setFontSize(12);
+                    doc.setTextColor(255, 255, 255);
+                    doc.text(`Invoice #: LS-${settlement.id.substring(0, 8).toUpperCase()}`, 30, y + 6);
+                    doc.text(`Date: ${this.formatDate(settlement.settlementDate)}`, 130, y + 6);
+                    doc.text(`Amount: Rs. ${this.formatNumber(settlement.settlementAmount)}`, 30, y + 12);
+                    doc.text(`Type: ${settlement.settlementType}`, 130, y + 12);
+                    y += 30;
+                    
+                    doc.setFontSize(12);
+                    doc.setTextColor(51, 65, 85);
+                    doc.text('Settlement Details', 20, y);
+                    y += 8;
+                    doc.setFontSize(10);
+                    doc.text(`From (Borrower): ${borrowerProject ? borrowerProject.name : 'Unknown'}`, 20, y);
+                    y += 6;
+                    doc.text(`To (Lender): ${lenderProject ? lenderProject.name : 'Unknown'}`, 20, y);
+                    y += 6;
+                    doc.text(`Settlement Type: ${settlement.settlementType === 'auto' ? 'Automatic Settlement' : 'Manual Settlement'}`, 20, y);
+                    y += 15;
+                    
+                    doc.setFontSize(8);
+                    doc.setTextColor(150, 150, 150);
+                    doc.text('Maviya Constructions - Loan Settlement Invoice', 20, 280);
+                    doc.text(`Generated: ${new Date().toLocaleString('en-IN')}`, 190, 280, { align: 'right' });
+                    
+                    doc.save(`Loan_Settlement_Invoice_${settlement.id.substring(0, 8)}_${new Date().toISOString().split('T')[0]}.pdf`);
+                    this.showToast('Settlement invoice downloaded!', 'success');
+                } catch (error) {
+                    console.error('Error generating settlement invoice:', error);
+                    this.showToast('Error generating invoice: ' + error.message, 'error');
+                }
+            },
+
+            async generateUnallocatedFundInvoice(fundId) {
+                try {
+                    this.showToast('Generating unallocated fund invoice...', 'info');
+                    const { jsPDF } = window.jspdf;
+                    const doc = new jsPDF();
+                    
+                    const fund = await Storage.unallocatedFunds.getById(fundId);
+                    if (!fund) throw new Error('Unallocated fund record not found');
+                    
+                    let y = 20;
+                    doc.setFontSize(24);
+                    doc.setTextColor(14, 165, 233);
+                    doc.text('Maviya Constructions', 105, y, { align: 'center' });
+                    y += 12;
+                    doc.setFontSize(18);
+                    doc.setTextColor(51, 65, 85);
+                    doc.text('Unallocated Fund Invoice', 105, y, { align: 'center' });
+                    y += 20;
+                    
+                    doc.setFillColor(239, 68, 68);
+                    doc.roundedRect(20, y, 170, 15, 3, 3, 'F');
+                    doc.setFontSize(12);
+                    doc.setTextColor(255, 255, 255);
+                    doc.text(`Invoice #: UF-${fund.id.substring(0, 8).toUpperCase()}`, 30, y + 6);
+                    doc.text(`Date: ${this.formatDate(fund.date)}`, 130, y + 6);
+                    doc.text(`Amount: Rs. ${this.formatNumber(fund.amount)}`, 30, y + 12);
+                    y += 25;
+                    
+                    doc.setFontSize(12);
+                    doc.setTextColor(51, 65, 85);
+                    doc.text('Unallocated Fund Details', 20, y);
+                    y += 8;
+                    doc.setFontSize(10);
+                    doc.text(`Amount: Rs. ${this.formatNumber(fund.amount)}`, 20, y);
+                    y += 6;
+                    doc.text(`Date Received: ${this.formatDate(fund.date)}`, 20, y);
+                    y += 6;
+                    doc.text(`Description: ${fund.description}`, 20, y);
+                    y += 15;
+                    
+                    doc.setFontSize(8);
+                    doc.setTextColor(150, 150, 150);
+                    doc.text('Maviya Constructions - Unallocated Fund Invoice', 20, 280);
+                    doc.text(`Generated: ${new Date().toLocaleString('en-IN')}`, 190, 280, { align: 'right' });
+                    
+                    doc.save(`Unallocated_Fund_Invoice_${fund.id.substring(0, 8)}_${new Date().toISOString().split('T')[0]}.pdf`);
+                    this.showToast('Unallocated fund invoice downloaded!', 'success');
+                } catch (error) {
+                    console.error('Error generating unallocated fund invoice:', error);
+                    this.showToast('Error generating invoice: ' + error.message, 'error');
+                }
+            },
+
+            async generateFundUnderstandingGuide() {
+                try {
+                    this.showToast('Generating fund management understanding guide...', 'info');
+                    const { jsPDF } = window.jspdf;
+                    const doc = new jsPDF();
+                    
+                    let y = 20;
+                    doc.setFontSize(28);
+                    doc.setTextColor(14, 165, 233);
+                    doc.text('Maviya Constructions', 105, y, { align: 'center' });
+                    y += 15;
+                    doc.setFontSize(20);
+                    doc.setTextColor(51, 65, 85);
+                    doc.text('Fund Management System', 105, y, { align: 'center' });
+                    y += 8;
+                    doc.text('Complete Understanding Guide', 105, y, { align: 'center' });
+                    y += 20;
+                    
+                    doc.setFillColor(14, 165, 233);
+                    doc.roundedRect(20, y, 170, 12, 3, 3, 'F');
+                    doc.setFontSize(12);
+                    doc.setTextColor(255, 255, 255);
+                    doc.text(`Generated: ${new Date().toLocaleDateString('en-IN')}`, 105, y + 8, { align: 'center' });
+                    y += 30;
+                    
+                    doc.setFontSize(14);
+                    doc.setTextColor(51, 65, 85);
+                    doc.text('Introduction', 20, y);
+                    y += 10;
+                    doc.setFontSize(10);
+                    const introText = ['This comprehensive guide explains the Fund Management System designed for', 'Maviya Constructions to handle multi-project financial operations with a', 'single bank account.'];
+                    introText.forEach(line => { doc.text(line, 20, y); y += 5; });
+                    y += 10;
+                    
+                    doc.addPage();
+                    y = 20;
+                    doc.setFontSize(18);
+                    doc.setTextColor(14, 165, 233);
+                    doc.text('System Overview', 20, y);
+                    y += 15;
+                    doc.setFontSize(12);
+                    doc.setTextColor(51, 65, 85);
+                    doc.text('Core Problem Solved:', 20, y);
+                    y += 8;
+                    doc.setFontSize(10);
+                    const problemText = ['• Multiple construction projects running simultaneously', '• All client payments deposited into single bank account', '• Difficulty tracking which payments belong to which project', '• Cross-project expenses (materials bought for Project A using Project B funds)', '• Need for accurate project-wise financial records'];
+                    problemText.forEach(line => { doc.text(line, 25, y); y += 6; });
+                    y += 10;
+                    doc.setFontSize(12);
+                    doc.setTextColor(16, 185, 129);
+                    doc.text('Solution Approach:', 20, y);
+                    y += 8;
+                    doc.setFontSize(10);
+                    doc.setTextColor(51, 65, 85);
+                    const solutionText = ['• Virtual Project Wallets: Each project has a virtual balance', '• Payment Allocation: Incoming payments allocated to specific projects', '• Cross-Project Loans: Track when one project pays for another', '• Automatic Settlement: Auto-repay loans when projects receive funds'];
+                    solutionText.forEach(line => { doc.text(line, 25, y); y += 6; });
+                    
+                    const pageCount = doc.internal.getNumberOfPages();
+                    for (let i = 1; i <= pageCount; i++) {
+                        doc.setPage(i);
+                        doc.setFontSize(8);
+                        doc.setTextColor(150, 150, 150);
+                        doc.text('Maviya Constructions - Fund Management Understanding Guide', 20, 290);
+                        doc.text(`Page ${i} of ${pageCount}`, 190, 290, { align: 'right' });
+                    }
+                    
+                    doc.save(`Maviya_Constructions_Fund_Management_Understanding_Guide_${new Date().toISOString().split('T')[0]}.pdf`);
+                    this.showToast('Fund management understanding guide downloaded!', 'success');
+                } catch (error) {
+                    console.error('Error generating fund understanding guide:', error);
+                    this.showToast('Error generating guide: ' + error.message, 'error');
+                }
+            },
+
+            async generateCompleteFundReport() {
+                try {
+                    this.showToast('Generating complete fund management report...', 'info');
+                    if (!window.jspdf) throw new Error('jsPDF library not loaded');
+                    
+                    const { jsPDF } = window.jspdf;
+                    const doc = new jsPDF();
+                    
+                    const overallStatus = await FundManagement.getOverallFundStatus();
+                    const allPayments = await Storage.clientPayments.getAll();
+                    const allAllocations = await Storage.paymentAllocations.getAll();
+                    const allocatedPaymentIds = [...new Set(allAllocations.map(a => a.paymentId))];
+                    const allocatedPayments = allPayments.filter(p => p.isMultiProject || allocatedPaymentIds.includes(p.id));
+                    const allTransactions = await Storage.crossProjectTransactions.getAll();
+                    const allSettlements = await Storage.settlementRecords.getAll();
+                    
+                    let y = 20;
+                    doc.setFontSize(24);
+                    doc.setTextColor(14, 165, 233);
+                    doc.text('Maviya Constructions', 105, y, { align: 'center' });
+                    y += 12;
+                    doc.setFontSize(18);
+                    doc.setTextColor(51, 65, 85);
+                    doc.text('Complete Fund Management Report', 105, y, { align: 'center' });
+                    y += 15;
+                    
+                    doc.setFillColor(14, 165, 233);
+                    doc.roundedRect(20, y, 170, 12, 3, 3, 'F');
+                    doc.setFontSize(12);
+                    doc.setTextColor(255, 255, 255);
+                    doc.text(`Generated: ${new Date().toLocaleDateString('en-IN')}`, 105, y + 8, { align: 'center' });
+                    y += 20;
+                    
+                    doc.setFillColor(241, 245, 249);
+                    doc.roundedRect(20, y, 170, 40, 3, 3, 'F');
+                    y += 8;
+                    doc.setFontSize(14);
+                    doc.setTextColor(14, 165, 233);
+                    doc.text('Overall Fund Status', 105, y, { align: 'center' });
+                    y += 12;
+                    doc.setFontSize(11);
+                    doc.setTextColor(51, 65, 85);
+                    doc.text('Total Virtual Balance:', 35, y);
+                    doc.text(`Rs. ${this.formatNumber(overallStatus.totalVirtualBalance)}`, 95, y);
+                    doc.text('Active Projects:', 105, y);
+                    doc.text(`${overallStatus.projectSummaries.length}`, 155, y);
+                    y += 8;
+                    doc.text('Total Active Loans:', 35, y);
+                    doc.text(`Rs. ${this.formatNumber(overallStatus.totalActiveLoans)}`, 95, y);
+                    doc.text('System Status:', 105, y);
+                    if (overallStatus.isBalanced) {
+                        doc.setTextColor(16, 185, 129);
+                        doc.text('✓ Balanced', 155, y);
+                    } else {
+                        doc.setTextColor(239, 68, 68);
+                        doc.text('⚠ Unbalanced', 155, y);
+                    }
+                    y += 20;
+                    
+                    doc.setFontSize(12);
+                    doc.setTextColor(51, 65, 85);
+                    doc.text('Project-wise Fund Summary', 20, y);
+                    y += 8;
+                    
+                    const projectSummaryData = overallStatus.projectSummaries.map(project => [
+                        project.projectName,
+                        `Rs. ${this.formatNumber(project.virtualBalance)}`,
+                        `Rs. ${this.formatNumber(project.activeLoansGiven)}`,
+                        `Rs. ${this.formatNumber(project.activeLoansReceived)}`,
+                        `Rs. ${this.formatNumber(project.netAvailableBalance)}`
+                    ]);
+                    
+                    doc.autoTable({ startY: y, head: [['Project', 'Virtual Balance', 'Loans Given', 'Loans Received', 'Net Available']], body: projectSummaryData, theme: 'grid', headStyles: { fillColor: [14, 165, 233] }, margin: { left: 20, right: 20 }, styles: { fontSize: 8 } });
+                    
+                    const pageCount = doc.internal.getNumberOfPages();
+                    for (let i = 1; i <= pageCount; i++) {
+                        doc.setPage(i);
+                        doc.setFontSize(8);
+                        doc.setTextColor(150, 150, 150);
+                        doc.text('Maviya Constructions - Complete Fund Management Report', 20, 290);
+                        doc.text(`Generated: ${new Date().toLocaleString('en-IN')}  |  Page ${i} of ${pageCount}`, 190, 290, { align: 'right' });
+                    }
+                    
+                    doc.save(`Maviya_Constructions_Complete_Fund_Report_${new Date().toISOString().split('T')[0]}.pdf`);
+                    this.showToast('Complete fund management report downloaded!', 'success');
+                } catch (error) {
+                    console.error('Error generating complete fund report:', error);
+                    this.showToast('Error generating report: ' + error.message, 'error');
+                }
+            },
+
+            showToast(message, type = 'info') {
+                const toast = document.createElement('div');
+                toast.className = `fixed top-4 right-4 p-4 rounded-lg text-white z-50 ${type === 'success' ? 'bg-green-500' : type === 'error' ? 'bg-rose-500' : 'bg-sky-500'}`;
+                toast.textContent = message;
+                document.body.appendChild(toast);
+                setTimeout(() => { toast.remove(); }, 3000);
+            }
+        };
+
+        window.FundsApp = FundsApp;
+    </script>
+</body>
+</html>

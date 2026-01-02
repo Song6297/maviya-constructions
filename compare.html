@@ -6,80 +6,267 @@
     <title>Project Comparison - Maviya Constructions</title>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <link href="css/styles.css" rel="stylesheet">
+    <link href="css/styles-sidebar.css?v=10" rel="stylesheet">
+    <style>
+        /* Page specific styles */
+        .page-title {
+            font-size: 2rem;
+            font-weight: 800;
+            color: var(--text);
+        }
+        
+        .section-card {
+            background: var(--white);
+            border-radius: var(--radius-xl);
+            padding: 2rem;
+            box-shadow: var(--shadow-soft);
+            margin-bottom: 2rem;
+        }
+        
+        .section-title {
+            font-size: 1.25rem;
+            font-weight: 800;
+            color: var(--text);
+            margin-bottom: 1.5rem;
+            display: inline-flex;
+            align-items: center;
+        }
+        
+        .section-title i {
+            margin-right: 0.75rem;
+            font-size: 1.25rem;
+        }
+        
+        .sub-title {
+            font-size: 0.875rem;
+            font-weight: 700;
+            color: var(--text-light);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 1rem;
+        }
+        
+        /* Data Table Styles */
+        .data-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+        }
+        
+        .data-table th {
+            background: linear-gradient(135deg, #F0F4F8, #E8F4F8);
+            padding: 1rem;
+            text-align: left;
+            font-weight: 700;
+            color: var(--text);
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            border-bottom: 3px solid var(--blueprint-blue);
+        }
+        
+        .data-table td {
+            padding: 1rem;
+            border-bottom: 2px solid #F0F4F8;
+            color: var(--text);
+            font-weight: 600;
+            font-size: 0.875rem;
+        }
+        
+        .data-table tr:hover td {
+            background: #F8FAFC;
+        }
+        
+        .chart-container {
+            position: relative;
+            height: 280px;
+            margin-top: 1.5rem;
+        }
+        
+        .overflow-x-auto {
+            overflow-x: auto;
+        }
+    </style>
 </head>
-<body class="min-h-screen">
-    <header class="header-main sticky top-0 z-40">
-        <div class="container mx-auto px-4 py-4 flex items-center justify-between">
-            <div class="flex items-center gap-4">
-                <a href="index.html" class="text-slate-300 hover:text-white transition"><i class="fas fa-arrow-left"></i></a>
-                <div class="flex items-center gap-3">
-                    <div class="w-8 h-8 bg-white rounded-lg flex items-center justify-center">
-                        <i class="fas fa-chart-bar text-sky-500 text-lg"></i>
+<body>
+    <!-- App Container with Sidebar -->
+    <div class="app-container">
+        <!-- Floating Sidebar -->
+        <aside class="sidebar">
+            <!-- Logo Section -->
+            <div class="sidebar-logo">
+                <div class="logo-icon">
+                    <i class="fas fa-hard-hat"></i>
+                </div>
+                <div class="logo-text">Maviya</div>
+                <div class="logo-subtitle">Construction Management</div>
+            </div>
+
+            <!-- Navigation -->
+            <nav class="sidebar-nav">
+                <a href="index.html" class="sidebar-btn">
+                    <div class="sidebar-btn-icon" style="background: linear-gradient(135deg, #FFE8B3, var(--safety-yellow));">
+                        🏗️
                     </div>
-                    <h1 class="text-lg font-bold text-white">Multi-Project Comparison</h1>
+                    <span class="sidebar-btn-text">Dashboard</span>
+                </a>
+                <a href="compare.html" class="sidebar-btn compare" style="border: 3px solid var(--blueprint-blue);">
+                    <div class="sidebar-btn-icon">
+                        📊
+                    </div>
+                    <span class="sidebar-btn-text">Compare</span>
+                </a>
+                <a href="payments.html" class="sidebar-btn payment">
+                    <div class="sidebar-btn-icon">
+                        💳
+                    </div>
+                    <span class="sidebar-btn-text">Payment</span>
+                </a>
+                <a href="materials.html" class="sidebar-btn stock">
+                    <div class="sidebar-btn-icon">
+                        📦
+                    </div>
+                    <span class="sidebar-btn-text">Stock</span>
+                </a>
+                <a href="funds.html" class="sidebar-btn funds">
+                    <div class="sidebar-btn-icon">
+                        💰
+                    </div>
+                    <span class="sidebar-btn-text">Funds</span>
+                </a>
+            </nav>
+
+            <!-- User Menu -->
+            <div class="relative">
+                <button id="userMenuBtn" class="sidebar-logout">
+                    👤
+                    <span id="userEmailDisplay" class="text-xs max-w-[120px] truncate"></span>
+                </button>
+                <div id="userMenu" class="hidden absolute bottom-full left-0 right-0 mb-2 bg-white rounded-lg shadow-xl border border-slate-200 py-2 z-50">
+                    <div class="px-4 py-2 border-b border-slate-200">
+                        <p class="text-xs text-slate-500">Signed in as</p>
+                        <p id="userEmailFull" class="text-sm font-semibold text-slate-800 truncate"></p>
+                    </div>
+                    <a href="migrate.html" class="flex items-center gap-3 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 transition">
+                        <i class="fas fa-database text-sky-500"></i>
+                        Data Migration
+                    </a>
+                    <button id="logoutBtn" class="w-full flex items-center gap-3 px-4 py-2 text-sm text-rose-600 hover:bg-rose-50 transition">
+                        <i class="fas fa-sign-out-alt"></i>
+                        Logout
+                    </button>
                 </div>
             </div>
-            <button id="exportBtn" class="btn-header"><i class="fas fa-download mr-2"></i>Export CSV</button>
-        </div>
-    </header>
+        </aside>
 
-    <main class="container mx-auto px-4 py-6">
-        <!-- Profitability Comparison -->
-        <section class="card rounded-lg p-5 mb-6">
-            <h2 class="text-slate-800 font-semibold mb-4"><i class="fas fa-coins text-sky-500 mr-2"></i>Profitability Comparison</h2>
-            <div class="overflow-x-auto mb-4">
-                <table class="data-table">
-                    <thead>
-                        <tr><th>Project</th><th>Budget</th><th>Spent</th><th>Remaining</th><th>% Used</th><th>Status</th></tr>
-                    </thead>
-                    <tbody id="profitTable"></tbody>
-                </table>
+        <!-- Main Content Area -->
+        <main class="main-content">
+            <!-- Header -->
+            <div class="content-header">
+                <h1 class="page-title">Multi-Project Comparison</h1>
+                <button id="exportBtn" class="btn-add-project">
+                    <i class="fas fa-download"></i>
+                    Export CSV
+                </button>
             </div>
-            <div class="chart-container"><canvas id="profitChart"></canvas></div>
-        </section>
 
-        <!-- Delay Comparison -->
-        <section class="card rounded-lg p-5 mb-6">
-            <h2 class="text-slate-800 font-semibold mb-4"><i class="fas fa-clock text-sky-500 mr-2"></i>Timeline & Delay Analysis</h2>
-            <div class="overflow-x-auto mb-4">
-                <table class="data-table">
-                    <thead>
-                        <tr><th>Project</th><th>Start</th><th>End</th><th>Duration</th><th>Days Left/Overdue</th><th>Progress</th><th>Status</th></tr>
-                    </thead>
-                    <tbody id="delayTable"></tbody>
-                </table>
-            </div>
-            <div class="chart-container"><canvas id="delayChart"></canvas></div>
-        </section>
-
-        <!-- Resource Allocation -->
-        <section class="card rounded-lg p-5">
-            <h2 class="text-slate-800 font-semibold mb-4"><i class="fas fa-users text-sky-500 mr-2"></i>Resource Allocation</h2>
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <div>
-                    <h3 class="text-slate-600 text-sm mb-3">Material Cost Distribution</h3>
-                    <div class="chart-container"><canvas id="materialChart"></canvas></div>
+            <!-- Profitability Comparison -->
+            <div class="section-card">
+                <h2 class="section-title">
+                    <i class="fas fa-coins" style="color: var(--mint-green);"></i>
+                    Profitability Comparison
+                </h2>
+                <div class="overflow-x-auto">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Project</th>
+                                <th>Budget</th>
+                                <th>Spent</th>
+                                <th>Remaining</th>
+                                <th>% Used</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="profitTable"></tbody>
+                    </table>
                 </div>
-                <div>
-                    <h3 class="text-slate-600 text-sm mb-3">Labour Cost Distribution</h3>
-                    <div class="chart-container"><canvas id="labourChart"></canvas></div>
+                <div class="chart-container">
+                    <canvas id="profitChart"></canvas>
                 </div>
             </div>
-            <div class="mt-6 overflow-x-auto">
-                <table class="data-table">
-                    <thead>
-                        <tr><th>Project</th><th>Materials</th><th>Labour</th><th>Expenses</th><th>Total</th><th>Workers</th></tr>
-                    </thead>
-                    <tbody id="resourceTable"></tbody>
-                </table>
+
+            <!-- Delay Comparison -->
+            <div class="section-card">
+                <h2 class="section-title">
+                    <i class="fas fa-clock" style="color: var(--brick-orange);"></i>
+                    Timeline & Delay Analysis
+                </h2>
+                <div class="overflow-x-auto">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Project</th>
+                                <th>Start</th>
+                                <th>End</th>
+                                <th>Duration</th>
+                                <th>Days Left/Overdue</th>
+                                <th>Progress</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="delayTable"></tbody>
+                    </table>
+                </div>
+                <div class="chart-container">
+                    <canvas id="delayChart"></canvas>
+                </div>
             </div>
-        </section>
-    </main>
+
+            <!-- Resource Allocation -->
+            <div class="section-card">
+                <h2 class="section-title">
+                    <i class="fas fa-users" style="color: var(--blueprint-blue);"></i>
+                    Resource Allocation
+                </h2>
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-10 mb-6">
+                    <div>
+                        <h3 class="sub-title">Material Cost Distribution</h3>
+                        <div class="chart-container">
+                            <canvas id="materialChart"></canvas>
+                        </div>
+                    </div>
+                    <div>
+                        <h3 class="sub-title">Labour Cost Distribution</h3>
+                        <div class="chart-container">
+                            <canvas id="labourChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Project</th>
+                                <th>Materials</th>
+                                <th>Labour</th>
+                                <th>Expenses</th>
+                                <th>Total</th>
+                                <th>Workers</th>
+                            </tr>
+                        </thead>
+                        <tbody id="resourceTable"></tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
 
     <script type="module">
         import { auth, onAuthStateChanged } from './js/firebase-config.js';
+        import { initAuthHeader } from './js/auth-header.js';
         import Storage from './js/firebase-storage.js';
         import { CompareApp } from './js/compare.js?v=2';
         
@@ -91,6 +278,9 @@
                 window.location.href = 'login.html';
                 return;
             }
+            
+            // Initialize auth header
+            initAuthHeader({ requireAuth: false });
             
             try {
                 await CompareApp.init();

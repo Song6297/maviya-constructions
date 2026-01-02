@@ -180,15 +180,10 @@ const App = {
     },
 
     async getEffectiveBudget(project) {
-        const transfers = await Storage.budgetTransfers.getByProject(project.id);
-        let adj = 0;
-        transfers.forEach(t => {
-            const amount = parseFloat(t.amount) || 0;
-            if (t.fromProjectId === project.id) adj -= amount;
-            if (t.toProjectId === project.id) adj += amount;
-        });
+        // With Fund Management system, we use the original project budget
+        // Cross-project funding is handled through the virtual wallet system
         const budget = parseFloat(project.budget) || 0;
-        return budget + adj;
+        return budget;
     },
 
     async getTodayExpenses(projectId) {

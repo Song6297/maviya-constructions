@@ -6,164 +6,226 @@
     <title>Material Stock - Maviya Constructions</title>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    <link href="css/styles.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link href="css/styles-sidebar.css?v=10" rel="stylesheet">
+    <style>
+        .page-title { font-size: 2rem; font-weight: 800; color: var(--text); }
+        .section-card { background: var(--white); border-radius: var(--radius-xl); padding: 2rem; box-shadow: var(--shadow-soft); margin-bottom: 2rem; }
+        .summary-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.5rem; margin-bottom: 2rem; }
+        .summary-item { background: var(--white); border-radius: var(--radius-xl); padding: 1.5rem; text-align: center; box-shadow: var(--shadow-soft); border: 3px solid transparent; transition: all 0.3s; }
+        .summary-item:hover { transform: translateY(-4px); }
+        .summary-item.total { border-color: var(--blueprint-blue); }
+        .summary-item.available { border-color: var(--mint-green); }
+        .summary-item.low { border-color: var(--brick-orange); }
+        .summary-item.value { border-color: var(--safety-yellow); }
+        .summary-label { font-size: 0.875rem; font-weight: 700; color: var(--text-light); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.5rem; }
+        .summary-value { font-size: 1.75rem; font-weight: 800; }
+        .summary-value.total { color: var(--blueprint-blue); }
+        .summary-value.available { color: var(--mint-green); }
+        .summary-value.low { color: var(--brick-orange); }
+        .summary-value.value { color: var(--safety-yellow); }
+        .filters-row { display: flex; flex-wrap: wrap; gap: 1rem; margin-bottom: 1.5rem; }
+        .filter-select { padding: 0.75rem 1rem; border: 3px solid #E8F4F8; border-radius: var(--radius-lg); font-weight: 700; background: var(--white); color: var(--text); min-width: 160px; }
+        .filter-select:focus { outline: none; border-color: var(--blueprint-blue); }
+        .data-table { width: 100%; border-collapse: separate; border-spacing: 0; }
+        .data-table th { background: linear-gradient(135deg, #F0F4F8, #E8F4F8); padding: 1rem; text-align: left; font-weight: 700; color: var(--text); font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.05em; border-bottom: 3px solid var(--blueprint-blue); }
+        .data-table td { padding: 0.875rem; border-bottom: 2px solid #F0F4F8; color: var(--text); font-weight: 600; font-size: 0.8125rem; }
+        .data-table tr:hover td { background: #F8FAFC; }
+        @media (max-width: 1024px) { .summary-grid { grid-template-columns: repeat(2, 1fr); } }
+    </style>
 </head>
-<body class="min-h-screen">
-    <header class="header-main sticky top-0 z-40">
-        <div class="container mx-auto px-4 py-4 flex items-center justify-between">
-            <div class="flex items-center gap-4">
-                <a href="index.html" class="text-slate-300 hover:text-white transition">
-                    <i class="fas fa-arrow-left"></i>
+<body>
+    <div class="app-container">
+        <aside class="sidebar">
+            <div class="sidebar-logo">
+                <div class="logo-icon"><i class="fas fa-hard-hat"></i></div>
+                <div class="logo-text">Maviya</div>
+                <div class="logo-subtitle">Construction Management</div>
+            </div>
+            <nav class="sidebar-nav">
+                <a href="index.html" class="sidebar-btn">
+                    <div class="sidebar-btn-icon" style="background: linear-gradient(135deg, #FFE8B3, var(--safety-yellow));">🏗️</div>
+                    <span class="sidebar-btn-text">Dashboard</span>
                 </a>
-                <div class="flex items-center gap-3">
-                    <div class="w-8 h-8 bg-white rounded-lg flex items-center justify-center">
-                        <i class="fas fa-boxes text-sky-500 text-lg"></i>
+                <a href="compare.html" class="sidebar-btn compare">
+                    <div class="sidebar-btn-icon">📊</div>
+                    <span class="sidebar-btn-text">Compare</span>
+                </a>
+                <a href="payments.html" class="sidebar-btn payment">
+                    <div class="sidebar-btn-icon">💳</div>
+                    <span class="sidebar-btn-text">Payment</span>
+                </a>
+                <a href="materials.html" class="sidebar-btn stock" style="border: 3px solid var(--blueprint-blue);">
+                    <div class="sidebar-btn-icon">📦</div>
+                    <span class="sidebar-btn-text">Stock</span>
+                </a>
+                <a href="funds.html" class="sidebar-btn funds">
+                    <div class="sidebar-btn-icon">💰</div>
+                    <span class="sidebar-btn-text">Funds</span>
+                </a>
+            </nav>
+            <div class="relative">
+                <button id="userMenuBtn" class="sidebar-logout">👤<span id="userEmailDisplay" class="text-xs max-w-[120px] truncate"></span></button>
+                <div id="userMenu" class="hidden absolute bottom-full left-0 right-0 mb-2 bg-white rounded-lg shadow-xl border border-slate-200 py-2 z-50">
+                    <div class="px-4 py-2 border-b border-slate-200">
+                        <p class="text-xs text-slate-500">Signed in as</p>
+                        <p id="userEmailFull" class="text-sm font-semibold text-slate-800 truncate"></p>
                     </div>
-                    <h1 class="text-lg font-bold text-white">Material Stock</h1>
+                    <a href="migrate.html" class="flex items-center gap-3 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 transition">
+                        <i class="fas fa-database text-sky-500"></i>Data Migration
+                    </a>
+                    <button id="logoutBtn" class="w-full flex items-center gap-3 px-4 py-2 text-sm text-rose-600 hover:bg-rose-50 transition">
+                        <i class="fas fa-sign-out-alt"></i>Logout
+                    </button>
                 </div>
             </div>
-            <button id="addStockBtn" class="btn-primary text-sm flex items-center gap-2">
-                <i class="fas fa-plus"></i> Add Stock
-            </button>
-        </div>
-    </header>
+        </aside>
 
-    <main class="container mx-auto px-4 py-6">
-        <!-- Summary Cards -->
-        <section class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-            <div class="metric-card rounded-lg p-4">
-                <p class="text-slate-600 text-sm">Total Items</p>
-                <p class="text-2xl font-bold text-slate-800" id="totalItems">0</p>
+        <main class="main-content">
+            <div class="content-header">
+                <h1 class="page-title">Material Stock</h1>
+                <button id="addStockBtn" class="btn-add-project"><i class="fas fa-plus"></i> Add Stock</button>
             </div>
-            <div class="metric-card rounded-lg p-4">
-                <p class="text-slate-600 text-sm">Available</p>
-                <p class="text-2xl font-bold text-emerald-600" id="availableItems">0</p>
-            </div>
-            <div class="metric-card rounded-lg p-4">
-                <p class="text-slate-600 text-sm">Low Stock</p>
-                <p class="text-2xl font-bold text-rose-600" id="lowStockItems">0</p>
-            </div>
-            <div class="metric-card rounded-lg p-4">
-                <p class="text-slate-600 text-sm">Total Value</p>
-                <p class="text-xl font-bold text-sky-600" id="totalValue">₹0</p>
-            </div>
-        </section>
 
-        <!-- Filter -->
-        <div class="flex gap-3 mb-4">
-            <select id="statusFilter" class="form-input text-sm w-40">
-                <option value="all">All Status</option>
-                <option value="available">Available</option>
-                <option value="low">Low Stock</option>
-            </select>
-            <select id="categoryFilter" class="form-input text-sm w-40">
-                <option value="all">All Categories</option>
-            </select>
-        </div>
+            <!-- Summary Cards -->
+            <div class="summary-grid">
+                <div class="summary-item total">
+                    <p class="summary-label">Total Items</p>
+                    <p class="summary-value total" id="totalItems">0</p>
+                </div>
+                <div class="summary-item available">
+                    <p class="summary-label">Available</p>
+                    <p class="summary-value available" id="availableItems">0</p>
+                </div>
+                <div class="summary-item low">
+                    <p class="summary-label">Low Stock</p>
+                    <p class="summary-value low" id="lowStockItems">0</p>
+                </div>
+                <div class="summary-item value">
+                    <p class="summary-label">Total Value</p>
+                    <p class="summary-value value" id="totalValue">₹0</p>
+                </div>
+            </div>
 
-        <!-- Stock Table -->
-        <div class="card overflow-hidden">
-            <div class="overflow-x-auto">
-                <table class="data-table">
-                    <thead>
-                        <tr>
-                            <th>Material</th>
-                            <th>Category</th>
-                            <th>Available</th>
-                            <th>Used</th>
-                            <th>Recovered</th>
-                            <th>Min Stock</th>
-                            <th>Unit</th>
-                            <th>Rate</th>
-                            <th>Value</th>
-                            <th>Status</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody id="stockTableBody"></tbody>
-                </table>
+            <!-- Filters -->
+            <div class="filters-row">
+                <select id="statusFilter" class="filter-select">
+                    <option value="all">All Status</option>
+                    <option value="available">Available</option>
+                    <option value="low">Low Stock</option>
+                </select>
+                <select id="categoryFilter" class="filter-select">
+                    <option value="all">All Categories</option>
+                </select>
             </div>
-            <div id="emptyState" class="empty-state hidden">
-                <i class="fas fa-box-open"></i>
-                <p>No materials in stock</p>
+
+            <!-- Stock Table -->
+            <div class="section-card">
+                <div class="overflow-x-auto">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Material</th>
+                                <th>Category</th>
+                                <th>Available</th>
+                                <th>Used</th>
+                                <th>Recovered</th>
+                                <th>Min Stock</th>
+                                <th>Unit</th>
+                                <th>Rate</th>
+                                <th>Value</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="stockTableBody"></tbody>
+                    </table>
+                </div>
+                <div id="emptyState" class="empty-state hidden">
+                    <i class="fas fa-box-open"></i>
+                    <p>No materials in stock</p>
+                </div>
             </div>
-        </div>
-    </main>
+        </main>
+    </div>
 
     <!-- Add/Edit Stock Modal -->
-    <div id="stockModal" class="modal-overlay fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 hidden">
-        <div class="modal-content rounded-xl w-full max-w-lg mx-4 max-h-[90vh] overflow-y-auto">
-            <div class="p-5 border-b border-gray-700 flex items-center justify-between">
-                <h3 id="modalTitle" class="text-lg font-semibold text-slate-800">Add Stock</h3>
-                <button class="close-modal text-slate-400 hover:text-sky-600 transition"><i class="fas fa-times text-xl"></i></button>
+    <div id="stockModal" class="modal-overlay fixed inset-0 flex items-center justify-center z-50 hidden">
+        <div class="modal-content w-full mx-4 max-h-[90vh] overflow-y-auto">
+            <div class="p-6 border-b border-gray-200">
+                <div class="flex items-center justify-between">
+                    <h3 id="modalTitle" class="text-xl font-bold text-slate-800">Add Stock</h3>
+                    <button class="close-modal text-gray-400 hover:text-gray-600 transition"><i class="fas fa-times text-xl"></i></button>
+                </div>
             </div>
-            <form id="stockForm" class="p-5 space-y-4">
+            <form id="stockForm" class="p-6">
                 <input type="hidden" id="stockId">
-                <div>
-                    <label class="block text-sm font-medium text-gray-300 mb-1">Material Name *</label>
+                <div class="mb-5">
+                    <label class="block text-sm font-semibold text-slate-700 mb-2">Material Name *</label>
                     <select id="materialSelect" class="form-input">
                         <option value="">Select Material</option>
                     </select>
                 </div>
-                <div id="customNameDiv" class="hidden">
-                    <label class="block text-sm font-medium text-gray-300 mb-1">Custom Material Name *</label>
+                <div id="customNameDiv" class="hidden mb-5">
+                    <label class="block text-sm font-semibold text-slate-700 mb-2">Custom Material Name *</label>
                     <input type="text" id="customMaterialName" class="form-input" placeholder="Enter material name">
                 </div>
-                <div class="grid grid-cols-2 gap-4">
+                <div class="grid grid-cols-2 gap-5 mb-5">
                     <div>
-                        <label class="block text-sm font-medium text-gray-300 mb-1">Category *</label>
+                        <label class="block text-sm font-semibold text-slate-700 mb-2">Category *</label>
                         <select id="materialCategory" required class="form-input"></select>
                     </div>
                     <div>
-                        <label class="block text-sm font-medium text-gray-300 mb-1">Unit *</label>
+                        <label class="block text-sm font-semibold text-slate-700 mb-2">Unit *</label>
                         <select id="materialUnit" required class="form-input"></select>
                     </div>
                 </div>
-                <div class="grid grid-cols-2 gap-4">
+                <div class="grid grid-cols-2 gap-5 mb-5">
                     <div>
-                        <label class="block text-sm font-medium text-gray-300 mb-1">Available Qty *</label>
+                        <label class="block text-sm font-semibold text-slate-700 mb-2">Available Qty *</label>
                         <input type="number" id="availableQty" required min="0" step="0.01" class="form-input">
                     </div>
                     <div>
-                        <label class="block text-sm font-medium text-gray-300 mb-1">Min Stock Level</label>
+                        <label class="block text-sm font-semibold text-slate-700 mb-2">Min Stock Level</label>
                         <input type="number" id="minStock" min="0" step="0.01" class="form-input" value="0">
                     </div>
                 </div>
-                <div class="grid grid-cols-2 gap-4">
+                <div class="grid grid-cols-2 gap-5 mb-5">
                     <div>
-                        <label class="block text-sm font-medium text-gray-300 mb-1">Rate per Unit (₹) *</label>
+                        <label class="block text-sm font-semibold text-slate-700 mb-2">Rate per Unit (₹) *</label>
                         <input type="number" id="ratePerUnit" required min="0" step="0.01" class="form-input">
                     </div>
                     <div>
-                        <label class="block text-sm font-medium text-gray-300 mb-1">Supplier</label>
+                        <label class="block text-sm font-semibold text-slate-700 mb-2">Supplier</label>
                         <input type="text" id="supplier" class="form-input">
                     </div>
                 </div>
                 <div class="flex gap-3 pt-4">
-                    <button type="button" class="cancel-modal flex-1 btn-secondary">Cancel</button>
-                    <button type="submit" class="flex-1 btn-primary">Save</button>
+                    <button type="button" class="cancel-modal flex-1 btn btn-secondary">Cancel</button>
+                    <button type="submit" class="flex-1 btn btn-primary">Save Stock</button>
                 </div>
             </form>
         </div>
     </div>
 
     <!-- Delete Modal -->
-    <div id="deleteModal" class="modal-overlay fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 hidden">
-        <div class="modal-content rounded-xl w-full max-w-sm mx-4 p-6 text-center">
+    <div id="deleteModal" class="modal-overlay fixed inset-0 flex items-center justify-center z-50 hidden">
+        <div class="modal-content modal-sm w-full mx-4 p-6 text-center">
             <div class="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
                 <i class="fas fa-exclamation-triangle text-red-500 text-2xl"></i>
             </div>
-            <h3 class="text-lg font-semibold text-slate-800 mb-2">Delete Material?</h3>
+            <h3 class="text-xl font-bold text-slate-800 mb-2">Delete Material?</h3>
             <p class="text-slate-600 text-sm mb-6">This will remove this material from stock.</p>
             <div class="flex gap-3">
-                <button id="cancelDelete" class="flex-1 btn-secondary">Cancel</button>
-                <button id="confirmDelete" class="flex-1 btn-danger">Delete</button>
+                <button id="cancelDelete" class="flex-1 btn btn-secondary">Cancel</button>
+                <button id="confirmDelete" class="flex-1 btn btn-danger">Delete</button>
             </div>
         </div>
     </div>
 
     <script type="module">
         import { auth, onAuthStateChanged } from './js/firebase-config.js';
+        import { initAuthHeader } from './js/auth-header.js';
         import Storage from './js/firebase-storage.js';
         import { MaterialStock } from './js/materials-stock.js?v=2';
         
@@ -175,6 +237,8 @@
                 window.location.href = 'login.html';
                 return;
             }
+            
+            initAuthHeader({ requireAuth: false });
             
             try {
                 await MaterialStock.init();

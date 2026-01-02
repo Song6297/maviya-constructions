@@ -6,145 +6,233 @@
     <title>Payment Tracking - Maviya Constructions</title>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    <link href="css/styles.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link href="css/styles-sidebar.css?v=10" rel="stylesheet">
+    <style>
+        .page-title { font-size: 2rem; font-weight: 800; color: var(--text); }
+        .section-card { background: var(--white); border-radius: var(--radius-xl); padding: 2rem; box-shadow: var(--shadow-soft); margin-bottom: 2rem; }
+        .summary-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.5rem; margin-bottom: 2rem; }
+        .summary-item { background: var(--white); border-radius: var(--radius-xl); padding: 1.5rem; text-align: center; box-shadow: var(--shadow-soft); border: 3px solid transparent; transition: all 0.3s; }
+        .summary-item:hover { transform: translateY(-4px); }
+        .summary-item.total { border-color: var(--blueprint-blue); }
+        .summary-item.pending { border-color: var(--brick-orange); }
+        .summary-item.paid { border-color: var(--mint-green); }
+        .summary-item.overdue { border-color: #E74C3C; }
+        .summary-label { font-size: 0.875rem; font-weight: 700; color: var(--text-light); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.5rem; }
+        .summary-value { font-size: 1.75rem; font-weight: 800; }
+        .summary-value.total { color: var(--blueprint-blue); }
+        .summary-value.pending { color: var(--brick-orange); }
+        .summary-value.paid { color: var(--mint-green); }
+        .summary-value.overdue { color: #E74C3C; }
+        .filters-row { display: flex; flex-wrap: wrap; gap: 1rem; margin-bottom: 1.5rem; }
+        .filter-select { padding: 0.75rem 1rem; border: 3px solid #E8F4F8; border-radius: var(--radius-lg); font-weight: 700; background: var(--white); color: var(--text); min-width: 140px; }
+        .filter-select:focus { outline: none; border-color: var(--blueprint-blue); }
+        .data-table { width: 100%; border-collapse: separate; border-spacing: 0; }
+        .data-table th { background: linear-gradient(135deg, #F0F4F8, #E8F4F8); padding: 1rem; text-align: left; font-weight: 700; color: var(--text); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; border-bottom: 3px solid var(--blueprint-blue); }
+        .data-table td { padding: 1rem; border-bottom: 2px solid #F0F4F8; color: var(--text); font-weight: 600; font-size: 0.875rem; }
+        .data-table tr:hover td { background: #F8FAFC; }
+        @media (max-width: 1024px) { .summary-grid { grid-template-columns: repeat(2, 1fr); } }
+    </style>
 </head>
-<body class="min-h-screen">
-    <header class="header-main sticky top-0 z-40">
-        <div class="container mx-auto px-4 py-4 flex items-center justify-between">
-            <div class="flex items-center gap-4">
-                <a href="index.html" class="text-slate-300 hover:text-white transition"><i class="fas fa-arrow-left"></i></a>
-                <div class="flex items-center gap-3">
-                    <div class="w-8 h-8 bg-white rounded-lg flex items-center justify-center">
-                        <i class="fas fa-wallet text-sky-500 text-lg"></i>
+<body>
+    <div class="app-container">
+        <aside class="sidebar">
+            <div class="sidebar-logo">
+                <div class="logo-icon"><i class="fas fa-hard-hat"></i></div>
+                <div class="logo-text">Maviya</div>
+                <div class="logo-subtitle">Construction Management</div>
+            </div>
+            <nav class="sidebar-nav">
+                <a href="index.html" class="sidebar-btn">
+                    <div class="sidebar-btn-icon" style="background: linear-gradient(135deg, #FFE8B3, var(--safety-yellow));">🏗️</div>
+                    <span class="sidebar-btn-text">Dashboard</span>
+                </a>
+                <a href="compare.html" class="sidebar-btn compare">
+                    <div class="sidebar-btn-icon">📊</div>
+                    <span class="sidebar-btn-text">Compare</span>
+                </a>
+                <a href="payments.html" class="sidebar-btn payment" style="border: 3px solid var(--blueprint-blue);">
+                    <div class="sidebar-btn-icon">💳</div>
+                    <span class="sidebar-btn-text">Payment</span>
+                </a>
+                <a href="materials.html" class="sidebar-btn stock">
+                    <div class="sidebar-btn-icon">📦</div>
+                    <span class="sidebar-btn-text">Stock</span>
+                </a>
+                <a href="funds.html" class="sidebar-btn funds">
+                    <div class="sidebar-btn-icon">💰</div>
+                    <span class="sidebar-btn-text">Funds</span>
+                </a>
+            </nav>
+            <div class="relative">
+                <button id="userMenuBtn" class="sidebar-logout">👤<span id="userEmailDisplay" class="text-xs max-w-[120px] truncate"></span></button>
+                <div id="userMenu" class="hidden absolute bottom-full left-0 right-0 mb-2 bg-white rounded-lg shadow-xl border border-slate-200 py-2 z-50">
+                    <div class="px-4 py-2 border-b border-slate-200">
+                        <p class="text-xs text-slate-500">Signed in as</p>
+                        <p id="userEmailFull" class="text-sm font-semibold text-slate-800 truncate"></p>
                     </div>
-                    <h1 class="text-lg font-bold text-white">Payment Tracking</h1>
+                    <a href="migrate.html" class="flex items-center gap-3 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 transition">
+                        <i class="fas fa-database text-sky-500"></i>Data Migration
+                    </a>
+                    <button id="logoutBtn" class="w-full flex items-center gap-3 px-4 py-2 text-sm text-rose-600 hover:bg-rose-50 transition">
+                        <i class="fas fa-sign-out-alt"></i>Logout
+                    </button>
                 </div>
             </div>
-            <button id="addPaymentBtn" class="btn-primary text-sm"><i class="fas fa-plus mr-2"></i>Add Payment</button>
-        </div>
-    </header>
+        </aside>
 
-    <main class="container mx-auto px-4 py-6">
-        <!-- Summary -->
-        <section class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-            <div class="summary-card">
-                <p class="text-slate-600 text-sm">Total Payable</p>
-                <p class="text-2xl font-bold text-slate-800" id="totalPayable">₹0</p>
+        <main class="main-content">
+            <div class="content-header">
+                <h1 class="page-title">Payment Tracking</h1>
+                <button id="addPaymentBtn" class="btn-add-project"><i class="fas fa-plus"></i> Add Payment</button>
             </div>
-            <div class="summary-card danger">
-                <p class="text-slate-600 text-sm">Pending</p>
-                <p class="text-2xl font-bold text-rose-600" id="totalPending">₹0</p>
-            </div>
-            <div class="summary-card success">
-                <p class="text-slate-600 text-sm">Paid</p>
-                <p class="text-2xl font-bold text-emerald-600" id="totalPaid">₹0</p>
-            </div>
-            <div class="summary-card accent">
-                <p class="text-slate-600 text-sm">Overdue</p>
-                <p class="text-2xl font-bold text-sky-600" id="totalOverdue">₹0</p>
-            </div>
-        </section>
 
-        <!-- Filters -->
-        <div class="flex flex-wrap gap-3 mb-4">
-            <select id="statusFilter" class="form-input text-sm w-32">
-                <option value="all">All</option>
-                <option value="pending">Pending</option>
-                <option value="paid">Paid</option>
-                <option value="overdue">Overdue</option>
-            </select>
-            <select id="typeFilter" class="form-input text-sm w-32">
-                <option value="all">All Types</option>
-                <option value="Vendor">Vendor</option>
-                <option value="Labour">Labour</option>
-                <option value="Contractor">Contractor</option>
-                <option value="Other">Other</option>
-            </select>
-            <select id="projectFilter" class="form-input text-sm w-40">
-                <option value="all">All Projects</option>
-            </select>
-        </div>
-
-        <!-- Payments Table -->
-        <div class="card rounded-lg overflow-hidden">
-            <div class="overflow-x-auto">
-                <table class="data-table">
-                    <thead>
-                        <tr>
-                            <th>Vendor/Payee</th>
-                            <th>Type</th>
-                            <th>Project</th>
-                            <th>Amount</th>
-                            <th>Due Date</th>
-                            <th>Status</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody id="paymentsTableBody"></tbody>
-                </table>
+            <!-- Summary Cards -->
+            <div class="summary-grid">
+                <div class="summary-item total">
+                    <p class="summary-label">Total Payable</p>
+                    <p class="summary-value total" id="totalPayable">₹0</p>
+                </div>
+                <div class="summary-item pending">
+                    <p class="summary-label">Pending</p>
+                    <p class="summary-value pending" id="totalPending">₹0</p>
+                </div>
+                <div class="summary-item paid">
+                    <p class="summary-label">Paid</p>
+                    <p class="summary-value paid" id="totalPaid">₹0</p>
+                </div>
+                <div class="summary-item overdue">
+                    <p class="summary-label">Overdue</p>
+                    <p class="summary-value overdue" id="totalOverdue">₹0</p>
+                </div>
             </div>
-            <div id="emptyState" class="empty-state hidden"><i class="fas fa-wallet"></i><p>No payments recorded</p></div>
-        </div>
-    </main>
+
+            <!-- Filters -->
+            <div class="filters-row">
+                <select id="statusFilter" class="filter-select">
+                    <option value="all">All Status</option>
+                    <option value="pending">Pending</option>
+                    <option value="paid">Paid</option>
+                    <option value="overdue">Overdue</option>
+                </select>
+                <select id="typeFilter" class="filter-select">
+                    <option value="all">All Types</option>
+                    <option value="Vendor">Vendor</option>
+                    <option value="Labour">Labour</option>
+                    <option value="Contractor">Contractor</option>
+                    <option value="Other">Other</option>
+                </select>
+                <select id="projectFilter" class="filter-select">
+                    <option value="all">All Projects</option>
+                </select>
+            </div>
+
+            <!-- Payments Table -->
+            <div class="section-card">
+                <div class="overflow-x-auto">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Vendor/Payee</th>
+                                <th>Type</th>
+                                <th>Project</th>
+                                <th>Amount</th>
+                                <th>Due Date</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="paymentsTableBody"></tbody>
+                    </table>
+                </div>
+                <div id="emptyState" class="empty-state hidden">
+                    <i class="fas fa-wallet"></i>
+                    <p>No payments recorded</p>
+                </div>
+            </div>
+        </main>
+    </div>
 
     <!-- Payment Modal -->
-    <div id="paymentModal" class="modal-overlay fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 hidden">
-        <div class="modal-content rounded-xl w-full max-w-lg mx-4 max-h-[90vh] overflow-y-auto">
-            <div class="p-5 border-b border-gray-700 flex items-center justify-between">
-                <h3 id="modalTitle" class="text-lg font-semibold text-slate-800">Add Payment</h3>
-                <button class="close-modal text-slate-400 hover:text-sky-600 transition"><i class="fas fa-times text-xl"></i></button>
+    <div id="paymentModal" class="modal-overlay fixed inset-0 flex items-center justify-center z-50 hidden">
+        <div class="modal-content w-full mx-4 max-h-[90vh] overflow-y-auto">
+            <div class="p-6 border-b border-gray-200">
+                <div class="flex items-center justify-between">
+                    <h3 id="modalTitle" class="text-xl font-bold text-slate-800">Add Payment</h3>
+                    <button class="close-modal text-gray-400 hover:text-gray-600 transition"><i class="fas fa-times text-xl"></i></button>
+                </div>
             </div>
-            <form id="paymentForm" class="p-5 space-y-4">
+            <form id="paymentForm" class="p-6">
                 <input type="hidden" id="paymentId">
-                <div><label class="block text-sm font-medium text-gray-300 mb-1">Vendor/Payee Name *</label><input type="text" id="vendorName" required class="form-input"></div>
-                <div class="grid grid-cols-2 gap-4">
-                    <div><label class="block text-sm font-medium text-gray-300 mb-1">Type *</label>
+                <div class="grid grid-cols-2 gap-5 mb-5">
+                    <div>
+                        <label class="block text-sm font-semibold text-slate-700 mb-2">Vendor/Payee Name *</label>
+                        <input type="text" id="vendorName" required class="form-input">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-slate-700 mb-2">Type *</label>
                         <select id="paymentType" required class="form-input">
-                            <option value="Vendor">Vendor</option><option value="Labour">Labour</option>
-                            <option value="Contractor">Contractor</option><option value="Other">Other</option>
+                            <option value="Vendor">Vendor</option>
+                            <option value="Labour">Labour</option>
+                            <option value="Contractor">Contractor</option>
+                            <option value="Other">Other</option>
                         </select>
                     </div>
-                    <div><label class="block text-sm font-medium text-gray-300 mb-1">Project</label>
+                </div>
+                <div class="grid grid-cols-2 gap-5 mb-5">
+                    <div>
+                        <label class="block text-sm font-semibold text-slate-700 mb-2">Project</label>
                         <select id="paymentProject" class="form-input"></select>
                     </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-slate-700 mb-2">Amount (₹) *</label>
+                        <input type="number" id="paymentAmount" required min="1" class="form-input">
+                    </div>
                 </div>
-                <div class="grid grid-cols-2 gap-4">
-                    <div><label class="block text-sm font-medium text-gray-300 mb-1">Amount (₹) *</label><input type="number" id="paymentAmount" required min="1" class="form-input"></div>
-                    <div><label class="block text-sm font-medium text-gray-300 mb-1">Due Date *</label><input type="date" id="dueDate" required class="form-input"></div>
+                <div class="grid grid-cols-2 gap-5 mb-5">
+                    <div>
+                        <label class="block text-sm font-semibold text-slate-700 mb-2">Due Date *</label>
+                        <input type="date" id="dueDate" required class="form-input">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-slate-700 mb-2">Description</label>
+                        <input type="text" id="paymentDesc" class="form-input">
+                    </div>
                 </div>
-                <div><label class="block text-sm font-medium text-gray-300 mb-1">Description</label><input type="text" id="paymentDesc" class="form-input"></div>
-                <div class="flex items-center gap-2">
-                    <input type="checkbox" id="isPaid" class="w-4 h-4 accent-amber-500">
-                    <label for="isPaid" class="text-gray-300 text-sm">Mark as Paid</label>
+                <div class="flex items-center gap-2 mb-5">
+                    <input type="checkbox" id="isPaid" class="w-5 h-5 accent-emerald-500 rounded">
+                    <label for="isPaid" class="text-slate-700 font-semibold">Mark as Paid</label>
                 </div>
-                <div id="paidDateDiv" class="hidden">
-                    <label class="block text-sm font-medium text-gray-300 mb-1">Paid Date</label>
+                <div id="paidDateDiv" class="hidden mb-5">
+                    <label class="block text-sm font-semibold text-slate-700 mb-2">Paid Date</label>
                     <input type="date" id="paidDate" class="form-input">
                 </div>
                 <div class="flex gap-3 pt-4">
-                    <button type="button" class="cancel-modal flex-1 btn-secondary">Cancel</button>
-                    <button type="submit" class="flex-1 btn-primary">Save</button>
+                    <button type="button" class="cancel-modal flex-1 btn btn-secondary">Cancel</button>
+                    <button type="submit" class="flex-1 btn btn-primary">Save Payment</button>
                 </div>
             </form>
         </div>
     </div>
 
     <!-- Delete Modal -->
-    <div id="deleteModal" class="modal-overlay fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 hidden">
-        <div class="modal-content rounded-xl w-full max-w-sm mx-4 p-6 text-center">
+    <div id="deleteModal" class="modal-overlay fixed inset-0 flex items-center justify-center z-50 hidden">
+        <div class="modal-content modal-sm w-full mx-4 p-6 text-center">
             <div class="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
                 <i class="fas fa-exclamation-triangle text-red-500 text-2xl"></i>
             </div>
-            <h3 class="text-lg font-semibold text-slate-800 mb-2">Delete Payment?</h3>
+            <h3 class="text-xl font-bold text-slate-800 mb-2">Delete Payment?</h3>
+            <p class="text-slate-600 text-sm mb-6">This action cannot be undone.</p>
             <div class="flex gap-3">
-                <button id="cancelDelete" class="flex-1 btn-secondary">Cancel</button>
-                <button id="confirmDelete" class="flex-1 btn-danger">Delete</button>
+                <button id="cancelDelete" class="flex-1 btn btn-secondary">Cancel</button>
+                <button id="confirmDelete" class="flex-1 btn btn-danger">Delete</button>
             </div>
         </div>
     </div>
 
     <script type="module">
         import { auth, onAuthStateChanged } from './js/firebase-config.js';
+        import { initAuthHeader } from './js/auth-header.js';
         import Storage from './js/firebase-storage.js';
         import { PaymentsApp } from './js/payments.js?v=2';
         
@@ -156,6 +244,8 @@
                 window.location.href = 'login.html';
                 return;
             }
+            
+            initAuthHeader({ requireAuth: false });
             
             try {
                 await PaymentsApp.init();

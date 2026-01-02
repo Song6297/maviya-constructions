@@ -193,11 +193,21 @@ const Storage = {
         LABOUR: 'labour',
         EXPENSES: 'expenses',
         LOGS: 'logs',
-        BUDGET_TRANSFERS: 'budget_transfers',
         DOCUMENTS: 'documents',
         PAYMENTS: 'payments',
         ATTENDANCE: 'attendance',
-        CLIENT_PAYMENTS: 'client_payments'
+        CLIENT_PAYMENTS: 'client_payments',
+        WORKERS: 'workers',
+        WORKER_ATTENDANCE: 'worker_attendance',
+        WORKER_PAYMENTS: 'worker_payments',
+        WORKER_ASSIGNMENTS: 'worker_assignments',
+        VENDORS: 'vendors',
+        VENDOR_PAYMENTS: 'vendor_payments',
+        PROJECT_WALLETS: 'project_wallets',
+        PAYMENT_ALLOCATIONS: 'payment_allocations',
+        CROSS_PROJECT_TRANSACTIONS: 'cross_project_transactions',
+        SETTLEMENT_RECORDS: 'settlement_records',
+        UNALLOCATED_FUNDS: 'unallocated_funds'
     },
 
     generateId() {
@@ -248,16 +258,9 @@ const Storage = {
         async update(id, updates) { return await FirebaseStorage.update(Storage.COLLECTIONS.PROJECTS, id, updates); },
         async delete(id) {
             // Delete all related data
-            const collections = ['MATERIALS', 'LABOUR', 'EXPENSES', 'LOGS', 'DOCUMENTS', 'PAYMENTS', 'ATTENDANCE', 'CLIENT_PAYMENTS'];
+            const collections = ['MATERIALS', 'LABOUR', 'EXPENSES', 'LOGS', 'DOCUMENTS', 'PAYMENTS', 'ATTENDANCE', 'CLIENT_PAYMENTS', 'VENDORS', 'VENDOR_PAYMENTS'];
             for (const col of collections) {
                 await FirebaseStorage.deleteByProject(Storage.COLLECTIONS[col], id);
-            }
-            
-            // Delete budget transfers
-            const transfers = await FirebaseStorage.getAll(Storage.COLLECTIONS.BUDGET_TRANSFERS);
-            const toDelete = transfers.filter(t => t.fromProjectId === id || t.toProjectId === id);
-            for (const transfer of toDelete) {
-                await FirebaseStorage.delete(Storage.COLLECTIONS.BUDGET_TRANSFERS, transfer.id);
             }
             
             return await FirebaseStorage.delete(Storage.COLLECTIONS.PROJECTS, id);
@@ -300,16 +303,6 @@ const Storage = {
         async delete(id) { return await FirebaseStorage.delete(Storage.COLLECTIONS.LOGS, id); }
     },
 
-    budgetTransfers: {
-        async getAll() { return await FirebaseStorage.getAll(Storage.COLLECTIONS.BUDGET_TRANSFERS); },
-        async getByProject(pid) {
-            const all = await FirebaseStorage.getAll(Storage.COLLECTIONS.BUDGET_TRANSFERS);
-            return all.filter(t => t.fromProjectId === pid || t.toProjectId === pid);
-        },
-        async add(t) { return await FirebaseStorage.add(Storage.COLLECTIONS.BUDGET_TRANSFERS, t); },
-        async delete(id) { return await FirebaseStorage.delete(Storage.COLLECTIONS.BUDGET_TRANSFERS, id); }
-    },
-
     documents: {
         async getByProject(pid) { return await FirebaseStorage.getByProject(Storage.COLLECTIONS.DOCUMENTS, pid); },
         async add(d) { return await FirebaseStorage.add(Storage.COLLECTIONS.DOCUMENTS, d); },
@@ -333,10 +326,172 @@ const Storage = {
     },
 
     clientPayments: {
+        async getAll() { return await FirebaseStorage.getAll(Storage.COLLECTIONS.CLIENT_PAYMENTS); },
+        async getById(id) { return await FirebaseStorage.getById(Storage.COLLECTIONS.CLIENT_PAYMENTS, id); },
         async getByProject(pid) { return await FirebaseStorage.getByProject(Storage.COLLECTIONS.CLIENT_PAYMENTS, pid); },
         async add(cp) { return await FirebaseStorage.add(Storage.COLLECTIONS.CLIENT_PAYMENTS, cp); },
         async update(id, u) { return await FirebaseStorage.update(Storage.COLLECTIONS.CLIENT_PAYMENTS, id, u); },
         async delete(id) { return await FirebaseStorage.delete(Storage.COLLECTIONS.CLIENT_PAYMENTS, id); }
+    },
+
+    // Workers Master Database (global, not project-specific)
+    workers: {
+        async getAll() { return await FirebaseStorage.getAll(Storage.COLLECTIONS.WORKERS); },
+        async getById(id) { return await FirebaseStorage.getById(Storage.COLLECTIONS.WORKERS, id); },
+        async add(w) { return await FirebaseStorage.add(Storage.COLLECTIONS.WORKERS, w); },
+        async update(id, u) { return await FirebaseStorage.update(Storage.COLLECTIONS.WORKERS, id, u); },
+        async delete(id) { return await FirebaseStorage.delete(Storage.COLLECTIONS.WORKERS, id); }
+    },
+
+    // Worker Assignments (links workers to projects)
+    workerAssignments: {
+        async getAll() { return await FirebaseStorage.getAll(Storage.COLLECTIONS.WORKER_ASSIGNMENTS); },
+        async getByProject(pid) { return await FirebaseStorage.getByProject(Storage.COLLECTIONS.WORKER_ASSIGNMENTS, pid); },
+        async getByWorker(workerId) {
+            const all = await FirebaseStorage.getAll(Storage.COLLECTIONS.WORKER_ASSIGNMENTS);
+            return all.filter(a => a.workerId === workerId);
+        },
+        async add(a) { return await FirebaseStorage.add(Storage.COLLECTIONS.WORKER_ASSIGNMENTS, a); },
+        async update(id, u) { return await FirebaseStorage.update(Storage.COLLECTIONS.WORKER_ASSIGNMENTS, id, u); },
+        async delete(id) { return await FirebaseStorage.delete(Storage.COLLECTIONS.WORKER_ASSIGNMENTS, id); }
+    },
+
+    // Worker Daily Attendance
+    workerAttendance: {
+        async getAll() { return await FirebaseStorage.getAll(Storage.COLLECTIONS.WORKER_ATTENDANCE); },
+        async getByProject(pid) { return await FirebaseStorage.getByProject(Storage.COLLECTIONS.WORKER_ATTENDANCE, pid); },
+        async getByWorker(workerId) {
+            const all = await FirebaseStorage.getAll(Storage.COLLECTIONS.WORKER_ATTENDANCE);
+            return all.filter(a => a.workerId === workerId);
+        },
+        async getByWorkerAndProject(workerId, projectId) {
+            const all = await FirebaseStorage.getAll(Storage.COLLECTIONS.WORKER_ATTENDANCE);
+            return all.filter(a => a.workerId === workerId && a.projectId === projectId);
+        },
+        async getByDate(projectId, date) {
+            const all = await FirebaseStorage.getByProject(Storage.COLLECTIONS.WORKER_ATTENDANCE, projectId);
+            return all.filter(a => a.date === date);
+        },
+        async add(a) { return await FirebaseStorage.add(Storage.COLLECTIONS.WORKER_ATTENDANCE, a); },
+        async update(id, u) { return await FirebaseStorage.update(Storage.COLLECTIONS.WORKER_ATTENDANCE, id, u); },
+        async delete(id) { return await FirebaseStorage.delete(Storage.COLLECTIONS.WORKER_ATTENDANCE, id); }
+    },
+
+    // Worker Payments
+    workerPayments: {
+        async getAll() { return await FirebaseStorage.getAll(Storage.COLLECTIONS.WORKER_PAYMENTS); },
+        async getByProject(pid) { return await FirebaseStorage.getByProject(Storage.COLLECTIONS.WORKER_PAYMENTS, pid); },
+        async getByWorker(workerId) {
+            const all = await FirebaseStorage.getAll(Storage.COLLECTIONS.WORKER_PAYMENTS);
+            return all.filter(p => p.workerId === workerId);
+        },
+        async getByWorkerAndProject(workerId, projectId) {
+            const all = await FirebaseStorage.getAll(Storage.COLLECTIONS.WORKER_PAYMENTS);
+            return all.filter(p => p.workerId === workerId && p.projectId === projectId);
+        },
+        async add(p) { return await FirebaseStorage.add(Storage.COLLECTIONS.WORKER_PAYMENTS, p); },
+        async update(id, u) { return await FirebaseStorage.update(Storage.COLLECTIONS.WORKER_PAYMENTS, id, u); },
+        async delete(id) { return await FirebaseStorage.delete(Storage.COLLECTIONS.WORKER_PAYMENTS, id); }
+    },
+
+    // ===== MULTI-PROJECT FUND MANAGEMENT =====
+    
+    // Project Virtual Wallets
+    projectWallets: {
+        async getAll() { return await FirebaseStorage.getAll(Storage.COLLECTIONS.PROJECT_WALLETS); },
+        async getById(id) { return await FirebaseStorage.getById(Storage.COLLECTIONS.PROJECT_WALLETS, id); },
+        async getByProject(pid) { 
+            const all = await FirebaseStorage.getAll(Storage.COLLECTIONS.PROJECT_WALLETS);
+            return all.find(w => w.projectId === pid);
+        },
+        async add(w) { return await FirebaseStorage.add(Storage.COLLECTIONS.PROJECT_WALLETS, w); },
+        async update(id, u) { return await FirebaseStorage.update(Storage.COLLECTIONS.PROJECT_WALLETS, id, u); },
+        async delete(id) { return await FirebaseStorage.delete(Storage.COLLECTIONS.PROJECT_WALLETS, id); }
+    },
+
+    // Payment Allocations (Client payments → Projects)
+    paymentAllocations: {
+        async getAll() { return await FirebaseStorage.getAll(Storage.COLLECTIONS.PAYMENT_ALLOCATIONS); },
+        async getById(id) { return await FirebaseStorage.getById(Storage.COLLECTIONS.PAYMENT_ALLOCATIONS, id); },
+        async getByProject(pid) { return await FirebaseStorage.getByProject(Storage.COLLECTIONS.PAYMENT_ALLOCATIONS, pid); },
+        async getByPayment(paymentId) {
+            const all = await FirebaseStorage.getAll(Storage.COLLECTIONS.PAYMENT_ALLOCATIONS);
+            return all.filter(a => a.paymentId === paymentId);
+        },
+        async add(a) { return await FirebaseStorage.add(Storage.COLLECTIONS.PAYMENT_ALLOCATIONS, a); },
+        async update(id, u) { return await FirebaseStorage.update(Storage.COLLECTIONS.PAYMENT_ALLOCATIONS, id, u); },
+        async delete(id) { return await FirebaseStorage.delete(Storage.COLLECTIONS.PAYMENT_ALLOCATIONS, id); }
+    },
+
+    // Cross-Project Transactions (P1 pays for P3)
+    crossProjectTransactions: {
+        async getAll() { return await FirebaseStorage.getAll(Storage.COLLECTIONS.CROSS_PROJECT_TRANSACTIONS); },
+        async getById(id) { return await FirebaseStorage.getById(Storage.COLLECTIONS.CROSS_PROJECT_TRANSACTIONS, id); },
+        async getByLender(lenderProjectId) {
+            const all = await FirebaseStorage.getAll(Storage.COLLECTIONS.CROSS_PROJECT_TRANSACTIONS);
+            return all.filter(t => t.lenderProjectId === lenderProjectId);
+        },
+        async getByBorrower(borrowerProjectId) {
+            const all = await FirebaseStorage.getAll(Storage.COLLECTIONS.CROSS_PROJECT_TRANSACTIONS);
+            return all.filter(t => t.borrowerProjectId === borrowerProjectId);
+        },
+        async getByProjects(lenderProjectId, borrowerProjectId) {
+            const all = await FirebaseStorage.getAll(Storage.COLLECTIONS.CROSS_PROJECT_TRANSACTIONS);
+            return all.filter(t => t.lenderProjectId === lenderProjectId && t.borrowerProjectId === borrowerProjectId);
+        },
+        async add(t) { return await FirebaseStorage.add(Storage.COLLECTIONS.CROSS_PROJECT_TRANSACTIONS, t); },
+        async update(id, u) { return await FirebaseStorage.update(Storage.COLLECTIONS.CROSS_PROJECT_TRANSACTIONS, id, u); },
+        async delete(id) { return await FirebaseStorage.delete(Storage.COLLECTIONS.CROSS_PROJECT_TRANSACTIONS, id); }
+    },
+
+    // Settlement Records (Auto loan repayments)
+    settlementRecords: {
+        async getAll() { return await FirebaseStorage.getAll(Storage.COLLECTIONS.SETTLEMENT_RECORDS); },
+        async getById(id) { return await FirebaseStorage.getById(Storage.COLLECTIONS.SETTLEMENT_RECORDS, id); },
+        async getByTransaction(transactionId) {
+            const all = await FirebaseStorage.getAll(Storage.COLLECTIONS.SETTLEMENT_RECORDS);
+            return all.filter(s => s.transactionId === transactionId);
+        },
+        async add(s) { return await FirebaseStorage.add(Storage.COLLECTIONS.SETTLEMENT_RECORDS, s); },
+        async update(id, u) { return await FirebaseStorage.update(Storage.COLLECTIONS.SETTLEMENT_RECORDS, id, u); },
+        async delete(id) { return await FirebaseStorage.delete(Storage.COLLECTIONS.SETTLEMENT_RECORDS, id); }
+    },
+
+    // Unallocated Funds (Payments awaiting assignment)
+    unallocatedFunds: {
+        async getAll() { return await FirebaseStorage.getAll(Storage.COLLECTIONS.UNALLOCATED_FUNDS); },
+        async getById(id) { return await FirebaseStorage.getById(Storage.COLLECTIONS.UNALLOCATED_FUNDS, id); },
+        async add(f) { return await FirebaseStorage.add(Storage.COLLECTIONS.UNALLOCATED_FUNDS, f); },
+        async update(id, u) { return await FirebaseStorage.update(Storage.COLLECTIONS.UNALLOCATED_FUNDS, id, u); },
+        async delete(id) { return await FirebaseStorage.delete(Storage.COLLECTIONS.UNALLOCATED_FUNDS, id); }
+    },
+
+    // Vendors (Project-specific vendor services)
+    vendors: {
+        async getAll() { return await FirebaseStorage.getAll(Storage.COLLECTIONS.VENDORS); },
+        async getById(id) { return await FirebaseStorage.getById(Storage.COLLECTIONS.VENDORS, id); },
+        async getByProject(pid) { return await FirebaseStorage.getByProject(Storage.COLLECTIONS.VENDORS, pid); },
+        async add(v) { return await FirebaseStorage.add(Storage.COLLECTIONS.VENDORS, v); },
+        async update(id, u) { return await FirebaseStorage.update(Storage.COLLECTIONS.VENDORS, id, u); },
+        async delete(id) { return await FirebaseStorage.delete(Storage.COLLECTIONS.VENDORS, id); }
+    },
+
+    // Vendor Payments
+    vendorPayments: {
+        async getAll() { return await FirebaseStorage.getAll(Storage.COLLECTIONS.VENDOR_PAYMENTS); },
+        async getById(id) { return await FirebaseStorage.getById(Storage.COLLECTIONS.VENDOR_PAYMENTS, id); },
+        async getByProject(pid) { return await FirebaseStorage.getByProject(Storage.COLLECTIONS.VENDOR_PAYMENTS, pid); },
+        async getByVendor(vendorId) {
+            const all = await FirebaseStorage.getAll(Storage.COLLECTIONS.VENDOR_PAYMENTS);
+            return all.filter(p => p.vendorId === vendorId);
+        },
+        async getByVendorAndProject(vendorId, projectId) {
+            const all = await FirebaseStorage.getAll(Storage.COLLECTIONS.VENDOR_PAYMENTS);
+            return all.filter(p => p.vendorId === vendorId && p.projectId === projectId);
+        },
+        async add(p) { return await FirebaseStorage.add(Storage.COLLECTIONS.VENDOR_PAYMENTS, p); },
+        async update(id, u) { return await FirebaseStorage.update(Storage.COLLECTIONS.VENDOR_PAYMENTS, id, u); },
+        async delete(id) { return await FirebaseStorage.delete(Storage.COLLECTIONS.VENDOR_PAYMENTS, id); }
     }
 };
 

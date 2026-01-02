@@ -6,473 +6,667 @@
     <title>Project Details - Maviya Constructions</title>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
-    <link href="css/styles.css" rel="stylesheet">
+    <link href="css/styles-sidebar.css?v=10" rel="stylesheet">
+    <style>
+        /* Project Page Specific Styles */
+        .project-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem; }
+        .project-title { font-size: 1.75rem; font-weight: 800; color: var(--text); display: flex; align-items: center; gap: 0.75rem; }
+        .project-status { padding: 0.5rem 1.25rem; border-radius: var(--radius-pill); font-size: 0.8125rem; font-weight: 700; text-transform: uppercase; }
+        .project-status.active { background: #E8F8F5; color: var(--mint-green); border: 2px solid var(--mint-green); }
+        .project-status.completed { background: var(--soft-blue); color: var(--blueprint-blue); border: 2px solid var(--blueprint-blue); }
+        .project-status.delayed { background: var(--soft-orange); color: var(--brick-orange); border: 2px solid var(--brick-orange); }
+        .project-status.planning { background: var(--soft-yellow); color: var(--safety-yellow); border: 2px solid var(--safety-yellow); }
+        
+        /* Overview Cards */
+        .overview-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 1rem; margin-bottom: 2rem; }
+        .overview-card { background: var(--white); border-radius: var(--radius-xl); padding: 1rem; text-align: center; box-shadow: var(--shadow-soft); border: 3px solid transparent; transition: all 0.3s; }
+        .overview-card:hover { transform: translateY(-4px); }
+        .overview-card.budget { border-color: var(--blueprint-blue); }
+        .overview-card.spent { border-color: var(--brick-orange); }
+        .overview-card.remaining { border-color: var(--mint-green); }
+        .overview-card.materials { border-color: var(--safety-yellow); }
+        .overview-card.labour { border-color: #BA68C8; }
+        .overview-label { font-size: 0.75rem; font-weight: 700; color: var(--text-light); text-transform: uppercase; margin-bottom: 0.5rem; }
+        .overview-value { font-size: 1.5rem; font-weight: 800; }
+        
+        /* Tabs */
+        .tabs-nav { display: flex; gap: 0.5rem; margin-bottom: 1.5rem; flex-wrap: nowrap; background: var(--white); padding: 0.75rem; border-radius: var(--radius-xl); box-shadow: var(--shadow-soft); overflow-x: auto; }
+        .tab-btn { padding: 0.75rem 1.25rem; background: transparent; border: 2px solid transparent; border-radius: var(--radius-lg); font-weight: 700; color: var(--text-light); cursor: pointer; transition: all 0.3s; display: inline-flex; align-items: center; gap: 0.5rem; font-size: 0.875rem; white-space: nowrap; }
+        .tab-btn:hover { background: var(--soft-blue); color: var(--blueprint-blue); }
+        .tab-btn.active { background: var(--blueprint-blue); color: var(--white); border-color: var(--blueprint-blue); }
+        .tab-btn i { font-size: 0.875rem; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        
+        /* Section Card */
+        .section-card { background: var(--white); border-radius: var(--radius-xl); padding: 2rem; box-shadow: var(--shadow-soft); margin-bottom: 2rem; }
+        .section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem; }
+        .section-title { font-size: 1.25rem; font-weight: 800; color: var(--text); display: flex; align-items: center; gap: 0.75rem; }
+        
+        /* Data Table */
+        .data-table { width: 100%; border-collapse: separate; border-spacing: 0; }
+        .data-table th { background: linear-gradient(135deg, #F0F4F8, #E8F4F8); padding: 1rem; text-align: left; font-weight: 700; color: var(--text); font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.05em; border-bottom: 3px solid var(--blueprint-blue); }
+        .data-table td { padding: 0.875rem; border-bottom: 2px solid #F0F4F8; color: var(--text); font-weight: 600; font-size: 0.8125rem; }
+        .data-table tr:hover td { background: #F8FAFC; }
+        
+        /* Cards Grid */
+        .cards-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1.5rem; }
+        .item-card { background: var(--white); border-radius: var(--radius-lg); padding: 1.25rem; box-shadow: var(--shadow-soft); border: 3px solid #E8F4F8; transition: all 0.3s; }
+        .item-card:hover { border-color: var(--blueprint-blue); transform: translateY(-4px); }
+        
+        /* Total Row */
+        .total-row { margin-top: 1.5rem; padding: 1.25rem; border-radius: var(--radius-lg); display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; }
+        .total-row.materials { background: linear-gradient(135deg, #E8F4F8, #D0E8F2); border: 3px solid var(--blueprint-blue); }
+        .total-row.labour { background: linear-gradient(135deg, #E8F8F5, #D0F0E8); border: 3px solid var(--mint-green); }
+        .total-row.vendors { background: linear-gradient(135deg, var(--soft-orange), #FFD8C8); border: 3px solid var(--brick-orange); }
+        .total-row.expenses { background: linear-gradient(135deg, #F3E8FF, #E8D8F8); border: 3px solid #BA68C8; }
+        
+        /* Action Buttons */
+        .action-btn { padding: 0.5rem 0.75rem; border-radius: var(--radius-lg); font-weight: 700; font-size: 0.75rem; transition: all 0.3s; border: none; cursor: pointer; }
+        .btn-icon { width: 40px; height: 40px; border-radius: var(--radius-lg); display: flex; align-items: center; justify-content: center; border: none; cursor: pointer; transition: all 0.3s; }
+        .btn-icon:hover { transform: translateY(-2px); }
+        .btn-whatsapp { background: linear-gradient(135deg, #25D366, #128C7E); color: white; }
+        .btn-add { padding: 0.75rem 1.5rem; background: linear-gradient(135deg, var(--brick-orange), #FF7043); color: var(--white); border: none; border-radius: var(--radius-pill); font-weight: 700; cursor: pointer; transition: all 0.3s; display: inline-flex; align-items: center; gap: 0.5rem; box-shadow: 0 4px 0 rgba(255, 140, 97, 0.3); }
+        .btn-add:hover { transform: translateY(-2px); box-shadow: 0 6px 0 rgba(255, 140, 97, 0.3); }
+        
+        /* Export Dropdown */
+        .export-dropdown { position: relative; display: inline-block; }
+        .export-menu { position: absolute; top: 100%; right: 0; margin-top: 0.5rem; background: var(--white); border-radius: var(--radius-lg); box-shadow: 0 10px 40px rgba(0,0,0,0.15); border: 3px solid #E8F4F8; min-width: 320px; z-index: 1000; }
+        .export-menu.hidden { display: none !important; }
+        .export-menu:not(.hidden) { display: block !important; }
+        .export-menu-item { display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem 0.75rem; border: none; background: none; cursor: pointer; transition: all 0.2s; border-radius: 8px; }
+        .export-menu-item:hover { background: var(--soft-blue); }
+        .export-icon { width: 28px; height: 28px; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; }
+        
+        /* Project Switcher */
+        .project-switcher { position: relative; }
+        .project-switcher-menu { position: absolute; top: 100%; left: 0; margin-top: 0.5rem; background: var(--white); border-radius: var(--radius-lg); box-shadow: var(--shadow-soft); border: 3px solid #E8F4F8; min-width: 280px; z-index: 50; }
+        .project-switcher-item { display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1rem; width: 100%; border: none; background: none; cursor: pointer; transition: all 0.2s; text-align: left; }
+        .project-switcher-item:hover { background: var(--soft-blue); }
+        .project-switcher-item.current { background: var(--soft-blue); border-left: 3px solid var(--blueprint-blue); }
+        .project-switcher-item .status-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+        .project-switcher-item .status-dot.active { background: var(--mint-green); }
+        .project-switcher-item .status-dot.completed { background: var(--blueprint-blue); }
+        .project-switcher-item .status-dot.delayed { background: var(--brick-orange); }
+        .project-switcher-item .status-dot.planning { background: var(--safety-yellow); }
+        
+        /* Summary Cards */
+        .summary-card { background: var(--white); border-radius: var(--radius-lg); padding: 1.25rem; box-shadow: var(--shadow-soft); border: 3px solid #E8F4F8; }
+        .summary-card.accent { border-color: var(--blueprint-blue); }
+        .summary-card.success { border-color: var(--mint-green); }
+        .summary-card.danger { border-color: var(--brick-orange); }
+        
+        /* Chart Container */
+        .chart-container { position: relative; height: 250px; }
+        
+        /* Health Meter */
+        .health-meter { background: #E8F4F8; border-radius: var(--radius-pill); overflow: visible; height: 8px; position: relative; }
+        .health-indicator { width: 12px; height: 12px; border-radius: 50%; background: var(--mint-green); position: absolute; top: 50%; transform: translateY(-50%); transition: left 0.5s ease; box-shadow: 0 2px 4px rgba(0,0,0,0.2); }
+        .health-indicator.health-green { background: var(--mint-green); }
+        .health-indicator.health-amber { background: var(--safety-yellow); }
+        .health-indicator.health-red { background: var(--brick-orange); }
+        
+        /* Progress Bar */
+        .progress-bar { background: #E8F4F8; border-radius: var(--radius-pill); overflow: hidden; height: 8px; }
+        .progress-fill { height: 100%; background: linear-gradient(90deg, var(--blueprint-blue), #0EA5E9); border-radius: var(--radius-pill); transition: width 0.5s ease; }
+        
+        /* Metric Card */
+        .metric-card { background: var(--white); border-radius: var(--radius-lg); padding: 1.25rem; box-shadow: var(--shadow-soft); border: 3px solid #E8F4F8; }
+        
+        /* Budget Alert */
+        .budget-alert { padding: 1rem 1.5rem; border-radius: var(--radius-lg); border-left: 4px solid; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 1rem; }
+        .budget-alert.warning { background: var(--soft-yellow); border-color: var(--safety-yellow); color: #92400E; }
+        .budget-alert.danger { background: var(--soft-orange); border-color: var(--brick-orange); color: #9A3412; }
+        
+        /* Attendance Summary */
+        .attendance-summary { background: linear-gradient(135deg, #F3E8FF, #E8D8F8); border: 2px solid #BA68C8; border-radius: var(--radius-lg); padding: 1rem; margin-bottom: 1.5rem; }
+        
+        /* Modal Display Fix */
+        .modal-overlay { display: none; }
+        .modal-overlay.active { display: flex !important; }
+        
+        @media (max-width: 1400px) { .overview-grid { grid-template-columns: repeat(3, 1fr); } }
+        @media (max-width: 768px) { .overview-grid { grid-template-columns: repeat(2, 1fr); } }
+    </style>
 </head>
-<body class="min-h-screen">
-    <header class="header-main sticky top-0 z-40">
-        <div class="container mx-auto px-4 py-4 flex items-center justify-between">
-            <div class="flex items-center gap-4">
-                <a href="index.html" class="w-10 h-10 bg-white/20 hover:bg-white/30 backdrop-blur-sm rounded-xl flex items-center justify-center transition-all hover:scale-110">
-                    <i class="fas fa-arrow-left text-white"></i>
+<body>
+    <!-- Playful Construction Loading Overlay -->
+    <div id="pageLoader" class="loading-overlay">
+        <div class="cartoon-icon icon-projects loading" style="width: 80px; height: 80px; border-radius: 24px; margin-bottom: 1rem;">
+            <div class="icon-projects-board" style="width: 36px; height: 44px;"></div>
+        </div>
+        <div class="loader-blocks">
+            <div class="loader-block"></div>
+            <div class="loader-block"></div>
+            <div class="loader-block"></div>
+            <div class="loader-block"></div>
+        </div>
+        <p class="loading-text">Loading project details<span class="loading-text-dots"></span></p>
+    </div>
+
+    <div class="app-container">
+        <aside class="sidebar">
+            <div class="sidebar-logo">
+                <div class="logo-icon"><i class="fas fa-hard-hat"></i></div>
+                <div class="logo-text">Maviya</div>
+                <div class="logo-subtitle">Construction Management</div>
+            </div>
+            <nav class="sidebar-nav">
+                <a href="index.html" class="sidebar-btn">
+                    <div class="sidebar-btn-icon">
+                        <div class="cartoon-icon icon-dashboard">
+                            <div class="icon-projects-board"></div>
+                        </div>
+                    </div>
+                    <span class="sidebar-btn-text">Dashboard</span>
                 </a>
-                <div class="flex items-center gap-3">
-                    <div class="w-8 h-8 bg-white rounded-lg flex items-center justify-center">
-                        <i class="fas fa-hard-hat text-sky-500 text-lg"></i>
+                <a href="compare.html" class="sidebar-btn compare">
+                    <div class="sidebar-btn-icon">
+                        <div class="cartoon-icon icon-compare">
+                            <div class="icon-compare-bars">
+                                <div class="icon-compare-bar"></div>
+                                <div class="icon-compare-bar"></div>
+                                <div class="icon-compare-bar"></div>
+                                <div class="icon-compare-bar"></div>
+                            </div>
+                        </div>
                     </div>
-                    <h1 id="projectTitle" class="text-lg font-bold text-white truncate max-w-xs">Loading...</h1>
-                </div>
-            </div>
-            <div class="flex items-center gap-3">
-                <div id="projectStatus" class="status-badge status-planning">Loading</div>
-                <button id="reopenProjectBtn" class="btn-header hidden" onclick="ProjectApp.reopenProject()">
-                    <i class="fas fa-lock-open"></i>
-                    <span class="hidden sm:inline">Re-open</span>
+                    <span class="sidebar-btn-text">Compare</span>
+                </a>
+                <a href="payments.html" class="sidebar-btn payment">
+                    <div class="sidebar-btn-icon">
+                        <div class="cartoon-icon icon-payment">
+                            <div class="icon-payment-card"></div>
+                        </div>
+                    </div>
+                    <span class="sidebar-btn-text">Payment</span>
+                </a>
+                <a href="materials.html" class="sidebar-btn stock">
+                    <div class="sidebar-btn-icon">
+                        <div class="cartoon-icon icon-stock">
+                            <div class="icon-stock-box"></div>
+                        </div>
+                    </div>
+                    <span class="sidebar-btn-text">Stock</span>
+                </a>
+                <a href="funds.html" class="sidebar-btn funds">
+                    <div class="sidebar-btn-icon">
+                        <div class="cartoon-icon icon-funds">
+                            <div class="icon-funds-wallet"></div>
+                        </div>
+                    </div>
+                    <span class="sidebar-btn-text">Funds</span>
+                </a>
+            </nav>
+            <div class="relative">
+                <button id="userMenuBtn" class="sidebar-logout">
+                    <div class="cartoon-icon icon-user icon-sm">
+                        <div style="display: flex; flex-direction: column; align-items: center;">
+                            <div class="icon-user-avatar"></div>
+                            <div class="icon-user-body"></div>
+                        </div>
+                    </div>
+                    <span id="userEmailDisplay" class="text-xs max-w-[120px] truncate"></span>
                 </button>
-                <div class="relative export-dropdown-container">
-                    <button id="exportDropdown" class="btn-header">
-                        <i class="fas fa-download"></i>
-                        <span class="hidden sm:inline">Export</span>
-                        <i class="fas fa-chevron-down text-xs ml-1"></i>
+                <div id="userMenu" class="hidden absolute bottom-full left-0 right-0 mb-2 bg-white rounded-lg shadow-xl border border-slate-200 py-2 z-50">
+                    <div class="px-4 py-2 border-b border-slate-200">
+                        <p class="text-xs text-slate-500">Signed in as</p>
+                        <p id="userEmailFull" class="text-sm font-semibold text-slate-800 truncate"></p>
+                    </div>
+                    <a href="migrate.html" class="flex items-center gap-3 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 transition">
+                        <i class="fas fa-database text-sky-500"></i>Data Migration
+                    </a>
+                    <button id="logoutBtn" class="w-full flex items-center gap-3 px-4 py-2 text-sm text-rose-600 hover:bg-rose-50 transition">
+                        <i class="fas fa-sign-out-alt"></i>Logout
                     </button>
-                    <div id="exportMenu" class="export-menu hidden">
-                        <button onclick="ProjectApp.generatePDF()" class="export-menu-item">
-                            <div class="export-icon bg-red-100">
-                                <i class="fas fa-file-pdf text-red-600"></i>
-                            </div>
-                            <div class="flex-1 text-left">
-                                <p class="font-semibold text-slate-800">Full Report</p>
-                                <p class="text-xs text-slate-500">Complete PDF with all data</p>
-                            </div>
+                </div>
+            </div>
+        </aside>
+
+        <main class="main-content">
+            <!-- Project Header -->
+            <div class="project-header">
+                <div class="flex items-center gap-4">
+                    <a href="index.html" class="btn btn-secondary" style="padding: 0.75rem 1rem;"><i class="fas fa-arrow-left"></i></a>
+                    <h1 id="projectTitle" class="project-title">📋 Loading...</h1>
+                    <div id="projectStatus" class="project-status planning">Loading</div>
+                    <!-- Project Switcher -->
+                    <div class="project-switcher relative">
+                        <button id="projectSwitcherBtn" class="btn btn-secondary" style="padding: 0.5rem 1rem;">
+                            <i class="fas fa-exchange-alt"></i> Switch <i class="fas fa-chevron-down text-xs ml-1"></i>
                         </button>
-                        <button onclick="ProjectApp.exportMaterials()" class="export-menu-item">
-                            <div class="export-icon bg-emerald-100">
-                                <i class="fas fa-file-csv text-emerald-600"></i>
+                        <div id="projectSwitcherMenu" class="project-switcher-menu hidden">
+                            <div class="p-2 border-b border-slate-200">
+                                <p class="text-xs font-semibold text-slate-500 uppercase">Jump to Project</p>
                             </div>
-                            <div class="flex-1 text-left">
-                                <p class="font-semibold text-slate-800">Materials CSV</p>
-                                <p class="text-xs text-slate-500">Export materials data</p>
+                            <div id="projectSwitcherList" class="max-h-64 overflow-y-auto"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="flex items-center gap-3">
+                    <button id="reopenProjectBtn" class="btn btn-secondary hidden" onclick="ProjectApp.reopenProject()"><i class="fas fa-lock-open"></i> Re-open</button>
+                    <div class="export-dropdown" id="exportDropdownContainer">
+                        <button type="button" class="btn btn-secondary" onclick="document.getElementById('exportMenu').classList.toggle('hidden')"><i class="fas fa-download"></i> Export <i class="fas fa-chevron-down text-xs ml-1"></i></button>
+                        <div id="exportMenu" class="export-menu hidden">
+                            <div class="grid grid-cols-2 gap-1 p-2">
+                                <button type="button" class="export-menu-item" onclick="ProjectApp.generatePDF(); document.getElementById('exportMenu').classList.add('hidden');">
+                                    <div class="export-icon bg-red-100"><i class="fas fa-file-pdf text-red-600"></i></div>
+                                    <span class="text-sm font-semibold">PDF Report</span>
+                                </button>
+                                <button type="button" class="export-menu-item" onclick="ProjectApp.exportMaterials(); document.getElementById('exportMenu').classList.add('hidden');">
+                                    <div class="export-icon bg-emerald-100"><i class="fas fa-file-csv text-emerald-600"></i></div>
+                                    <span class="text-sm font-semibold">Materials</span>
+                                </button>
+                                <button type="button" class="export-menu-item" onclick="ProjectApp.exportLabour(); document.getElementById('exportMenu').classList.add('hidden');">
+                                    <div class="export-icon bg-blue-100"><i class="fas fa-file-csv text-blue-600"></i></div>
+                                    <span class="text-sm font-semibold">Labour</span>
+                                </button>
+                                <button type="button" class="export-menu-item" onclick="ProjectApp.exportVendors(); document.getElementById('exportMenu').classList.add('hidden');">
+                                    <div class="export-icon bg-orange-100"><i class="fas fa-file-csv text-orange-600"></i></div>
+                                    <span class="text-sm font-semibold">Vendors</span>
+                                </button>
+                                <button type="button" class="export-menu-item col-span-2" onclick="ProjectApp.exportExpenses(); document.getElementById('exportMenu').classList.add('hidden');">
+                                    <div class="export-icon bg-violet-100"><i class="fas fa-file-csv text-violet-600"></i></div>
+                                    <span class="text-sm font-semibold">Expenses</span>
+                                </button>
                             </div>
-                        </button>
-                        <button onclick="ProjectApp.exportLabour()" class="export-menu-item">
-                            <div class="export-icon bg-blue-100">
-                                <i class="fas fa-file-csv text-blue-600"></i>
-                            </div>
-                            <div class="flex-1 text-left">
-                                <p class="font-semibold text-slate-800">Labour CSV</p>
-                                <p class="text-xs text-slate-500">Export labour records</p>
-                            </div>
-                        </button>
-                        <button onclick="ProjectApp.exportExpenses()" class="export-menu-item">
-                            <div class="export-icon bg-violet-100">
-                                <i class="fas fa-file-csv text-violet-600"></i>
-                            </div>
-                            <div class="flex-1 text-left">
-                                <p class="font-semibold text-slate-800">Expenses CSV</p>
-                                <p class="text-xs text-slate-500">Export expense data</p>
-                            </div>
-                        </button>
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
-    </header>
 
-    <main class="container mx-auto px-4 py-6">
-        <!-- Budget Health Alert -->
-        <div id="budgetAlert" class="hidden mb-4 p-4 rounded-lg border-l-4 flex items-center gap-3">
-            <i class="fas fa-exclamation-triangle text-2xl"></i>
-            <div><p id="budgetAlertTitle" class="font-semibold"></p><p id="budgetAlertText" class="text-sm opacity-80"></p></div>
-        </div>
+            <!-- Budget Alert -->
+            <div id="budgetAlert" class="budget-alert hidden">
+                <i class="fas fa-exclamation-triangle text-2xl"></i>
+                <div><p id="budgetAlertTitle" class="font-semibold"></p><p id="budgetAlertText" class="text-sm opacity-80"></p></div>
+            </div>
 
-        <!-- Overview Cards -->
-        <section id="overviewSection" class="grid grid-cols-2 lg:grid-cols-5 gap-6 mb-6"></section>
+            <!-- Overview Cards -->
+            <section id="overviewSection" class="overview-grid"></section>
 
-        <!-- Tabs -->
-        <nav class="card rounded-t-2xl border-b-0 flex overflow-x-auto">
-            <button class="tab-btn active" data-tab="materials"><i class="fas fa-boxes mr-2"></i>Materials</button>
-            <button class="tab-btn" data-tab="labour"><i class="fas fa-users mr-2"></i>Labour</button>
-            <button class="tab-btn" data-tab="expenses"><i class="fas fa-receipt mr-2"></i>Expenses</button>
-            <button class="tab-btn" data-tab="documents"><i class="fas fa-folder mr-2"></i>Documents</button>
-            <button class="tab-btn" data-tab="budget"><i class="fas fa-exchange-alt mr-2"></i>Budget</button>
-            <button class="tab-btn" data-tab="logs"><i class="fas fa-clipboard-list mr-2"></i>Logs</button>
-            <button class="tab-btn" data-tab="summary"><i class="fas fa-chart-pie mr-2"></i>Summary</button>
-        </nav>
+            <!-- Tabs -->
+            <div class="tabs-nav">
+                <button class="tab-btn active" data-tab="materials"><i class="fas fa-boxes"></i> Materials</button>
+                <button class="tab-btn" data-tab="labour"><i class="fas fa-users"></i> Labour</button>
+                <button class="tab-btn" data-tab="vendors"><i class="fas fa-handshake"></i> Vendors</button>
+                <button class="tab-btn" data-tab="expenses"><i class="fas fa-receipt"></i> Expenses</button>
+                <button class="tab-btn" data-tab="documents"><i class="fas fa-folder"></i> Docs</button>
+                <button class="tab-btn" data-tab="logs"><i class="fas fa-clipboard-list"></i> Logs</button>
+                <button class="tab-btn" data-tab="summary"><i class="fas fa-chart-pie"></i> Summary</button>
+                <button class="tab-btn" data-tab="funds"><i class="fas fa-wallet"></i> Funds</button>
+            </div>
 
-        <div class="card rounded-t-none border-t-0">
             <!-- Materials Tab -->
-            <div id="materialsTab" class="tab-content p-5">
-                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
-                    <h2 class="text-xl font-bold text-slate-800 flex items-center gap-3">
-                        <div class="w-10 h-10 bg-gradient-to-br from-sky-400 to-blue-500 rounded-xl flex items-center justify-center shadow-lg">
-                            <i class="fas fa-boxes text-white text-lg"></i>
+            <div id="materialsTab" class="tab-content active">
+                <div class="section-card">
+                    <div class="section-header">
+                        <h2 class="section-title"><span>📦</span> Material Management</h2>
+                        <div class="flex gap-2 flex-wrap">
+                            <select id="materialStatusFilter" class="form-input text-sm" style="min-width: 120px;">
+                                <option value="all">All Status</option>
+                                <option value="used">Used</option>
+                                <option value="recovered">Recovered</option>
+                            </select>
+                            <button onclick="ProjectApp.generateInvoice('materials')" class="btn-icon" style="background: linear-gradient(135deg, #0EA5E9, #0284C7);" title="Generate Invoice"><i class="fas fa-file-invoice text-white"></i></button>
+                            <button onclick="ProjectApp.shareMaterialsWhatsApp()" class="btn-icon btn-whatsapp" title="Share on WhatsApp"><i class="fab fa-whatsapp"></i></button>
+                            <button id="addMaterialBtn" class="btn-add"><i class="fas fa-plus"></i> Add Material</button>
                         </div>
-                        Material Management
-                    </h2>
-                    <div class="flex gap-2">
-                        <select id="materialStatusFilter" class="form-input text-sm">
-                            <option value="all">All Status</option>
-                            <option value="used">Used</option>
-                            <option value="recovered">Recovered</option>
-                        </select>
-                        <button onclick="ProjectApp.generateInvoice('materials')" class="btn-icon" style="background: linear-gradient(135deg, #0EA5E9 0%, #0284C7 100%);" title="Generate Invoice">
-                            <i class="fas fa-file-invoice text-white"></i>
-                        </button>
-                        <button onclick="ProjectApp.shareMaterialsWhatsApp()" class="btn-icon btn-whatsapp" title="Share on WhatsApp">
-                            <i class="fab fa-whatsapp"></i>
-                        </button>
-                        <button id="addMaterialBtn" class="btn-add">
-                            <i class="fas fa-plus"></i>
-                            <span>Add Material</span>
-                        </button>
                     </div>
-                </div>
-                
-                <div class="overflow-x-auto"><table class="data-table"><thead><tr><th>Material</th><th>Category</th><th>Qty</th><th>Unit</th><th>Rate</th><th>Total</th><th>Paid</th><th>Balance</th><th>Status</th><th>Date</th><th>Actions</th></tr></thead><tbody id="materialsTableBody"></tbody></table></div>
-                <div id="materialsEmpty" class="empty-state hidden"><i class="fas fa-box-open"></i><p>No materials</p></div>
-                <div id="materialsTotalRow" class="mt-4 p-4 bg-gradient-to-br from-sky-50 to-blue-50 border-2 border-sky-200 rounded-lg hidden">
-                    <div class="grid grid-cols-3 gap-4">
-                        <div>
-                            <p class="text-xs text-slate-600">Total Amount</p>
-                            <p id="materialsTotalAmount" class="text-xl font-bold text-sky-600">₹0</p>
-                        </div>
-                        <div>
-                            <p class="text-xs text-slate-600">Total Paid</p>
-                            <p id="materialsTotalPaid" class="text-xl font-bold text-emerald-600">₹0</p>
-                        </div>
-                        <div>
-                            <p class="text-xs text-slate-600">Balance Due</p>
-                            <p id="materialsTotalBalance" class="text-xl font-bold text-rose-600">₹0</p>
-                        </div>
+                    <div class="overflow-x-auto"><table class="data-table"><thead><tr><th>Material</th><th>Category</th><th>Qty</th><th>Unit</th><th>Rate</th><th>Total</th><th>Paid</th><th>Balance</th><th>Status</th><th>Date</th><th>Actions</th></tr></thead><tbody id="materialsTableBody"></tbody></table></div>
+                    <div id="materialsEmpty" class="empty-state hidden"><i class="fas fa-box-open"></i><p>No materials</p></div>
+                    <div id="materialsTotalRow" class="total-row materials hidden">
+                        <div><p class="text-xs text-slate-600">Total Amount</p><p id="materialsTotalAmount" class="text-xl font-bold text-sky-600">₹0</p></div>
+                        <div><p class="text-xs text-slate-600">Total Paid</p><p id="materialsTotalPaid" class="text-xl font-bold text-emerald-600">₹0</p></div>
+                        <div><p class="text-xs text-slate-600">Balance Due</p><p id="materialsTotalBalance" class="text-xl font-bold text-rose-600">₹0</p></div>
                     </div>
                 </div>
             </div>
 
             <!-- Labour Tab -->
-            <div id="labourTab" class="tab-content p-5 hidden">
-                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
-                    <h2 class="text-xl font-bold text-slate-800 flex items-center gap-3">
-                        <div class="w-10 h-10 bg-gradient-to-br from-emerald-400 to-green-500 rounded-xl flex items-center justify-center shadow-lg">
-                            <i class="fas fa-users text-white text-lg"></i>
+            <div id="labourTab" class="tab-content">
+                <div class="section-card">
+                    <div class="section-header">
+                        <h2 class="section-title"><span>👷</span> Labour Management</h2>
+                        <div class="flex gap-2 flex-wrap">
+                            <button id="markAttendanceBtn" class="btn-icon" style="background: linear-gradient(135deg, #8B5CF6, #7C3AED);" title="Mark Attendance"><i class="fas fa-calendar-check text-white"></i></button>
+                            <button onclick="ProjectApp.generateInvoice('labour')" class="btn-icon" style="background: linear-gradient(135deg, #10B981, #059669);" title="Generate Invoice"><i class="fas fa-file-invoice text-white"></i></button>
+                            <button onclick="ProjectApp.shareLabourWhatsApp()" class="btn-icon btn-whatsapp" title="Share on WhatsApp"><i class="fab fa-whatsapp"></i></button>
+                            <button id="addLabourBtn" class="btn-add"><i class="fas fa-plus"></i> Add Worker</button>
                         </div>
-                        Labour Management
-                    </h2>
-                    <div class="flex gap-2">
-                        <button onclick="ProjectApp.generateInvoice('labour')" class="btn-icon" style="background: linear-gradient(135deg, #10B981 0%, #059669 100%);" title="Generate Invoice">
-                            <i class="fas fa-file-invoice text-white"></i>
-                        </button>
-                        <button onclick="ProjectApp.shareLabourWhatsApp()" class="btn-icon btn-whatsapp" title="Share on WhatsApp">
-                            <i class="fab fa-whatsapp"></i>
-                        </button>
-                        <button id="addLabourBtn" class="btn-add">
-                            <i class="fas fa-plus"></i>
-                            <span>Add Worker</span>
-                        </button>
+                    </div>
+                    <div id="attendanceSummary" class="attendance-summary hidden">
+                        <div class="flex items-center justify-between mb-2">
+                            <h3 class="font-semibold text-slate-800"><i class="fas fa-calendar-day mr-2 text-violet-500"></i>Today's Attendance</h3>
+                            <span id="attendanceDate" class="text-sm text-slate-600"></span>
+                        </div>
+                        <div class="grid grid-cols-4 gap-3 text-center">
+                            <div class="bg-white rounded-lg p-2"><p class="text-2xl font-bold text-slate-800" id="totalWorkers">0</p><p class="text-xs text-slate-500">Total</p></div>
+                            <div class="bg-white rounded-lg p-2"><p class="text-2xl font-bold text-emerald-600" id="presentWorkers">0</p><p class="text-xs text-slate-500">Present</p></div>
+                            <div class="bg-white rounded-lg p-2"><p class="text-2xl font-bold text-rose-600" id="absentWorkers">0</p><p class="text-xs text-slate-500">Absent</p></div>
+                            <div class="bg-white rounded-lg p-2"><p class="text-2xl font-bold text-amber-600" id="halfDayWorkers">0</p><p class="text-xs text-slate-500">Half Day</p></div>
+                        </div>
+                    </div>
+                    <div id="labourCardsContainer" class="cards-grid"></div>
+                    <div id="labourEmpty" class="empty-state hidden"><i class="fas fa-hard-hat"></i><p>No workers assigned</p></div>
+                    <div id="labourTotalRow" class="total-row labour hidden">
+                        <div><p class="text-xs text-slate-600">Total Wages</p><p id="labourTotalAmount" class="text-xl font-bold text-emerald-600">₹0</p></div>
+                        <div><p class="text-xs text-slate-600">Total Paid</p><p id="labourTotalPaid" class="text-xl font-bold text-emerald-600">₹0</p></div>
+                        <div><p class="text-xs text-slate-600">Balance Due</p><p id="labourTotalBalance" class="text-xl font-bold text-rose-600">₹0</p></div>
                     </div>
                 </div>
-                
-                <div id="labourCardsContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
-                <div id="labourEmpty" class="empty-state hidden"><i class="fas fa-hard-hat"></i><p>No labour records</p></div>
-                <div id="labourTotalRow" class="mt-4 p-4 bg-gradient-to-br from-emerald-50 to-green-50 border-2 border-emerald-200 rounded-lg hidden">
-                    <div class="grid grid-cols-3 gap-4">
-                        <div>
-                            <p class="text-xs text-slate-600">Total Wages</p>
-                            <p id="labourTotalAmount" class="text-xl font-bold text-emerald-600">₹0</p>
+            </div>
+
+            <!-- Vendors Tab -->
+            <div id="vendorsTab" class="tab-content">
+                <div class="section-card">
+                    <div class="section-header">
+                        <h2 class="section-title"><span>🤝</span> Vendor Management</h2>
+                        <div class="flex gap-2 flex-wrap">
+                            <button onclick="ProjectApp.generateInvoice('vendors')" class="btn-icon" style="background: linear-gradient(135deg, #F97316, #EA580C);" title="Generate Invoice"><i class="fas fa-file-invoice text-white"></i></button>
+                            <button onclick="ProjectApp.shareVendorsWhatsApp()" class="btn-icon btn-whatsapp" title="Share on WhatsApp"><i class="fab fa-whatsapp"></i></button>
+                            <button id="addVendorBtn" class="btn-add"><i class="fas fa-plus"></i> Add Vendor</button>
                         </div>
-                        <div>
-                            <p class="text-xs text-slate-600">Total Paid</p>
-                            <p id="labourTotalPaid" class="text-xl font-bold text-emerald-600">₹0</p>
-                        </div>
-                        <div>
-                            <p class="text-xs text-slate-600">Balance Due</p>
-                            <p id="labourTotalBalance" class="text-xl font-bold text-rose-600">₹0</p>
-                        </div>
+                    </div>
+                    <div id="vendorCardsContainer" class="cards-grid"></div>
+                    <div id="vendorEmpty" class="empty-state hidden"><i class="fas fa-handshake"></i><p>No vendors assigned</p></div>
+                    <div id="vendorTotalRow" class="total-row vendors hidden">
+                        <div><p class="text-xs text-slate-600">Total Cost</p><p id="vendorTotalAmount" class="text-xl font-bold text-orange-600">₹0</p></div>
+                        <div><p class="text-xs text-slate-600">Total Paid</p><p id="vendorTotalPaid" class="text-xl font-bold text-emerald-600">₹0</p></div>
+                        <div><p class="text-xs text-slate-600">Balance Due</p><p id="vendorTotalBalance" class="text-xl font-bold text-rose-600">₹0</p></div>
                     </div>
                 </div>
             </div>
 
             <!-- Expenses Tab -->
-            <div id="expensesTab" class="tab-content p-5 hidden">
-                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
-                    <h2 class="text-xl font-bold text-slate-800 flex items-center gap-3">
-                        <div class="w-10 h-10 bg-gradient-to-br from-violet-400 to-purple-500 rounded-xl flex items-center justify-center shadow-lg">
-                            <i class="fas fa-receipt text-white text-lg"></i>
+            <div id="expensesTab" class="tab-content">
+                <div class="section-card">
+                    <div class="section-header">
+                        <h2 class="section-title"><span>🧾</span> Expense Tracking</h2>
+                        <div class="flex gap-2 flex-wrap">
+                            <button onclick="ProjectApp.generateInvoice('expenses')" class="btn-icon" style="background: linear-gradient(135deg, #8B5CF6, #7C3AED);" title="Generate Invoice"><i class="fas fa-file-invoice text-white"></i></button>
+                            <button onclick="ProjectApp.shareExpensesWhatsApp()" class="btn-icon btn-whatsapp" title="Share on WhatsApp"><i class="fab fa-whatsapp"></i></button>
+                            <button id="addExpenseBtn" class="btn-add"><i class="fas fa-plus"></i> Add Expense</button>
                         </div>
-                        Expense Tracking
-                    </h2>
-                    <div class="flex gap-2">
-                        <button onclick="ProjectApp.generateInvoice('expenses')" class="btn-icon" style="background: linear-gradient(135deg, #8B5CF6 0%, #7C3AED 100%);" title="Generate Invoice">
-                            <i class="fas fa-file-invoice text-white"></i>
-                        </button>
-                        <button onclick="ProjectApp.shareExpensesWhatsApp()" class="btn-icon btn-whatsapp" title="Share on WhatsApp">
-                            <i class="fab fa-whatsapp"></i>
-                        </button>
-                        <button id="addExpenseBtn" class="btn-add">
-                            <i class="fas fa-plus"></i>
-                            <span>Add Expense</span>
-                        </button>
                     </div>
+                    <div class="overflow-x-auto"><table class="data-table"><thead><tr><th>Description</th><th>Category</th><th>Amount</th><th>Date</th><th>Actions</th></tr></thead><tbody id="expensesTableBody"></tbody></table></div>
+                    <div id="expensesEmpty" class="empty-state hidden"><i class="fas fa-receipt"></i><p>No expenses</p></div>
+                    <div id="expensesTotalRow" class="total-row expenses flex justify-between items-center hidden"><span class="text-slate-700 font-semibold">Total:</span><span id="expensesTotalAmount" class="text-xl font-bold text-violet-600">₹0</span></div>
                 </div>
-                <div class="overflow-x-auto"><table class="data-table"><thead><tr><th>Description</th><th>Category</th><th>Amount</th><th>Date</th><th>Actions</th></tr></thead><tbody id="expensesTableBody"></tbody></table></div>
-                <div id="expensesEmpty" class="empty-state hidden"><i class="fas fa-receipt"></i><p>No expenses</p></div>
-                <div id="expensesTotalRow" class="mt-4 p-4 bg-gradient-to-br from-violet-50 to-purple-50 border-2 border-violet-200 rounded-lg flex justify-between items-center hidden"><span class="text-slate-700 font-semibold">Total:</span><span id="expensesTotalAmount" class="text-xl font-bold text-violet-600">₹0</span></div>
             </div>
 
             <!-- Documents Tab -->
-            <div id="documentsTab" class="tab-content p-5 hidden">
-                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
-                    <h2 class="text-xl font-bold text-slate-800 flex items-center gap-3">
-                        <div class="w-10 h-10 bg-gradient-to-br from-amber-400 to-orange-500 rounded-xl flex items-center justify-center shadow-lg">
-                            <i class="fas fa-folder text-white text-lg"></i>
+            <div id="documentsTab" class="tab-content">
+                <div class="section-card">
+                    <div class="section-header">
+                        <h2 class="section-title"><span>📁</span> Document Management</h2>
+                        <div class="flex gap-2 flex-wrap">
+                            <select id="docCategoryFilter" class="form-input text-sm" style="min-width: 120px;"><option value="all">All Types</option></select>
+                            <button id="addDocBtn" class="btn-add"><i class="fas fa-upload"></i> Upload</button>
                         </div>
-                        Document Management
-                    </h2>
-                    <div class="flex gap-2">
-                        <select id="docCategoryFilter" class="form-input text-sm">
-                            <option value="all">All Types</option>
-                        </select>
-                        <button id="addDocBtn" class="btn-add">
-                            <i class="fas fa-upload"></i>
-                            <span>Upload</span>
-                        </button>
                     </div>
+                    <div id="documentsGrid" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4"></div>
+                    <div id="documentsEmpty" class="empty-state hidden"><i class="fas fa-folder-open"></i><p>No documents uploaded</p></div>
                 </div>
-                <div id="documentsGrid" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4"></div>
-                <div id="documentsEmpty" class="empty-state hidden"><i class="fas fa-folder-open"></i><p>No documents uploaded</p></div>
-            </div>
-
-            <!-- Budget Tab -->
-            <div id="budgetTab" class="tab-content p-5 hidden">
-                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
-                    <h2 class="text-xl font-bold text-slate-800 flex items-center gap-3">
-                        <div class="w-10 h-10 bg-gradient-to-br from-indigo-400 to-blue-500 rounded-xl flex items-center justify-center shadow-lg">
-                            <i class="fas fa-exchange-alt text-white text-lg"></i>
-                        </div>
-                        Budget Transfers
-                    </h2>
-                    <button id="addTransferBtn" class="btn-add">
-                        <i class="fas fa-plus"></i>
-                        <span>New Transfer</span>
-                    </button>
-                </div>
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                    <div class="summary-card"><p class="text-slate-600 text-sm">Original Budget</p><p id="originalBudget" class="text-2xl font-bold text-slate-800">₹0</p></div>
-                    <div class="summary-card accent"><p class="text-slate-600 text-sm">Transferred Out</p><p id="transferredOut" class="text-2xl font-bold text-sky-600">₹0</p></div>
-                    <div class="summary-card success"><p class="text-slate-600 text-sm">Received</p><p id="transferredIn" class="text-2xl font-bold text-emerald-600">₹0</p></div>
-                </div>
-                <div class="overflow-x-auto"><table class="data-table"><thead><tr><th>Type</th><th>Project</th><th>Amount</th><th>Reason</th><th>Date</th><th>Actions</th></tr></thead><tbody id="transfersTableBody"></tbody></table></div>
-                <div id="transfersEmpty" class="empty-state hidden"><i class="fas fa-exchange-alt"></i><p>No transfers</p></div>
             </div>
 
             <!-- Logs Tab -->
-            <div id="logsTab" class="tab-content p-5 hidden">
-                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
-                    <h2 class="text-xl font-bold text-slate-800 flex items-center gap-3">
-                        <div class="w-10 h-10 bg-gradient-to-br from-teal-400 to-cyan-500 rounded-xl flex items-center justify-center shadow-lg">
-                            <i class="fas fa-clipboard-list text-white text-lg"></i>
-                        </div>
-                        Daily Site Logs
-                    </h2>
-                    <button id="addLogBtn" class="btn-add">
-                        <i class="fas fa-plus"></i>
-                        <span>Add Log</span>
-                    </button>
+            <div id="logsTab" class="tab-content">
+                <div class="section-card">
+                    <div class="section-header">
+                        <h2 class="section-title"><span>📝</span> Daily Site Logs</h2>
+                        <button id="addLogBtn" class="btn-add"><i class="fas fa-plus"></i> Add Log</button>
+                    </div>
+                    <div id="logsContainer" class="space-y-4"></div>
+                    <div id="logsEmpty" class="empty-state hidden"><i class="fas fa-clipboard"></i><p>No logs</p></div>
                 </div>
-                <div id="logsContainer" class="space-y-4"></div>
-                <div id="logsEmpty" class="empty-state hidden"><i class="fas fa-clipboard"></i><p>No logs</p></div>
             </div>
 
             <!-- Summary Tab -->
-            <div id="summaryTab" class="tab-content p-5 hidden">
-                <h2 class="text-lg font-semibold text-slate-800 mb-4">Financial Summary</h2>
-                
-                <!-- Client Payments Section -->
-                <div class="mb-6 p-4 bg-gradient-to-br from-blue-50 to-sky-50 border-2 border-sky-200 rounded-lg">
-                    <div class="flex justify-between items-center mb-3">
-                        <h3 class="text-md font-semibold text-slate-800">Client Payments</h3>
-                        <div class="flex gap-2">
-                            <button onclick="ProjectApp.generateInvoice('client')" class="btn-icon text-xs" style="background: linear-gradient(135deg, #0EA5E9 0%, #0284C7 100%);" title="Generate Invoice">
-                                <i class="fas fa-file-invoice text-white"></i>
-                            </button>
-                            <button id="addClientPaymentBtn" class="btn-primary text-xs px-3 py-1.5"><i class="fas fa-plus mr-1"></i>Add Payment</button>
+            <div id="summaryTab" class="tab-content">
+                <div class="section-card">
+                    <h2 class="section-title mb-6"><span>📊</span> Financial Summary</h2>
+                    
+                    <!-- Client Payments Section -->
+                    <div class="mb-6 p-4 bg-gradient-to-br from-blue-50 to-sky-50 border-2 border-sky-200 rounded-xl">
+                        <div class="flex justify-between items-center mb-3">
+                            <h3 class="font-bold text-slate-800">💵 Client Payments</h3>
+                            <div class="flex gap-2">
+                                <button onclick="ProjectApp.generateInvoice('client')" class="btn-icon text-xs" style="background: linear-gradient(135deg, #0EA5E9, #0284C7);" title="Generate Invoice"><i class="fas fa-file-invoice text-white"></i></button>
+                                <button id="addClientPaymentBtn" class="btn btn-primary text-xs"><i class="fas fa-plus mr-1"></i>Add Payment</button>
+                            </div>
                         </div>
+                        <div class="grid grid-cols-3 gap-4 mb-3">
+                            <div><p class="text-xs text-slate-600">Total Budget</p><p id="clientTotalBudget" class="text-lg font-bold text-slate-800">₹0</p></div>
+                            <div><p class="text-xs text-slate-600">Received</p><p id="clientTotalReceived" class="text-lg font-bold text-emerald-600">₹0</p></div>
+                            <div><p class="text-xs text-slate-600">Pending</p><p id="clientTotalPending" class="text-lg font-bold text-rose-600">₹0</p></div>
+                        </div>
+                        <div id="clientPaymentsList" class="space-y-2 max-h-48 overflow-y-auto"></div>
                     </div>
-                    <div class="grid grid-cols-3 gap-4 mb-3">
-                        <div><p class="text-xs text-slate-600">Total Budget</p><p id="clientTotalBudget" class="text-lg font-bold text-slate-800">₹0</p></div>
-                        <div><p class="text-xs text-slate-600">Received</p><p id="clientTotalReceived" class="text-lg font-bold text-emerald-600">₹0</p></div>
-                        <div><p class="text-xs text-slate-600">Pending</p><p id="clientTotalPending" class="text-lg font-bold text-rose-600">₹0</p></div>
+                    
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                        <div class="summary-card"><p class="text-slate-600 text-sm">Effective Budget</p><p id="summaryBudget" class="text-2xl font-bold text-slate-800">₹0</p></div>
+                        <div class="summary-card accent"><p class="text-slate-600 text-sm">Total Spent</p><p id="summarySpent" class="text-2xl font-bold text-sky-600">₹0</p></div>
+                        <div id="summaryBalanceCard" class="summary-card success"><p class="text-slate-600 text-sm">Remaining</p><p id="summaryBalance" class="text-2xl font-bold text-emerald-600">₹0</p></div>
+                        <div class="summary-card"><p class="text-slate-600 text-sm">Budget Used</p><p id="summaryPercent" class="text-2xl font-bold text-slate-800">0%</p></div>
                     </div>
-                    <div id="clientPaymentsList" class="space-y-2 max-h-48 overflow-y-auto"></div>
-                </div>
-                
-                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-                    <div class="summary-card"><p class="text-slate-600 text-sm">Effective Budget</p><p id="summaryBudget" class="text-2xl font-bold text-slate-800">₹0</p></div>
-                    <div class="summary-card accent"><p class="text-slate-600 text-sm">Total Spent</p><p id="summarySpent" class="text-2xl font-bold text-sky-600">₹0</p></div>
-                    <div id="summaryBalanceCard" class="summary-card success"><p class="text-slate-600 text-sm">Remaining</p><p id="summaryBalance" class="text-2xl font-bold text-emerald-600">₹0</p></div>
-                    <div class="summary-card"><p class="text-slate-600 text-sm">Budget Used</p><p id="summaryPercent" class="text-2xl font-bold text-slate-800">0%</p></div>
-                </div>
-                <div class="mb-4"><p class="text-slate-600 text-sm mb-2">Cost Health Meter</p><div class="health-meter h-3"><div id="healthIndicator" class="health-indicator"></div></div></div>
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    <div class="bg-gradient-to-br from-slate-50 to-gray-50 border-2 border-slate-200 rounded-lg p-4"><h3 class="text-slate-700 font-semibold mb-4">Expense Breakdown</h3><div class="chart-container"><canvas id="expenseChart"></canvas></div></div>
-                    <div class="bg-gradient-to-br from-slate-50 to-gray-50 border-2 border-slate-200 rounded-lg p-4"><h3 class="text-slate-700 font-semibold mb-4">Budget vs Spent</h3><div class="chart-container"><canvas id="budgetChart"></canvas></div></div>
+                    <div class="mb-4"><p class="text-slate-600 text-sm mb-2">Cost Health Meter</p><div class="health-meter h-3"><div id="healthIndicator" class="health-indicator"></div></div></div>
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <div class="bg-gradient-to-br from-slate-50 to-gray-50 border-2 border-slate-200 rounded-xl p-4"><h3 class="text-slate-700 font-semibold mb-4">Expense Breakdown</h3><div class="chart-container"><canvas id="expenseChart"></canvas></div></div>
+                        <div class="bg-gradient-to-br from-slate-50 to-gray-50 border-2 border-slate-200 rounded-xl p-4"><h3 class="text-slate-700 font-semibold mb-4">Budget vs Spent</h3><div class="chart-container"><canvas id="budgetChart"></canvas></div></div>
+                    </div>
                 </div>
             </div>
-        </div>
-    </main>
+
+            <!-- Fund Status Tab -->
+            <div id="fundsTab" class="tab-content">
+                <div class="section-card">
+                    <div class="section-header">
+                        <h2 class="section-title"><span>💰</span> Fund Management Status</h2>
+                        <div class="flex gap-2 flex-wrap">
+                            <button onclick="ProjectApp.generateFundStatusPDF()" class="btn btn-primary"><i class="fas fa-file-pdf mr-2"></i>Fund Status PDF</button>
+                            <button onclick="window.open('funds.html', '_blank')" class="btn btn-secondary"><i class="fas fa-external-link-alt mr-2"></i>Fund Management</button>
+                            <button id="refreshFundStatusBtn" class="btn btn-secondary"><i class="fas fa-sync-alt"></i></button>
+                        </div>
+                    </div>
+
+                    <!-- Virtual Wallet Status -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                        <div class="metric-card"><p class="text-slate-600 text-sm">Virtual Balance</p><p id="virtualBalance" class="font-bold text-2xl text-sky-600">₹0</p><p class="text-xs text-slate-500 mt-1">Available funds</p></div>
+                        <div class="metric-card"><p class="text-slate-600 text-sm">Loans Given</p><p id="loansGiven" class="font-bold text-2xl text-amber-600">₹0</p><p class="text-xs text-slate-500 mt-1">To other projects</p></div>
+                        <div class="metric-card"><p class="text-slate-600 text-sm">Loans Received</p><p id="loansReceived" class="font-bold text-2xl text-rose-600">₹0</p><p class="text-xs text-slate-500 mt-1">From other projects</p></div>
+                        <div class="metric-card"><p class="text-slate-600 text-sm">Net Available</p><p id="netAvailable" class="font-bold text-2xl text-emerald-600">₹0</p><p class="text-xs text-slate-500 mt-1">After loans</p></div>
+                    </div>
+
+                    <!-- Fund Details Sections -->
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <div class="item-card"><h3 class="font-semibold text-slate-800 mb-3 flex items-center gap-2"><i class="fas fa-money-bill-wave text-emerald-500"></i>Payment Allocations Received</h3><div id="paymentAllocationsContainer" class="space-y-2 max-h-64 overflow-y-auto"></div></div>
+                        <div class="item-card"><h3 class="font-semibold text-slate-800 mb-3 flex items-center gap-2"><i class="fas fa-hand-holding-usd text-amber-500"></i>Loans Given to Projects</h3><div id="loansGivenContainer" class="space-y-2 max-h-64 overflow-y-auto"></div></div>
+                        <div class="item-card"><h3 class="font-semibold text-slate-800 mb-3 flex items-center gap-2"><i class="fas fa-handshake text-rose-500"></i>Loans Received from Projects</h3><div id="loansReceivedContainer" class="space-y-2 max-h-64 overflow-y-auto"></div></div>
+                        <div class="item-card"><h3 class="font-semibold text-slate-800 mb-3 flex items-center gap-2"><i class="fas fa-exchange-alt text-violet-500"></i>Cross-Project Expenses</h3><div id="crossProjectExpensesContainer" class="space-y-2 max-h-64 overflow-y-auto"></div></div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
 
     <!-- Material Modal -->
-    <div id="materialModal" class="modal-overlay fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 hidden">
-        <div class="modal-content rounded-xl w-full max-w-4xl mx-4 max-h-[90vh] overflow-y-auto">
-            <div class="p-5 border-b border-gray-700 flex items-center justify-between">
-                <h3 id="materialModalTitle" class="text-lg font-semibold text-slate-800">Add Material</h3>
-                <button class="close-modal text-slate-400 hover:text-sky-600 transition"><i class="fas fa-times text-xl"></i></button>
-            </div>
-            <form id="materialForm" class="p-5">
+    <div id="materialModal" class="modal-overlay fixed inset-0 flex items-center justify-center z-50 hidden">
+        <div class="modal-content w-full mx-4 max-h-[90vh] overflow-y-auto">
+            <div class="p-6 border-b border-gray-200"><div class="flex items-center justify-between"><h3 id="materialModalTitle" class="text-xl font-bold text-slate-800">📦 Add Material</h3><button class="close-modal text-gray-400 hover:text-gray-600 transition"><i class="fas fa-times text-xl"></i></button></div></div>
+            <form id="materialForm" class="p-6">
                 <input type="hidden" id="materialId">
-                
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-                    <div class="md:col-span-2">
-                        <label class="block text-sm font-semibold text-slate-700 mb-2">Material *</label>
-                        <select id="materialSelect" class="form-input"></select>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-semibold text-slate-700 mb-2">Category *</label>
-                        <select id="materialCategory" required class="form-input"></select>
-                    </div>
+                    <div class="md:col-span-2"><label class="block text-sm font-semibold text-slate-700 mb-2">Material *</label><select id="materialSelect" class="form-input"></select></div>
+                    <div><label class="block text-sm font-semibold text-slate-700 mb-2">Category *</label><select id="materialCategory" required class="form-input"></select></div>
                 </div>
-                
-                <div id="customMaterialDiv" class="hidden mb-4">
-                    <label class="block text-sm font-semibold text-slate-700 mb-2">Custom Name *</label>
-                    <input type="text" id="customMaterialName" class="form-input">
-                </div>
-                
+                <div id="customMaterialDiv" class="hidden mb-4"><label class="block text-sm font-semibold text-slate-700 mb-2">Custom Name *</label><input type="text" id="customMaterialName" class="form-input"></div>
                 <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
-                    <div>
-                        <label class="block text-sm font-semibold text-slate-700 mb-2">Quantity *</label>
-                        <input type="number" id="materialQty" required min="0" step="0.01" class="form-input">
-                    </div>
-                    <div>
-                        <label class="block text-sm font-semibold text-slate-700 mb-2">Unit *</label>
-                        <select id="materialUnit" required class="form-input"></select>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-semibold text-slate-700 mb-2">Rate (₹) *</label>
-                        <input type="number" id="materialRate" required min="0" step="0.01" class="form-input">
-                    </div>
-                    <div>
-                        <label class="block text-sm font-semibold text-slate-700 mb-2">Status *</label>
-                        <select id="materialStatus" required class="form-input">
-                            <option value="used">Used</option>
-                            <option value="recovered">Recovered</option>
-                        </select>
-                    </div>
+                    <div><label class="block text-sm font-semibold text-slate-700 mb-2">Quantity *</label><input type="number" id="materialQty" required min="0" step="0.01" class="form-input"></div>
+                    <div><label class="block text-sm font-semibold text-slate-700 mb-2">Unit *</label><select id="materialUnit" required class="form-input"></select></div>
+                    <div><label class="block text-sm font-semibold text-slate-700 mb-2">Rate (₹) *</label><input type="number" id="materialRate" required min="0" step="0.01" class="form-input"></div>
+                    <div><label class="block text-sm font-semibold text-slate-700 mb-2">Status *</label><select id="materialStatus" required class="form-input"><option value="used">Used</option><option value="recovered">Recovered</option></select></div>
                 </div>
-                
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                    <div id="materialTotalDisplay" class="p-3 bg-sky-50 border-2 border-sky-200 rounded-lg hidden">
-                        <p class="text-sm text-slate-600 mb-1">Total Amount</p>
-                        <p class="text-2xl font-bold text-sky-600" id="materialTotalAmount">₹0</p>
-                    </div>
-                    <div id="materialBalanceDisplay" class="p-3 bg-amber-50 border-2 border-amber-200 rounded-lg hidden">
-                        <div class="flex justify-between items-center">
-                            <div>
-                                <p class="text-xs text-slate-600">Paid</p>
-                                <p class="text-lg font-bold text-emerald-600" id="materialPaidDisplay">₹0</p>
-                            </div>
-                            <div class="text-right">
-                                <p class="text-xs text-slate-600">Balance</p>
-                                <p class="text-lg font-bold text-rose-600" id="materialBalanceAmount">₹0</p>
-                            </div>
-                        </div>
-                    </div>
+                    <div id="materialTotalDisplay" class="p-3 bg-sky-50 border-2 border-sky-200 rounded-lg hidden"><p class="text-sm text-slate-600 mb-1">Total Amount</p><p class="text-2xl font-bold text-sky-600" id="materialTotalAmount">₹0</p></div>
+                    <div id="materialBalanceDisplay" class="p-3 bg-amber-50 border-2 border-amber-200 rounded-lg hidden"><div class="flex justify-between items-center"><div><p class="text-xs text-slate-600">Paid</p><p class="text-lg font-bold text-emerald-600" id="materialPaidDisplay">₹0</p></div><div class="text-right"><p class="text-xs text-slate-600">Balance</p><p class="text-lg font-bold text-rose-600" id="materialBalanceAmount">₹0</p></div></div></div>
                 </div>
-                
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-                    <div>
-                        <label class="block text-sm font-semibold text-slate-700 mb-2">Amount Paid (₹)</label>
-                        <input type="number" id="materialPaidAmount" min="0" step="0.01" class="form-input" placeholder="0">
-                    </div>
-                    <div>
-                        <label class="block text-sm font-semibold text-slate-700 mb-2">Date *</label>
-                        <input type="date" id="materialDate" required class="form-input">
-                    </div>
-                    <div>
-                        <label class="block text-sm font-semibold text-slate-700 mb-2">Supplier</label>
-                        <input type="text" id="materialSupplier" class="form-input">
-                    </div>
+                    <div><label class="block text-sm font-semibold text-slate-700 mb-2">Amount Paid (₹)</label><input type="number" id="materialPaidAmount" min="0" step="0.01" class="form-input" placeholder="0"></div>
+                    <div><label class="block text-sm font-semibold text-slate-700 mb-2">Date *</label><input type="date" id="materialDate" required class="form-input"></div>
+                    <div><label class="block text-sm font-semibold text-slate-700 mb-2">Supplier</label><input type="text" id="materialSupplier" class="form-input"></div>
                 </div>
-                
-                <div class="flex gap-3 pt-4 border-t border-slate-200">
-                    <button type="button" class="cancel-modal flex-1 btn-secondary">Cancel</button>
-                    <button type="submit" class="flex-1 btn-primary">Save Material</button>
-                </div>
+                <div class="flex gap-3 pt-4 border-t border-slate-200"><button type="button" class="cancel-modal flex-1 btn btn-secondary">Cancel</button><button type="submit" class="flex-1 btn btn-primary">Save Material</button></div>
             </form>
         </div>
     </div>
 
-    <!-- Labour Modal -->
-    <div id="labourModal" class="modal-overlay fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 hidden">
-        <div class="modal-content rounded-xl w-full max-w-lg mx-4 max-h-[90vh] overflow-y-auto">
-            <div class="p-5 border-b border-gray-700 flex items-center justify-between">
-                <h3 id="labourModalTitle" class="text-lg font-semibold text-slate-800">Add Worker</h3>
-                <button class="close-modal text-slate-400 hover:text-sky-600 transition"><i class="fas fa-times text-xl"></i></button>
-            </div>
-            <form id="labourForm" class="p-5 space-y-4">
-                <input type="hidden" id="labourId">
-                <div><label class="block text-sm font-semibold text-slate-700 mb-2">Worker Name *</label><input type="text" id="workerName" required class="form-input"></div>
-                <div><label class="block text-sm font-semibold text-slate-700 mb-2">Role *</label><select id="workerRole" required class="form-input"><option value="Foreman">Foreman</option><option value="Mason">Mason</option><option value="Carpenter">Carpenter</option><option value="Electrician">Electrician</option><option value="Plumber">Plumber</option><option value="Painter">Painter</option><option value="Helper">Helper</option><option value="Other">Other</option></select></div>
-                <div class="grid grid-cols-2 gap-4">
-                    <div><label class="block text-sm font-semibold text-slate-700 mb-2">Daily Wage (₹) *</label><input type="number" id="dailyWage" required min="0" class="form-input"></div>
-                    <div><label class="block text-sm font-semibold text-slate-700 mb-2">Total Amount (₹) *</label><input type="number" id="totalAmount" required min="0" class="form-input"></div>
+    <!-- Worker Modal -->
+    <div id="labourModal" class="modal-overlay fixed inset-0 flex items-center justify-center z-50 hidden">
+        <div class="modal-content w-full mx-4 max-h-[90vh] overflow-y-auto">
+            <div class="p-6 border-b border-gray-200"><div class="flex items-center justify-between"><h3 id="labourModalTitle" class="text-xl font-bold text-slate-800">👷 Add Worker</h3><button class="close-modal text-gray-400 hover:text-gray-600 transition"><i class="fas fa-times text-xl"></i></button></div></div>
+            <form id="labourForm" class="p-6">
+                <input type="hidden" id="labourId"><input type="hidden" id="workerId">
+                <div class="mb-5"><label class="block text-sm font-semibold text-slate-700 mb-2">Select Worker</label><select id="workerSelect" class="form-input"><option value="">-- Create New Worker --</option></select></div>
+                <div id="newWorkerFields" class="grid grid-cols-2 gap-5 mb-5">
+                    <div><label class="block text-sm font-semibold text-slate-700 mb-2">Worker Name *</label><input type="text" id="workerName" class="form-input" placeholder="Enter worker name"></div>
+                    <div><label class="block text-sm font-semibold text-slate-700 mb-2">Phone Number</label><input type="tel" id="workerPhone" class="form-input" placeholder="Mobile number"></div>
                 </div>
-                <div><label class="block text-sm font-semibold text-slate-700 mb-2">Amount Paid (₹)</label><input type="number" id="labourPaidAmount" min="0" step="0.01" class="form-input" placeholder="0"></div>
-                <div class="grid grid-cols-2 gap-4">
+                <div class="grid grid-cols-3 gap-5 mb-5">
+                    <div><label class="block text-sm font-semibold text-slate-700 mb-2">Role/Job Title *</label><select id="workerRole" required class="form-input"><option value="Foreman">Foreman</option><option value="Mason">Mason</option><option value="Carpenter">Carpenter</option><option value="Electrician">Electrician</option><option value="Plumber">Plumber</option><option value="Painter">Painter</option><option value="Welder">Welder</option><option value="Tile Worker">Tile Worker</option><option value="Helper">Helper</option><option value="Supervisor">Supervisor</option><option value="Other">Other</option></select></div>
+                    <div><label class="block text-sm font-semibold text-slate-700 mb-2">Daily Wage (₹) *</label><input type="number" id="dailyWage" required min="0" class="form-input" placeholder="500"></div>
+                    <div><label class="block text-sm font-semibold text-slate-700 mb-2">Overtime Rate (₹/hr)</label><input type="number" id="overtimeRate" min="0" class="form-input" placeholder="100"></div>
+                </div>
+                <div class="grid grid-cols-2 gap-5 mb-5">
                     <div><label class="block text-sm font-semibold text-slate-700 mb-2">Start Date *</label><input type="date" id="labourStartDate" required class="form-input"></div>
                     <div><label class="block text-sm font-semibold text-slate-700 mb-2">End Date</label><input type="date" id="labourEndDate" class="form-input"></div>
                 </div>
-                <div class="flex gap-3 pt-4"><button type="button" class="cancel-modal flex-1 btn-secondary">Cancel</button><button type="submit" class="flex-1 btn-primary">Save</button></div>
+                <div class="flex gap-3 pt-4"><button type="button" class="cancel-modal flex-1 btn btn-secondary">Cancel</button><button type="submit" class="flex-1 btn btn-primary">Save Worker</button></div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Attendance Modal -->
+    <div id="attendanceModal" class="modal-overlay fixed inset-0 flex items-center justify-center z-50 hidden">
+        <div class="modal-content w-full mx-4 max-h-[90vh] overflow-y-auto">
+            <div class="p-6 border-b border-gray-200"><div class="flex items-center justify-between"><h3 class="text-xl font-bold text-slate-800">📅 Mark Attendance</h3><button class="close-modal text-gray-400 hover:text-gray-600 transition"><i class="fas fa-times text-xl"></i></button></div></div>
+            <div class="p-6">
+                <div class="flex items-center justify-between mb-4"><input type="date" id="attendanceDateInput" class="form-input w-auto"><button id="markAllPresentBtn" class="btn btn-secondary text-sm"><i class="fas fa-check-double mr-1"></i>Mark All Present</button></div>
+                <div id="attendanceList" class="space-y-3 max-h-96 overflow-y-auto"></div>
+                <div class="flex gap-3 pt-4 border-t border-slate-200 mt-4"><button type="button" class="cancel-modal flex-1 btn btn-secondary">Close</button><button id="saveAttendanceBtn" class="flex-1 btn btn-primary"><i class="fas fa-save mr-2"></i>Save Attendance</button></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Worker Profile Modal -->
+    <div id="workerProfileModal" class="modal-overlay fixed inset-0 flex items-center justify-center z-50 hidden">
+        <div class="modal-content w-full mx-4 max-h-[90vh] overflow-y-auto">
+            <div class="p-6 border-b border-gray-200"><div class="flex items-center justify-between"><h3 class="text-xl font-bold text-slate-800">👤 Worker Profile</h3><button class="close-modal text-gray-400 hover:text-gray-600 transition"><i class="fas fa-times text-xl"></i></button></div></div>
+            <div id="workerProfileContent" class="p-6"></div>
+        </div>
+    </div>
+
+    <!-- Worker Payment Modal -->
+    <div id="workerPaymentModal" class="modal-overlay fixed inset-0 flex items-center justify-center z-50 hidden">
+        <div class="modal-content w-full mx-4 max-h-[90vh] overflow-y-auto">
+            <div class="p-6 border-b border-gray-200"><div class="flex items-center justify-between"><h3 class="text-xl font-bold text-slate-800">💵 Pay Worker</h3><button class="close-modal text-gray-400 hover:text-gray-600 transition"><i class="fas fa-times text-xl"></i></button></div></div>
+            <form id="workerPaymentForm" class="p-6">
+                <input type="hidden" id="paymentWorkerId"><input type="hidden" id="paymentAssignmentId">
+                <div class="p-4 bg-slate-50 rounded-lg mb-5 grid grid-cols-2 gap-4">
+                    <div><p class="text-sm text-slate-600">Worker</p><p id="paymentWorkerName" class="font-semibold text-slate-800"></p></div>
+                    <div><p class="text-sm text-slate-600">Pending Amount</p><p id="paymentPendingAmount" class="font-bold text-rose-600 text-xl"></p></div>
+                </div>
+                <div class="grid grid-cols-2 gap-5 mb-5">
+                    <div><label class="block text-sm font-semibold text-slate-700 mb-2">Amount (₹) *</label><input type="number" id="paymentAmount" required min="1" class="form-input" placeholder="Enter amount"></div>
+                    <div><label class="block text-sm font-semibold text-slate-700 mb-2">Payment Mode *</label><select id="paymentMode" required class="form-input"><option value="Cash">Cash</option><option value="UPI">UPI</option><option value="Bank Transfer">Bank Transfer</option><option value="Cheque">Cheque</option><option value="Other">Other</option></select></div>
+                </div>
+                <div class="grid grid-cols-2 gap-5 mb-5">
+                    <div><label class="block text-sm font-semibold text-slate-700 mb-2">Date *</label><input type="date" id="paymentDate" required class="form-input"></div>
+                    <div><label class="block text-sm font-semibold text-slate-700 mb-2">Notes</label><input type="text" id="paymentNotes" class="form-input" placeholder="Optional notes"></div>
+                </div>
+                <div class="flex gap-3 pt-4"><button type="button" class="cancel-modal flex-1 btn btn-secondary">Cancel</button><button type="submit" class="flex-1 btn btn-primary"><i class="fas fa-check mr-2"></i>Record Payment</button></div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Vendor Modal -->
+    <div id="vendorModal" class="modal-overlay fixed inset-0 flex items-center justify-center z-50 hidden">
+        <div class="modal-content w-full mx-4 max-h-[90vh] overflow-y-auto">
+            <div class="p-6 border-b border-gray-200"><div class="flex items-center justify-between"><h3 id="vendorModalTitle" class="text-xl font-bold text-slate-800">🤝 Add Vendor</h3><button class="close-modal text-gray-400 hover:text-gray-600 transition"><i class="fas fa-times text-xl"></i></button></div></div>
+            <form id="vendorForm" class="p-6">
+                <input type="hidden" id="vendorId">
+                <div class="grid grid-cols-2 gap-5 mb-5">
+                    <div><label class="block text-sm font-semibold text-slate-700 mb-2">Vendor Name *</label><input type="text" id="vendorName" required class="form-input" placeholder="Enter vendor name"></div>
+                    <div><label class="block text-sm font-semibold text-slate-700 mb-2">Phone Number</label><input type="tel" id="vendorPhone" class="form-input" placeholder="Enter phone number"></div>
+                </div>
+                <div class="grid grid-cols-2 gap-5 mb-5">
+                    <div><label class="block text-sm font-semibold text-slate-700 mb-2">Service Type *</label><select id="vendorServiceType" required class="form-input"><option value="">Select service type</option></select></div>
+                    <div><label class="block text-sm font-semibold text-slate-700 mb-2">Agreed Cost (₹) *</label><input type="number" id="vendorAgreedCost" required min="0" step="0.01" class="form-input" placeholder="Enter agreed cost"></div>
+                </div>
+                <div class="mb-5"><label class="block text-sm font-semibold text-slate-700 mb-2">Work Description *</label><textarea id="vendorWorkDescription" required class="form-input" rows="3" placeholder="Describe the work to be done"></textarea></div>
+                <div class="flex gap-3 pt-4"><button type="button" class="cancel-modal flex-1 btn btn-secondary">Cancel</button><button type="submit" class="flex-1 btn btn-primary"><i class="fas fa-check mr-2"></i>Save Vendor</button></div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Vendor Payment Modal -->
+    <div id="vendorPaymentModal" class="modal-overlay fixed inset-0 flex items-center justify-center z-50 hidden">
+        <div class="modal-content w-full mx-4 max-h-[90vh] overflow-y-auto">
+            <div class="p-6 border-b border-gray-200"><div class="flex items-center justify-between"><h3 class="text-xl font-bold text-slate-800">💵 Pay Vendor</h3><button class="close-modal text-gray-400 hover:text-gray-600 transition"><i class="fas fa-times text-xl"></i></button></div></div>
+            <form id="vendorPaymentForm" class="p-6">
+                <input type="hidden" id="vendorPaymentVendorId">
+                <div class="bg-slate-50 p-4 rounded-lg mb-5 grid grid-cols-2 gap-4">
+                    <div><p class="text-sm text-slate-600">Vendor</p><p id="vendorPaymentVendorName" class="font-semibold text-slate-800">-</p></div>
+                    <div><p class="text-sm text-slate-600">Pending Amount</p><p id="vendorPaymentPendingAmount" class="text-xl font-bold text-rose-600">₹0</p></div>
+                </div>
+                <div class="grid grid-cols-2 gap-5 mb-5">
+                    <div><label class="block text-sm font-semibold text-slate-700 mb-2">Payment Amount (₹) *</label><input type="number" id="vendorPaymentAmount" required min="0" step="0.01" class="form-input" placeholder="Enter payment amount"></div>
+                    <div><label class="block text-sm font-semibold text-slate-700 mb-2">Payment Method *</label><select id="vendorPaymentMethod" required class="form-input"><option value="">Select payment method</option></select></div>
+                </div>
+                <div class="grid grid-cols-2 gap-5 mb-5">
+                    <div><label class="block text-sm font-semibold text-slate-700 mb-2">Payment Date *</label><input type="date" id="vendorPaymentDate" required class="form-input"></div>
+                    <div><label class="block text-sm font-semibold text-slate-700 mb-2">Notes</label><input type="text" id="vendorPaymentNotes" class="form-input" placeholder="Optional notes"></div>
+                </div>
+                <div class="flex gap-3 pt-4"><button type="button" class="cancel-modal flex-1 btn btn-secondary">Cancel</button><button type="submit" class="flex-1 btn btn-primary"><i class="fas fa-check mr-2"></i>Record Payment</button></div>
             </form>
         </div>
     </div>
 
     <!-- Expense Modal -->
-    <div id="expenseModal" class="modal-overlay fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 hidden">
-        <div class="modal-content rounded-xl w-full max-w-lg mx-4 max-h-[90vh] overflow-y-auto">
-            <div class="p-5 border-b border-gray-700 flex items-center justify-between">
-                <h3 id="expenseModalTitle" class="text-lg font-semibold text-slate-800">Add Expense</h3>
-                <button class="close-modal text-slate-400 hover:text-sky-600 transition"><i class="fas fa-times text-xl"></i></button>
-            </div>
-            <form id="expenseForm" class="p-5 space-y-4">
+    <div id="expenseModal" class="modal-overlay fixed inset-0 flex items-center justify-center z-50 hidden">
+        <div class="modal-content w-full mx-4 max-h-[90vh] overflow-y-auto">
+            <div class="p-6 border-b border-gray-200"><div class="flex items-center justify-between"><h3 id="expenseModalTitle" class="text-xl font-bold text-slate-800">🧾 Add Expense</h3><button class="close-modal text-gray-400 hover:text-gray-600 transition"><i class="fas fa-times text-xl"></i></button></div></div>
+            <form id="expenseForm" class="p-6">
                 <input type="hidden" id="expenseId">
-                <div><label class="block text-sm font-medium text-gray-300 mb-1">Description *</label><input type="text" id="expenseDesc" required class="form-input"></div>
-                <div><label class="block text-sm font-medium text-gray-300 mb-1">Category *</label><select id="expenseCategory" required class="form-input"><option value="Transport">Transport</option><option value="Machinery">Machinery</option><option value="Tools">Tools</option><option value="Permits">Permits</option><option value="Utilities">Utilities</option><option value="Miscellaneous">Miscellaneous</option></select></div>
-                <div><label class="block text-sm font-medium text-gray-300 mb-1">Amount (₹) *</label><input type="number" id="expenseAmount" required min="0" class="form-input"></div>
-                <div><label class="block text-sm font-medium text-gray-300 mb-1">Date *</label><input type="date" id="expenseDate" required class="form-input"></div>
-                <div class="flex gap-3 pt-4"><button type="button" class="cancel-modal flex-1 btn-secondary">Cancel</button><button type="submit" class="flex-1 btn-primary">Save</button></div>
+                <div class="mb-5"><label class="block text-sm font-semibold text-slate-700 mb-2">Description *</label><input type="text" id="expenseDesc" required class="form-input"></div>
+                <div class="grid grid-cols-3 gap-5 mb-5">
+                    <div><label class="block text-sm font-semibold text-slate-700 mb-2">Category *</label><select id="expenseCategory" required class="form-input"><option value="Transport">Transport</option><option value="Machinery">Machinery</option><option value="Tools">Tools</option><option value="Permits">Permits</option><option value="Utilities">Utilities</option><option value="Miscellaneous">Miscellaneous</option></select></div>
+                    <div><label class="block text-sm font-semibold text-slate-700 mb-2">Amount (₹) *</label><input type="number" id="expenseAmount" required min="0" class="form-input"></div>
+                    <div><label class="block text-sm font-semibold text-slate-700 mb-2">Date *</label><input type="date" id="expenseDate" required class="form-input"></div>
+                </div>
+                <div class="flex gap-3 pt-4"><button type="button" class="cancel-modal flex-1 btn btn-secondary">Cancel</button><button type="submit" class="flex-1 btn btn-primary">Save</button></div>
             </form>
         </div>
     </div>
 
     <!-- Document Modal -->
-    <div id="documentModal" class="modal-overlay fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 hidden">
-        <div class="modal-content rounded-xl w-full max-w-lg mx-4 max-h-[90vh] overflow-y-auto">
-            <div class="p-5 border-b border-gray-700 flex items-center justify-between">
-                <h3 class="text-lg font-semibold text-slate-800">Upload Document</h3>
-                <button class="close-modal text-slate-400 hover:text-sky-600 transition"><i class="fas fa-times text-xl"></i></button>
-            </div>
-            <form id="documentForm" class="p-5 space-y-4">
-                <div><label class="block text-sm font-semibold text-slate-700 mb-2">Document Name *</label><input type="text" id="docName" required class="form-input"></div>
-                <div><label class="block text-sm font-semibold text-slate-700 mb-2">Category *</label><select id="docCategory" required class="form-input"></select></div>
-                <div><label class="block text-sm font-semibold text-slate-700 mb-2">Document Date *</label><input type="date" id="docDate" required class="form-input"></div>
-                <div>
-                    <label class="block text-sm font-semibold text-slate-700 mb-2">File *</label>
-                    <input type="file" id="docFile" required accept="image/*,.pdf,.doc,.docx,.xls,.xlsx" class="form-input">
-                    <p class="text-xs text-slate-500 mt-1">Images, PDF, Word, Excel (Max 10MB) - Stored in Google Drive</p>
+    <div id="documentModal" class="modal-overlay fixed inset-0 flex items-center justify-center z-50 hidden">
+        <div class="modal-content w-full mx-4 max-h-[90vh] overflow-y-auto">
+            <div class="p-6 border-b border-gray-200"><div class="flex items-center justify-between"><h3 class="text-xl font-bold text-slate-800">📁 Upload Document</h3><button class="close-modal text-gray-400 hover:text-gray-600 transition"><i class="fas fa-times text-xl"></i></button></div></div>
+            <form id="documentForm" class="p-6">
+                <div class="grid grid-cols-2 gap-5 mb-5">
+                    <div><label class="block text-sm font-semibold text-slate-700 mb-2">Document Name *</label><input type="text" id="docName" required class="form-input"></div>
+                    <div><label class="block text-sm font-semibold text-slate-700 mb-2">Category *</label><select id="docCategory" required class="form-input"></select></div>
                 </div>
-                <div><label class="block text-sm font-semibold text-slate-700 mb-2">Notes</label><input type="text" id="docNotes" class="form-input"></div>
-                <div class="flex gap-3 pt-4"><button type="button" class="cancel-modal flex-1 btn-secondary">Cancel</button><button type="submit" class="flex-1 btn-primary">Upload</button></div>
+                <div class="grid grid-cols-2 gap-5 mb-5">
+                    <div><label class="block text-sm font-semibold text-slate-700 mb-2">Document Date *</label><input type="date" id="docDate" required class="form-input"></div>
+                    <div><label class="block text-sm font-semibold text-slate-700 mb-2">Notes</label><input type="text" id="docNotes" class="form-input"></div>
+                </div>
+                <div class="mb-5"><label class="block text-sm font-semibold text-slate-700 mb-2">File *</label><input type="file" id="docFile" required accept="image/*,.pdf,.doc,.docx,.xls,.xlsx" class="form-input"><p class="text-xs text-slate-500 mt-1">Images, PDF, Word, Excel (Max 10MB)</p></div>
+                <div class="flex gap-3 pt-4"><button type="button" class="cancel-modal flex-1 btn btn-secondary">Cancel</button><button type="submit" class="flex-1 btn btn-primary">Upload</button></div>
             </form>
         </div>
     </div>
@@ -486,104 +680,153 @@
         </div>
     </div>
 
-    <!-- Transfer Modal -->
-    <div id="transferModal" class="modal-overlay fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 hidden">
-        <div class="modal-content rounded-xl w-full max-w-lg mx-4 max-h-[90vh] overflow-y-auto">
-            <div class="p-5 border-b border-gray-700 flex items-center justify-between">
-                <h3 class="text-lg font-semibold text-slate-800">Budget Transfer</h3>
-                <button class="close-modal text-slate-400 hover:text-sky-600 transition"><i class="fas fa-times text-xl"></i></button>
-            </div>
-            <form id="transferForm" class="p-5 space-y-4">
-                <div><label class="block text-sm font-medium text-gray-300 mb-1">Transfer Type *</label><select id="transferType" required class="form-input"><option value="out">Transfer OUT</option><option value="in">Receive IN</option></select></div>
-                <div><label class="block text-sm font-medium text-gray-300 mb-1">Project *</label><select id="transferProject" required class="form-input"></select></div>
-                <div><label class="block text-sm font-medium text-gray-300 mb-1">Amount (₹) *</label><input type="number" id="transferAmount" required min="1" class="form-input"></div>
-                <div><label class="block text-sm font-medium text-gray-300 mb-1">Reason *</label><input type="text" id="transferReason" required class="form-input"></div>
-                <div><label class="block text-sm font-medium text-gray-300 mb-1">Date *</label><input type="date" id="transferDate" required class="form-input"></div>
-                <div class="flex gap-3 pt-4"><button type="button" class="cancel-modal flex-1 btn-secondary">Cancel</button><button type="submit" class="flex-1 btn-primary">Transfer</button></div>
-            </form>
-        </div>
-    </div>
-
     <!-- Log Modal -->
-    <div id="logModal" class="modal-overlay fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 hidden">
-        <div class="modal-content rounded-xl w-full max-w-lg mx-4 max-h-[90vh] overflow-y-auto">
-            <div class="p-5 border-b border-gray-700 flex items-center justify-between">
-                <h3 id="logModalTitle" class="text-lg font-semibold text-slate-800">Add Log</h3>
-                <button class="close-modal text-slate-400 hover:text-sky-600 transition"><i class="fas fa-times text-xl"></i></button>
-            </div>
-            <form id="logForm" class="p-5 space-y-4">
+    <div id="logModal" class="modal-overlay fixed inset-0 flex items-center justify-center z-50 hidden">
+        <div class="modal-content w-full mx-4 max-h-[90vh] overflow-y-auto">
+            <div class="p-6 border-b border-gray-200"><div class="flex items-center justify-between"><h3 id="logModalTitle" class="text-xl font-bold text-slate-800">📝 Add Log</h3><button class="close-modal text-gray-400 hover:text-gray-600 transition"><i class="fas fa-times text-xl"></i></button></div></div>
+            <form id="logForm" class="p-6">
                 <input type="hidden" id="logId">
-                <div><label class="block text-sm font-medium text-gray-300 mb-1">Date *</label><input type="date" id="logDate" required class="form-input"></div>
-                <div><label class="block text-sm font-medium text-gray-300 mb-1">Work Description *</label><textarea id="logDescription" required rows="3" class="form-input resize-none"></textarea></div>
-                <div><label class="block text-sm font-medium text-gray-300 mb-1">Issues / Delays</label><textarea id="logIssues" rows="2" class="form-input resize-none"></textarea></div>
-                <div><label class="block text-sm font-medium text-gray-300 mb-1">Notes</label><textarea id="logNotes" rows="2" class="form-input resize-none"></textarea></div>
-                <div class="flex gap-3 pt-4"><button type="button" class="cancel-modal flex-1 btn-secondary">Cancel</button><button type="submit" class="flex-1 btn-primary">Save</button></div>
+                <div class="mb-5"><label class="block text-sm font-semibold text-slate-700 mb-2">Date *</label><input type="date" id="logDate" required class="form-input"></div>
+                <div class="mb-5"><label class="block text-sm font-semibold text-slate-700 mb-2">Work Description *</label><textarea id="logDescription" required rows="3" class="form-input resize-none"></textarea></div>
+                <div class="grid grid-cols-2 gap-5 mb-5">
+                    <div><label class="block text-sm font-semibold text-slate-700 mb-2">Issues / Delays</label><textarea id="logIssues" rows="2" class="form-input resize-none"></textarea></div>
+                    <div><label class="block text-sm font-semibold text-slate-700 mb-2">Notes</label><textarea id="logNotes" rows="2" class="form-input resize-none"></textarea></div>
+                </div>
+                <div class="flex gap-3 pt-4"><button type="button" class="cancel-modal flex-1 btn btn-secondary">Cancel</button><button type="submit" class="flex-1 btn btn-primary">Save</button></div>
             </form>
         </div>
     </div>
 
     <!-- Client Payment Modal -->
-    <div id="clientPaymentModal" class="modal-overlay fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 hidden">
-        <div class="modal-content rounded-xl w-full max-w-lg mx-4 max-h-[90vh] overflow-y-auto">
-            <div class="p-5 border-b border-gray-700 flex items-center justify-between">
-                <h3 class="text-lg font-semibold text-slate-800">Client Payment</h3>
-                <button class="close-modal text-slate-400 hover:text-sky-600 transition"><i class="fas fa-times text-xl"></i></button>
-            </div>
-            <form id="clientPaymentForm" class="p-5 space-y-4">
+    <div id="clientPaymentModal" class="modal-overlay fixed inset-0 flex items-center justify-center z-50 hidden">
+        <div class="modal-content w-full mx-4 max-h-[90vh] overflow-y-auto">
+            <div class="p-6 border-b border-gray-200"><div class="flex items-center justify-between"><h3 class="text-xl font-bold text-slate-800">💵 Client Payment</h3><button class="close-modal text-gray-400 hover:text-gray-600 transition"><i class="fas fa-times text-xl"></i></button></div></div>
+            <form id="clientPaymentForm" class="p-6">
                 <input type="hidden" id="clientPaymentId">
-                <div><label class="block text-sm font-semibold text-slate-700 mb-2">Amount Received (₹) *</label><input type="number" id="clientPaymentAmount" required min="0" class="form-input"></div>
-                <div><label class="block text-sm font-semibold text-slate-700 mb-2">Date *</label><input type="date" id="clientPaymentDate" required class="form-input"></div>
-                <div><label class="block text-sm font-semibold text-slate-700 mb-2">Received By *</label><input type="text" id="clientPaymentReceivedBy" required class="form-input" placeholder="Person who received payment"></div>
-                <div><label class="block text-sm font-semibold text-slate-700 mb-2">From (Client Name) *</label><input type="text" id="clientPaymentFrom" required class="form-input" placeholder="Client or person who paid"></div>
-                <div><label class="block text-sm font-semibold text-slate-700 mb-2">Payment Method</label>
-                    <select id="clientPaymentMethod" class="form-input">
-                        <option value="Cash">Cash</option>
-                        <option value="Bank Transfer">Bank Transfer</option>
-                        <option value="Cheque">Cheque</option>
-                        <option value="UPI">UPI</option>
-                        <option value="Other">Other</option>
-                    </select>
+                <div class="grid grid-cols-2 gap-5 mb-5">
+                    <div><label class="block text-sm font-semibold text-slate-700 mb-2">Amount Received (₹) *</label><input type="number" id="clientPaymentAmount" required min="0" class="form-input"></div>
+                    <div><label class="block text-sm font-semibold text-slate-700 mb-2">Date *</label><input type="date" id="clientPaymentDate" required class="form-input"></div>
                 </div>
-                <div><label class="block text-sm font-semibold text-slate-700 mb-2">Notes</label><textarea id="clientPaymentNotes" rows="2" class="form-input"></textarea></div>
-                <div class="flex gap-3 pt-4"><button type="button" class="cancel-modal flex-1 btn-secondary">Cancel</button><button type="submit" class="flex-1 btn-primary">Save</button></div>
+                <div class="grid grid-cols-2 gap-5 mb-5">
+                    <div><label class="block text-sm font-semibold text-slate-700 mb-2">Received By *</label><input type="text" id="clientPaymentReceivedBy" required class="form-input" placeholder="Person who received payment"></div>
+                    <div><label class="block text-sm font-semibold text-slate-700 mb-2">From (Client Name) *</label><input type="text" id="clientPaymentFrom" required class="form-input" placeholder="Client or person who paid"></div>
+                </div>
+                <div class="grid grid-cols-2 gap-5 mb-5">
+                    <div><label class="block text-sm font-semibold text-slate-700 mb-2">Payment Method</label><select id="clientPaymentMethod" class="form-input"><option value="Cash">Cash</option><option value="Bank Transfer">Bank Transfer</option><option value="Cheque">Cheque</option><option value="UPI">UPI</option><option value="Other">Other</option></select></div>
+                    <div><label class="block text-sm font-semibold text-slate-700 mb-2">Notes</label><textarea id="clientPaymentNotes" rows="2" class="form-input"></textarea></div>
+                </div>
+                <div class="flex gap-3 pt-4"><button type="button" class="cancel-modal flex-1 btn btn-secondary">Cancel</button><button type="submit" class="flex-1 btn btn-primary">Save</button></div>
             </form>
         </div>
     </div>
 
-
-
     <!-- Delete Modal -->
-    <div id="deleteModal" class="modal-overlay fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 hidden">
-        <div class="modal-content rounded-xl w-full max-w-sm mx-4 p-6 text-center">
-            <div class="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <i class="fas fa-exclamation-triangle text-red-500 text-2xl"></i>
-            </div>
-            <h3 class="text-lg font-semibold text-slate-800 mb-2">Delete?</h3>
-            <div class="flex gap-3"><button id="cancelDelete" class="flex-1 btn-secondary">Cancel</button><button id="confirmDelete" class="flex-1 btn-danger">Delete</button></div>
+    <div id="deleteModal" class="modal-overlay fixed inset-0 flex items-center justify-center z-50 hidden">
+        <div class="modal-content modal-sm w-full mx-4 p-6 text-center">
+            <div class="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4"><i class="fas fa-exclamation-triangle text-red-500 text-2xl"></i></div>
+            <h3 id="deleteModalTitle" class="text-xl font-bold text-slate-800 mb-2">Delete Item?</h3>
+            <p id="deleteModalText" class="text-slate-600 text-sm mb-6">This action cannot be undone.</p>
+            <div class="flex gap-3"><button id="cancelDelete" class="flex-1 btn btn-secondary">Cancel</button><button id="confirmDelete" class="flex-1 btn btn-danger">Delete</button></div>
         </div>
     </div>
 
     <script type="module">
         import { auth, onAuthStateChanged } from './js/firebase-config.js';
+        import { initAuthHeader } from './js/auth-header.js';
         import Storage from './js/firebase-storage.js';
-        import { ProjectApp } from './js/project.js?v=9';
+        import { ProjectApp } from './js/project.js';
+        import FundManagement from './js/fund-management.js';
+        import WorkerManagement from './js/worker-management.js';
+        import VendorManagement from './js/vendor-management.js';
         
         window.Storage = Storage;
         window.ProjectApp = ProjectApp;
+        window.FundManagement = FundManagement;
+        window.WorkerManagement = WorkerManagement;
+        window.VendorManagement = VendorManagement;
         
-        // Wait for auth state before initializing
         onAuthStateChanged(auth, async (user) => {
             if (!user) {
                 window.location.href = 'login.html';
                 return;
             }
             
-            // Initialize project app
-            try {
-                await ProjectApp.init();
-            } catch (error) {
-                console.error('Error initializing project app:', error);
+            initAuthHeader({ requireAuth: false });
+            
+            // Get project ID from URL
+            const urlParams = new URLSearchParams(window.location.search);
+            const projectId = urlParams.get('id');
+            
+            if (!projectId) {
+                window.location.href = 'index.html';
+                return;
             }
+            
+            try {
+                await ProjectApp.init(projectId);
+                // Hide the page loader
+                const loader = document.getElementById('pageLoader');
+                if (loader) loader.classList.add('hidden');
+            } catch (error) {
+                console.error('Error initializing project:', error);
+                // Hide loader even on error
+                const loader = document.getElementById('pageLoader');
+                if (loader) loader.classList.add('hidden');
+            }
+        });
+
+        // Tab switching - delegate to ProjectApp for proper async rendering
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.addEventListener('click', async () => {
+                await ProjectApp.switchTab(btn.dataset.tab);
+            });
+        });
+
+        // Close export menu when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('#exportDropdownContainer')) {
+                document.getElementById('exportMenu').classList.add('hidden');
+            }
+            if (!e.target.closest('.project-switcher')) {
+                document.getElementById('projectSwitcherMenu').classList.add('hidden');
+            }
+        });
+        
+        // Project switcher toggle
+        document.getElementById('projectSwitcherBtn').addEventListener('click', async (e) => {
+            e.stopPropagation();
+            const menu = document.getElementById('projectSwitcherMenu');
+            document.getElementById('exportMenu').classList.add('hidden');
+            
+            if (menu.classList.contains('hidden')) {
+                // Load projects list
+                const projects = await Storage.projects.getAll();
+                const currentId = new URLSearchParams(window.location.search).get('id');
+                const list = document.getElementById('projectSwitcherList');
+                
+                list.innerHTML = projects.map(p => `
+                    <a href="project.html?id=${p.id}" class="project-switcher-item ${p.id === currentId ? 'current' : ''}">
+                        <span class="status-dot ${p.status}"></span>
+                        <div class="flex-1 min-w-0">
+                            <p class="font-semibold text-slate-800 text-sm truncate">${p.name}</p>
+                            <p class="text-xs text-slate-500 truncate">${p.clientName || 'No client'}</p>
+                        </div>
+                        ${p.id === currentId ? '<i class="fas fa-check text-sky-500 text-xs"></i>' : ''}
+                    </a>
+                `).join('');
+            }
+            
+            menu.classList.toggle('hidden');
+        });
+
+        // Modal close handlers
+        document.querySelectorAll('.close-modal, .cancel-modal').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.modal-overlay').forEach(modal => {
+                    modal.classList.add('hidden');
+                    modal.classList.remove('active');
+                });
+            });
         });
     </script>
 </body>
