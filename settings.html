@@ -1,0 +1,2365 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>B&B - Settings | Bricks & Bits</title>
+    <script>
+        // Apply saved theme immediately to prevent flash
+        (function () {
+            const theme = localStorage.getItem('bb_theme') || 'light';
+            const accent = localStorage.getItem('bb_accent') || 'green';
+            if (theme === 'dark') document.documentElement.setAttribute('data-theme', 'dark');
+            else if (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                document.documentElement.setAttribute('data-theme', 'dark');
+            }
+            if (accent !== 'green') document.documentElement.setAttribute('data-accent', accent);
+        })();
+    </script>
+    <link rel="icon" type="image/png" href="B&B.png">
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Nunito:wght@400;600;700;800&display=swap"
+        rel="stylesheet">
+    <link href="css/styles-professional.css" rel="stylesheet">
+    <link href="css/settings.css" rel="stylesheet">
+</head>
+
+<body class="settings-page">
+    <!-- Loading Overlay -->
+    <link href="css/logo-loader.css" rel="stylesheet">
+    <div id="pageLoader" class="loading-overlay">
+        <svg class="logo-loader" width="120" height="110" viewBox="0 0 200 160" xmlns="http://www.w3.org/2000/svg">
+            <rect class="brick bit b1" x="20" y="100" width="24" height="24" rx="3" />
+            <rect class="brick" x="48" y="100" width="24" height="24" rx="3" />
+            <rect class="brick bit b2" x="76" y="100" width="24" height="24" rx="3" />
+            <rect class="brick" x="104" y="100" width="24" height="24" rx="3" />
+            <rect class="brick bit b3" x="132" y="100" width="24" height="24" rx="3" />
+            <rect class="brick" x="48" y="72" width="24" height="24" rx="3" />
+            <rect class="brick bit b4" x="76" y="72" width="24" height="24" rx="3" />
+            <rect class="brick" x="104" y="72" width="24" height="24" rx="3" />
+            <rect class="brick bit b5" x="76" y="44" width="24" height="24" rx="3" />
+            <rect class="brick" x="104" y="44" width="24" height="24" rx="3" />
+        </svg>
+        <p class="loading-text">Loading settings...</p>
+    </div>
+
+    <div class="settings-wrapper">
+        <!-- Settings Sidebar -->
+        <aside class="settings-sidebar">
+            <div class="settings-sidebar-header">
+                <a href="hub.html" class="back-link"><i class="fas fa-arrow-left"></i></a>
+                <h2>Settings</h2>
+            </div>
+            <nav class="settings-nav">
+                <a href="#account" class="settings-nav-item active" data-section="account">
+                    <i class="fas fa-user"></i><span>Account</span>
+                </a>
+                <a href="#security" class="settings-nav-item" data-section="security">
+                    <i class="fas fa-shield-alt"></i><span>Security</span>
+                </a>
+                <a href="#access" class="settings-nav-item" data-section="access">
+                    <i class="fas fa-users-cog"></i><span>Access Control</span>
+                </a>
+                <a href="#privacy" class="settings-nav-item" data-section="privacy">
+                    <i class="fas fa-eye-slash"></i><span>Privacy & Visibility</span>
+                </a>
+                <a href="#notifications" class="settings-nav-item" data-section="notifications">
+                    <i class="fas fa-bell"></i><span>Notifications</span>
+                </a>
+                <a href="#integrations" class="settings-nav-item" data-section="integrations">
+                    <i class="fas fa-plug"></i><span>Integrations</span>
+                </a>
+                <a href="#developer" class="settings-nav-item" data-section="developer">
+                    <i class="fas fa-code"></i><span>Developer</span>
+                </a>
+                <a href="#storage" class="settings-nav-item" data-section="storage">
+                    <i class="fas fa-database"></i><span>Data & Storage</span>
+                </a>
+                <a href="#audit" class="settings-nav-item" data-section="audit">
+                    <i class="fas fa-history"></i><span>Audit Logs</span>
+                </a>
+                <a href="#billing" class="settings-nav-item" data-section="billing">
+                    <i class="fas fa-credit-card"></i><span>Billing</span>
+                </a>
+                <a href="#appearance" class="settings-nav-item" data-section="appearance">
+                    <i class="fas fa-palette"></i><span>Appearance</span>
+                </a>
+                <a href="#experimental" class="settings-nav-item" data-section="experimental">
+                    <i class="fas fa-flask"></i><span>Experimental</span>
+                </a>
+                <a href="#danger" class="settings-nav-item danger" data-section="danger">
+                    <i class="fas fa-exclamation-triangle"></i><span>Danger Zone</span>
+                </a>
+            </nav>
+        </aside>
+
+        <!-- Settings Content -->
+        <main class="settings-content">
+            <!-- Account Section -->
+            <section id="account" class="settings-section active">
+                <div class="section-header">
+                    <h1><i class="fas fa-user"></i> Account</h1>
+                    <p>Manage your account information and profile settings</p>
+                </div>
+                <div class="settings-card">
+                    <h3>Profile Information</h3>
+                    <div class="profile-avatar-section">
+                        <div class="avatar-preview" id="avatarPreview">
+                            <span id="avatarInitial">U</span>
+                        </div>
+                        <div class="avatar-actions">
+                            <button class="btn btn-secondary btn-sm" id="uploadAvatarBtn">
+                                <i class="fas fa-upload"></i> Upload Photo
+                            </button>
+                            <button class="btn btn-ghost btn-sm" id="removeAvatarBtn">Remove</button>
+                            <p class="form-hint" style="margin-top: 0.5rem; font-size: 0.75rem;">📷 Auto-compressed to
+                                200x200px</p>
+                        </div>
+                    </div>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>Display Name</label>
+                            <input type="text" id="displayName" class="form-input" placeholder="Your name">
+                        </div>
+                        <div class="form-group">
+                            <label>Email Address</label>
+                            <input type="email" id="userEmail" class="form-input" disabled>
+                            <span class="form-hint">Email cannot be changed</span>
+                        </div>
+                        <div class="form-group">
+                            <label>Company Name</label>
+                            <input type="text" id="companyName" class="form-input" placeholder="Your company">
+                        </div>
+                        <div class="form-group">
+                            <label>Company Logo</label>
+                            <div style="display: flex; align-items: center; gap: 1rem;">
+                                <div id="companyLogoPreview"
+                                    style="width: 64px; height: 64px; border-radius: 12px; background: var(--bg-light); border: 2px dashed var(--border); display: flex; align-items: center; justify-content: center; overflow: hidden;">
+                                    <i class="fas fa-building" style="font-size: 1.5rem; color: var(--gray);"></i>
+                                </div>
+                                <div style="flex: 1;">
+                                    <input type="file" id="companyLogoInput" accept="image/*" style="display: none;">
+                                    <button type="button" class="btn btn-secondary"
+                                        onclick="document.getElementById('companyLogoInput').click()"
+                                        style="margin-bottom: 0.5rem;">
+                                        <i class="fas fa-upload"></i> Upload Logo
+                                    </button>
+                                    <button type="button" class="btn btn-secondary" id="removeLogoBtn"
+                                        style="display: none; margin-left: 0.5rem;">
+                                        <i class="fas fa-trash"></i> Remove
+                                    </button>
+                                    <p class="form-hint">📷 Images auto-compressed to 200x200px. Max 500KB after
+                                        compression.</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Role</label>
+                            <select id="userRole" class="form-input">
+                                <option value="owner">Owner</option>
+                                <option value="engineer">Engineer</option>
+                                <option value="accountant">Accountant</option>
+                                <option value="supervisor">Supervisor</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Phone Number</label>
+                            <input type="tel" id="phoneNumber" class="form-input" placeholder="+91 XXXXX XXXXX">
+                        </div>
+                        <div class="form-group">
+                            <label>Location</label>
+                            <input type="text" id="userLocation" class="form-input" placeholder="City, State">
+                        </div>
+                    </div>
+                    <div class="card-actions">
+                        <button class="btn btn-primary" id="saveAccountBtn">Save Changes</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Security Section -->
+            <section id="security" class="settings-section">
+                <div class="section-header">
+                    <h1><i class="fas fa-shield-alt"></i> Security</h1>
+                    <p>Manage your account security and authentication settings</p>
+                </div>
+                <div class="settings-card">
+                    <h3>Password</h3>
+                    <p class="card-description">Change your password to keep your account secure</p>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>Current Password</label>
+                            <input type="password" id="currentPassword" class="form-input"
+                                placeholder="Enter current password">
+                        </div>
+                        <div class="form-group">
+                            <label>New Password</label>
+                            <input type="password" id="newPassword" class="form-input" placeholder="Enter new password">
+                        </div>
+                        <div class="form-group">
+                            <label>Confirm New Password</label>
+                            <input type="password" id="confirmPassword" class="form-input"
+                                placeholder="Confirm new password">
+                        </div>
+                    </div>
+                    <div class="card-actions">
+                        <button class="btn btn-primary" id="changePasswordBtn">Update Password</button>
+                    </div>
+                </div>
+                <div class="settings-card">
+                    <h3>Two-Factor Authentication</h3>
+                    <p class="card-description">Add an extra layer of security to your account</p>
+                    <div class="toggle-setting">
+                        <div class="toggle-info">
+                            <span class="toggle-label">Enable 2FA</span>
+                            <span class="toggle-description">Require a verification code when signing in</span>
+                        </div>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="enable2FA">
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+                    <div id="2faSetup" class="hidden">
+                        <div class="info-box">
+                            <i class="fas fa-info-circle"></i>
+                            <p>Scan the QR code with your authenticator app (Google Authenticator, Authy, etc.)</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="settings-card">
+                    <h3>Active Sessions</h3>
+                    <p class="card-description">Manage devices where you're currently logged in</p>
+                    <div id="activeSessions" class="sessions-list">
+                        <div class="session-item current">
+                            <div class="session-icon"><i class="fas fa-desktop"></i></div>
+                            <div class="session-info">
+                                <span class="session-device">Current Device</span>
+                                <span class="session-details">This browser • Active now</span>
+                            </div>
+                            <span class="session-badge">Current</span>
+                        </div>
+                    </div>
+                    <div class="card-actions">
+                        <button class="btn btn-secondary" id="logoutAllBtn">
+                            <i class="fas fa-sign-out-alt"></i> Sign Out All Other Devices
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Access Control Section -->
+            <section id="access" class="settings-section">
+                <div class="section-header">
+                    <h1><i class="fas fa-users-cog"></i> Access Control</h1>
+                    <p>Manage team members and their permissions</p>
+                </div>
+                <div class="settings-card">
+                    <div class="card-header-row">
+                        <h3>Team Members</h3>
+                        <button class="btn btn-primary btn-sm" id="inviteTeamBtn">
+                            <i class="fas fa-user-plus"></i> Invite Member
+                        </button>
+                    </div>
+                    <div id="teamMembersList" class="team-list">
+                        <div class="team-member-item">
+                            <div class="member-avatar">O</div>
+                            <div class="member-info">
+                                <span class="member-name">You (Owner)</span>
+                                <span class="member-email" id="ownerEmail">owner@example.com</span>
+                            </div>
+                            <span class="role-badge owner">Owner</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="settings-card">
+                    <h3>Role Permissions</h3>
+                    <p class="card-description">Define what each role can access</p>
+                    <div class="permissions-table">
+                        <div class="permission-row header">
+                            <span>Permission</span>
+                            <span>Owner</span>
+                            <span>Engineer</span>
+                            <span>Accountant</span>
+                            <span>Supervisor</span>
+                        </div>
+                        <div class="permission-row">
+                            <span>View Projects</span>
+                            <span><i class="fas fa-check text-green-500"></i></span>
+                            <span><i class="fas fa-check text-green-500"></i></span>
+                            <span><i class="fas fa-check text-green-500"></i></span>
+                            <span><i class="fas fa-check text-green-500"></i></span>
+                        </div>
+                        <div class="permission-row">
+                            <span>Edit Projects</span>
+                            <span><i class="fas fa-check text-green-500"></i></span>
+                            <span><i class="fas fa-check text-green-500"></i></span>
+                            <span><i class="fas fa-times text-red-500"></i></span>
+                            <span><i class="fas fa-check text-green-500"></i></span>
+                        </div>
+                        <div class="permission-row">
+                            <span>Manage Finances</span>
+                            <span><i class="fas fa-check text-green-500"></i></span>
+                            <span><i class="fas fa-times text-red-500"></i></span>
+                            <span><i class="fas fa-check text-green-500"></i></span>
+                            <span><i class="fas fa-times text-red-500"></i></span>
+                        </div>
+                        <div class="permission-row">
+                            <span>Delete Data</span>
+                            <span><i class="fas fa-check text-green-500"></i></span>
+                            <span><i class="fas fa-times text-red-500"></i></span>
+                            <span><i class="fas fa-times text-red-500"></i></span>
+                            <span><i class="fas fa-times text-red-500"></i></span>
+                        </div>
+                        <div class="permission-row">
+                            <span>Manage Settings</span>
+                            <span><i class="fas fa-check text-green-500"></i></span>
+                            <span><i class="fas fa-times text-red-500"></i></span>
+                            <span><i class="fas fa-times text-red-500"></i></span>
+                            <span><i class="fas fa-times text-red-500"></i></span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Privacy & Visibility Section -->
+            <section id="privacy" class="settings-section">
+                <div class="section-header">
+                    <h1><i class="fas fa-eye-slash"></i> Privacy & Visibility</h1>
+                    <p>Control who can see your information and projects</p>
+                </div>
+                <div class="settings-card">
+                    <h3>Profile Visibility</h3>
+                    <div class="toggle-setting">
+                        <div class="toggle-info">
+                            <span class="toggle-label">Public Profile</span>
+                            <span class="toggle-description">Allow others to see your profile information</span>
+                        </div>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="publicProfile">
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+                    <div class="toggle-setting">
+                        <div class="toggle-info">
+                            <span class="toggle-label">Show Email</span>
+                            <span class="toggle-description">Display your email address on your profile</span>
+                        </div>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="showEmail">
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+                    <div class="toggle-setting">
+                        <div class="toggle-info">
+                            <span class="toggle-label">Show Activity Status</span>
+                            <span class="toggle-description">Let others see when you're online</span>
+                        </div>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="showActivity" checked>
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+                </div>
+                <div class="settings-card">
+                    <h3>Project Privacy</h3>
+                    <div class="form-group">
+                        <label>Default Project Visibility</label>
+                        <select id="defaultProjectVisibility" class="form-input">
+                            <option value="private">Private - Only you can see</option>
+                            <option value="team">Team - Visible to team members</option>
+                            <option value="public">Public - Anyone with link can view</option>
+                        </select>
+                    </div>
+                    <div class="toggle-setting">
+                        <div class="toggle-info">
+                            <span class="toggle-label">Hide Financial Data</span>
+                            <span class="toggle-description">Hide budget and payment info from non-owners</span>
+                        </div>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="hideFinancials" checked>
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+                </div>
+                <div class="settings-card">
+                    <h3>Data Sharing</h3>
+                    <div class="toggle-setting">
+                        <div class="toggle-info">
+                            <span class="toggle-label">Analytics & Improvements</span>
+                            <span class="toggle-description">Help us improve by sharing anonymous usage data</span>
+                        </div>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="shareAnalytics" checked>
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+                </div>
+                <div class="card-actions">
+                    <button class="btn btn-primary" id="savePrivacyBtn">Save Privacy Settings</button>
+                </div>
+            </section>
+
+            <!-- Notifications Section -->
+            <section id="notifications" class="settings-section">
+                <div class="section-header">
+                    <h1><i class="fas fa-bell"></i> Notifications</h1>
+                    <p>Choose how and when you want to be notified</p>
+                </div>
+                <div class="settings-card">
+                    <h3>Email Notifications</h3>
+                    <div class="toggle-setting">
+                        <div class="toggle-info">
+                            <span class="toggle-label">Project Updates</span>
+                            <span class="toggle-description">Get notified when projects are updated</span>
+                        </div>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="emailProjectUpdates" checked>
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+                    <div class="toggle-setting">
+                        <div class="toggle-info">
+                            <span class="toggle-label">Payment Reminders</span>
+                            <span class="toggle-description">Receive reminders for upcoming payments</span>
+                        </div>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="emailPaymentReminders" checked>
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+                    <div class="toggle-setting">
+                        <div class="toggle-info">
+                            <span class="toggle-label">Budget Alerts</span>
+                            <span class="toggle-description">Get alerts when budget thresholds are reached</span>
+                        </div>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="emailBudgetAlerts" checked>
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+                    <div class="toggle-setting">
+                        <div class="toggle-info">
+                            <span class="toggle-label">Weekly Summary</span>
+                            <span class="toggle-description">Receive a weekly summary of all activities</span>
+                        </div>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="emailWeeklySummary">
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+                </div>
+                <div class="settings-card">
+                    <h3>Push Notifications</h3>
+                    <div class="toggle-setting">
+                        <div class="toggle-info">
+                            <span class="toggle-label">Enable Push Notifications</span>
+                            <span class="toggle-description">Receive notifications in your browser</span>
+                        </div>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="enablePushNotifications">
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+                    <div class="toggle-setting">
+                        <div class="toggle-info">
+                            <span class="toggle-label">Deadline Reminders</span>
+                            <span class="toggle-description">Get reminded before project deadlines</span>
+                        </div>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="pushDeadlineReminders" checked>
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+                </div>
+                <div class="settings-card">
+                    <h3>Notification Schedule</h3>
+                    <div class="form-group">
+                        <label>Quiet Hours</label>
+                        <div class="time-range">
+                            <input type="time" id="quietStart" class="form-input" value="22:00">
+                            <span>to</span>
+                            <input type="time" id="quietEnd" class="form-input" value="08:00">
+                        </div>
+                        <span class="form-hint">No notifications during these hours</span>
+                    </div>
+                </div>
+                <div class="card-actions">
+                    <button class="btn btn-primary" id="saveNotificationsBtn">Save Notification Settings</button>
+                </div>
+            </section>
+
+            <!-- Integrations Section -->
+            <section id="integrations" class="settings-section">
+                <div class="section-header">
+                    <h1><i class="fas fa-plug"></i> Integrations</h1>
+                    <p>Connect third-party services to enhance your workflow</p>
+                </div>
+                <div class="settings-card">
+                    <h3>Connected Services</h3>
+                    <div class="integrations-grid">
+                        <div class="integration-item">
+                            <div class="integration-icon google-drive">
+                                <i class="fab fa-google-drive"></i>
+                            </div>
+                            <div class="integration-info">
+                                <span class="integration-name">Google Drive</span>
+                                <span class="integration-status connected">Connected</span>
+                            </div>
+                            <button class="btn btn-ghost btn-sm" id="disconnectGoogleDrive">Disconnect</button>
+                        </div>
+                        <div class="integration-item">
+                            <div class="integration-icon whatsapp">
+                                <i class="fab fa-whatsapp"></i>
+                            </div>
+                            <div class="integration-info">
+                                <span class="integration-name">WhatsApp</span>
+                                <span class="integration-status connected">Connected</span>
+                            </div>
+                            <button class="btn btn-ghost btn-sm">Configure</button>
+                        </div>
+                        <div class="integration-item">
+                            <div class="integration-icon excel">
+                                <i class="fas fa-file-excel"></i>
+                            </div>
+                            <div class="integration-info">
+                                <span class="integration-name">Excel Export</span>
+                                <span class="integration-status">Available</span>
+                            </div>
+                            <button class="btn btn-secondary btn-sm">Enable</button>
+                        </div>
+                        <div class="integration-item">
+                            <div class="integration-icon tally">
+                                <i class="fas fa-calculator"></i>
+                            </div>
+                            <div class="integration-info">
+                                <span class="integration-name">Tally Integration</span>
+                                <span class="integration-status premium">Premium</span>
+                            </div>
+                            <button class="btn btn-secondary btn-sm">Upgrade</button>
+                        </div>
+                        <div class="integration-item">
+                            <div class="integration-icon slack">
+                                <i class="fab fa-slack"></i>
+                            </div>
+                            <div class="integration-info">
+                                <span class="integration-name">Slack</span>
+                                <span class="integration-status">Not Connected</span>
+                            </div>
+                            <button class="btn btn-secondary btn-sm">Connect</button>
+                        </div>
+                        <div class="integration-item">
+                            <div class="integration-icon zapier">
+                                <i class="fas fa-bolt"></i>
+                            </div>
+                            <div class="integration-info">
+                                <span class="integration-name">Zapier</span>
+                                <span class="integration-status premium">Premium</span>
+                            </div>
+                            <button class="btn btn-secondary btn-sm">Upgrade</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="settings-card">
+                    <h3>Webhooks</h3>
+                    <p class="card-description">Send data to external services when events occur</p>
+                    <div id="webhooksList" class="webhooks-list">
+                        <div class="empty-state small">
+                            <i class="fas fa-link"></i>
+                            <p>No webhooks configured</p>
+                        </div>
+                    </div>
+                    <div class="card-actions">
+                        <button class="btn btn-secondary" id="addWebhookBtn">
+                            <i class="fas fa-plus"></i> Add Webhook
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Developer Section -->
+            <section id="developer" class="settings-section">
+                <div class="section-header">
+                    <h1><i class="fas fa-code"></i> Developer</h1>
+                    <p>API access and developer tools</p>
+                </div>
+                <div class="settings-card">
+                    <h3>API Keys</h3>
+                    <p class="card-description">Generate API keys to access B&B programmatically</p>
+                    <div id="apiKeysList" class="api-keys-list">
+                        <div class="api-key-item">
+                            <div class="api-key-info">
+                                <span class="api-key-name">Production Key</span>
+                                <code class="api-key-value">bb_prod_••••••••••••••••</code>
+                            </div>
+                            <div class="api-key-actions">
+                                <button class="btn btn-ghost btn-sm" title="Copy"><i class="fas fa-copy"></i></button>
+                                <button class="btn btn-ghost btn-sm" title="Regenerate"><i
+                                        class="fas fa-sync"></i></button>
+                                <button class="btn btn-ghost btn-sm text-red-500" title="Delete"><i
+                                        class="fas fa-trash"></i></button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-actions">
+                        <button class="btn btn-secondary" id="generateApiKeyBtn">
+                            <i class="fas fa-key"></i> Generate New Key
+                        </button>
+                    </div>
+                </div>
+                <div class="settings-card">
+                    <h3>API Documentation</h3>
+                    <p class="card-description">Learn how to integrate with B&B API</p>
+                    <div class="doc-links">
+                        <a href="#" class="doc-link">
+                            <i class="fas fa-book"></i>
+                            <span>API Reference</span>
+                        </a>
+                        <a href="#" class="doc-link">
+                            <i class="fas fa-code"></i>
+                            <span>Code Examples</span>
+                        </a>
+                        <a href="#" class="doc-link">
+                            <i class="fas fa-terminal"></i>
+                            <span>API Playground</span>
+                        </a>
+                    </div>
+                </div>
+                <div class="settings-card">
+                    <h3>Debug Mode</h3>
+                    <div class="toggle-setting">
+                        <div class="toggle-info">
+                            <span class="toggle-label">Enable Debug Mode</span>
+                            <span class="toggle-description">Show detailed logs and error messages</span>
+                        </div>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="enableDebugMode">
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+                    <div class="toggle-setting">
+                        <div class="toggle-info">
+                            <span class="toggle-label">Console Logging</span>
+                            <span class="toggle-description">Log API calls to browser console</span>
+                        </div>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="enableConsoleLogging">
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Data & Storage Section -->
+            <section id="storage" class="settings-section">
+                <div class="section-header">
+                    <h1><i class="fas fa-database"></i> Data & Storage</h1>
+                    <p>Manage your data, backups, and storage usage</p>
+                </div>
+                <div class="settings-card">
+                    <h3>Storage Usage</h3>
+                    <div class="storage-overview">
+                        <div class="storage-bar">
+                            <div class="storage-used" id="storageUsedBar" style="width: 35%"></div>
+                        </div>
+                        <div class="storage-stats">
+                            <span><strong id="storageUsed">350 MB</strong> of <strong id="storageTotal">1 GB</strong>
+                                used</span>
+                            <span class="storage-percent" id="storagePercent">35%</span>
+                        </div>
+                    </div>
+                    <div class="storage-breakdown">
+                        <div class="storage-item">
+                            <span class="storage-category"><i class="fas fa-file-alt"></i> Documents</span>
+                            <span class="storage-size">180 MB</span>
+                        </div>
+                        <div class="storage-item">
+                            <span class="storage-category"><i class="fas fa-image"></i> Images</span>
+                            <span class="storage-size">120 MB</span>
+                        </div>
+                        <div class="storage-item">
+                            <span class="storage-category"><i class="fas fa-database"></i> Project Data</span>
+                            <span class="storage-size">50 MB</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="settings-card">
+                    <h3>Data Export</h3>
+                    <p class="card-description">Download a copy of all your data</p>
+                    <div class="export-options">
+                        <button class="btn btn-secondary" id="exportAllDataBtn">
+                            <i class="fas fa-download"></i> Export All Data (JSON)
+                        </button>
+                        <button class="btn btn-secondary" id="exportProjectsBtn">
+                            <i class="fas fa-file-excel"></i> Export Projects (CSV)
+                        </button>
+                        <button class="btn btn-secondary" id="exportFinancialsBtn">
+                            <i class="fas fa-rupee-sign"></i> Export Financials (CSV)
+                        </button>
+                    </div>
+                </div>
+                <div class="settings-card">
+                    <h3>Backups</h3>
+                    <div class="toggle-setting">
+                        <div class="toggle-info">
+                            <span class="toggle-label">Automatic Backups</span>
+                            <span class="toggle-description">Automatically backup your data daily</span>
+                        </div>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="autoBackup" checked>
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+                    <div class="backup-info">
+                        <p>Last backup: <strong id="lastBackupDate">Today at 3:00 AM</strong></p>
+                    </div>
+                    <div class="card-actions">
+                        <button class="btn btn-secondary" id="createBackupBtn">
+                            <i class="fas fa-cloud-upload-alt"></i> Create Backup Now
+                        </button>
+                        <button class="btn btn-ghost" id="restoreBackupBtn">
+                            <i class="fas fa-cloud-download-alt"></i> Restore from Backup
+                        </button>
+                    </div>
+                </div>
+                <div class="settings-card">
+                    <h3>Cache</h3>
+                    <p class="card-description">Clear cached data to free up space</p>
+                    <div class="card-actions">
+                        <button class="btn btn-secondary" id="clearCacheBtn">
+                            <i class="fas fa-broom"></i> Clear Cache
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Audit Logs Section -->
+            <section id="audit" class="settings-section">
+                <div class="section-header">
+                    <h1><i class="fas fa-history"></i> Audit Logs</h1>
+                    <p>Track all activities and changes in your account</p>
+                </div>
+                <div class="settings-card">
+                    <div class="card-header-row">
+                        <h3>Activity Log</h3>
+                        <div class="filter-group">
+                            <select id="auditTypeFilter" class="form-input form-input-sm">
+                                <option value="all">All Activities</option>
+                                <option value="login">Login/Logout</option>
+                                <option value="project">Project Changes</option>
+                                <option value="payment">Payments</option>
+                                <option value="settings">Settings</option>
+                            </select>
+                            <input type="date" id="auditDateFilter" class="form-input form-input-sm">
+                        </div>
+                    </div>
+                    <div id="auditLogsList" class="audit-logs-list">
+                        <div class="audit-log-item">
+                            <div class="audit-icon login"><i class="fas fa-sign-in-alt"></i></div>
+                            <div class="audit-info">
+                                <span class="audit-action">Logged in</span>
+                                <span class="audit-details">Chrome on Windows • IP: 192.168.1.xxx</span>
+                            </div>
+                            <span class="audit-time">2 hours ago</span>
+                        </div>
+                        <div class="audit-log-item">
+                            <div class="audit-icon project"><i class="fas fa-edit"></i></div>
+                            <div class="audit-info">
+                                <span class="audit-action">Updated project "Villa Construction"</span>
+                                <span class="audit-details">Changed status from Planning to In Progress</span>
+                            </div>
+                            <span class="audit-time">5 hours ago</span>
+                        </div>
+                        <div class="audit-log-item">
+                            <div class="audit-icon payment"><i class="fas fa-rupee-sign"></i></div>
+                            <div class="audit-info">
+                                <span class="audit-action">Added payment of ₹50,000</span>
+                                <span class="audit-details">Project: Villa Construction • Vendor: ABC Suppliers</span>
+                            </div>
+                            <span class="audit-time">Yesterday</span>
+                        </div>
+                        <div class="audit-log-item">
+                            <div class="audit-icon settings"><i class="fas fa-cog"></i></div>
+                            <div class="audit-info">
+                                <span class="audit-action">Changed notification settings</span>
+                                <span class="audit-details">Enabled email notifications for budget alerts</span>
+                            </div>
+                            <span class="audit-time">2 days ago</span>
+                        </div>
+                    </div>
+                    <div class="card-actions">
+                        <button class="btn btn-secondary" id="loadMoreLogsBtn">Load More</button>
+                        <button class="btn btn-ghost" id="exportLogsBtn">
+                            <i class="fas fa-download"></i> Export Logs
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Billing Section -->
+            <section id="billing" class="settings-section">
+                <div class="section-header">
+                    <h1><i class="fas fa-credit-card"></i> Billing</h1>
+                    <p>Manage your subscription and payment methods</p>
+                </div>
+                <div class="settings-card highlight" id="currentPlanCard">
+                    <div class="plan-header">
+                        <div class="plan-info">
+                            <span class="plan-badge free" id="planBadge">Free</span>
+                            <h3 id="planName">Free Plan</h3>
+                            <p id="planDescription">Basic features for personal use</p>
+                        </div>
+                        <div class="plan-price">
+                            <span class="price" id="planPrice">₹0</span>
+                            <span class="period">/month</span>
+                        </div>
+                    </div>
+                    <div class="plan-features">
+                        <div class="feature"><i class="fas fa-check"></i> Up to 3 projects</div>
+                        <div class="feature"><i class="fas fa-check"></i> Basic reports</div>
+                        <div class="feature"><i class="fas fa-check"></i> 1 GB storage</div>
+                    </div>
+                    <div class="card-actions">
+                        <a href="upgrade.html" class="btn btn-primary">
+                            <i class="fas fa-crown"></i> Upgrade to Premium
+                        </a>
+                    </div>
+                </div>
+                <div class="settings-card">
+                    <h3>Payment Methods</h3>
+                    <div id="paymentMethodsList" class="payment-methods-list">
+                        <div class="empty-state small">
+                            <i class="fas fa-credit-card"></i>
+                            <p>No payment methods added</p>
+                        </div>
+                    </div>
+                    <div class="card-actions">
+                        <button class="btn btn-secondary" id="addPaymentMethodBtn">
+                            <i class="fas fa-plus"></i> Add Payment Method
+                        </button>
+                    </div>
+                </div>
+                <div class="settings-card">
+                    <h3>Billing History</h3>
+                    <div id="billingHistoryList" class="billing-history-list">
+                        <div class="empty-state small">
+                            <i class="fas fa-receipt"></i>
+                            <p>No billing history</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="settings-card">
+                    <h3>Credits</h3>
+                    <div class="credits-info">
+                        <div class="credits-balance">
+                            <span class="credits-label">Available Credits</span>
+                            <span class="credits-value" id="creditsBalance">0</span>
+                        </div>
+                        <p class="credits-description">Credits can be used to create new projects (₹5 per project for
+                            free users)</p>
+                    </div>
+                    <div class="card-actions">
+                        <a href="project-fee.html" class="btn btn-secondary">
+                            <i class="fas fa-coins"></i> Buy Credits
+                        </a>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Appearance Section -->
+            <section id="appearance" class="settings-section">
+                <div class="section-header">
+                    <h1><i class="fas fa-palette"></i> Appearance</h1>
+                    <p>Customize the look and feel of your workspace</p>
+                </div>
+                <div class="settings-card">
+                    <h3>Theme</h3>
+                    <div class="theme-selector">
+                        <label class="theme-option">
+                            <input type="radio" name="theme" value="light" checked>
+                            <div class="theme-preview light">
+                                <div class="theme-preview-header"></div>
+                                <div class="theme-preview-content">
+                                    <div class="theme-preview-sidebar"></div>
+                                    <div class="theme-preview-main"></div>
+                                </div>
+                            </div>
+                            <span>Light</span>
+                        </label>
+                        <label class="theme-option">
+                            <input type="radio" name="theme" value="dark">
+                            <div class="theme-preview dark">
+                                <div class="theme-preview-header"></div>
+                                <div class="theme-preview-content">
+                                    <div class="theme-preview-sidebar"></div>
+                                    <div class="theme-preview-main"></div>
+                                </div>
+                            </div>
+                            <span>Dark</span>
+                        </label>
+                        <label class="theme-option">
+                            <input type="radio" name="theme" value="system">
+                            <div class="theme-preview system">
+                                <div class="theme-preview-header"></div>
+                                <div class="theme-preview-content">
+                                    <div class="theme-preview-sidebar"></div>
+                                    <div class="theme-preview-main"></div>
+                                </div>
+                            </div>
+                            <span>System</span>
+                        </label>
+                    </div>
+                </div>
+                <div class="settings-card">
+                    <h3>Accent Color</h3>
+                    <div class="color-selector">
+                        <label class="color-option">
+                            <input type="radio" name="accentColor" value="green" checked>
+                            <span class="color-swatch" style="background: #4A7C59;"></span>
+                            <span>Green</span>
+                        </label>
+                        <label class="color-option">
+                            <input type="radio" name="accentColor" value="blue">
+                            <span class="color-swatch" style="background: #3B82F6;"></span>
+                            <span>Blue</span>
+                        </label>
+                        <label class="color-option">
+                            <input type="radio" name="accentColor" value="purple">
+                            <span class="color-swatch" style="background: #8B5CF6;"></span>
+                            <span>Purple</span>
+                        </label>
+                        <label class="color-option">
+                            <input type="radio" name="accentColor" value="orange">
+                            <span class="color-swatch" style="background: #F59E0B;"></span>
+                            <span>Orange</span>
+                        </label>
+                        <label class="color-option">
+                            <input type="radio" name="accentColor" value="red">
+                            <span class="color-swatch" style="background: #EF4444;"></span>
+                            <span>Red</span>
+                        </label>
+                    </div>
+                </div>
+                <div class="settings-card">
+                    <h3>Display</h3>
+                    <div class="form-group">
+                        <label>Font Size</label>
+                        <select id="fontSize" class="form-input">
+                            <option value="small">Small</option>
+                            <option value="medium" selected>Medium</option>
+                            <option value="large">Large</option>
+                        </select>
+                    </div>
+                    <div class="toggle-setting">
+                        <div class="toggle-info">
+                            <span class="toggle-label">Compact Mode</span>
+                            <span class="toggle-description">Reduce spacing for more content</span>
+                        </div>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="compactMode">
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+                    <div class="toggle-setting">
+                        <div class="toggle-info">
+                            <span class="toggle-label">Animations</span>
+                            <span class="toggle-description">Enable smooth transitions and animations</span>
+                        </div>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="enableAnimations" checked>
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+                </div>
+                <div class="settings-card">
+                    <h3>Language & Region</h3>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>Language</label>
+                            <select id="language" class="form-input">
+                                <option value="en">English</option>
+                                <option value="hi">हिंदी (Hindi)</option>
+                                <option value="kn">ಕನ್ನಡ (Kannada)</option>
+                                <option value="te">తెలుగు (Telugu)</option>
+                                <option value="ta">தமிழ் (Tamil)</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Currency</label>
+                            <select id="currency" class="form-input">
+                                <option value="INR">₹ Indian Rupee (INR)</option>
+                                <option value="USD">$ US Dollar (USD)</option>
+                                <option value="EUR">€ Euro (EUR)</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Date Format</label>
+                            <select id="dateFormat" class="form-input">
+                                <option value="DD/MM/YYYY">DD/MM/YYYY</option>
+                                <option value="MM/DD/YYYY">MM/DD/YYYY</option>
+                                <option value="YYYY-MM-DD">YYYY-MM-DD</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-actions">
+                    <button class="btn btn-primary" id="saveAppearanceBtn">Save Appearance Settings</button>
+                </div>
+            </section>
+
+            <!-- Experimental Section -->
+            <section id="experimental" class="settings-section">
+                <div class="section-header">
+                    <h1><i class="fas fa-flask"></i> Experimental</h1>
+                    <p>Try out new features before they're released</p>
+                </div>
+                <div class="settings-card warning-card">
+                    <div class="warning-banner">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <p>Experimental features may be unstable and could change or be removed at any time.</p>
+                    </div>
+                </div>
+                <div class="settings-card">
+                    <h3>Beta Features</h3>
+                    <div class="toggle-setting">
+                        <div class="toggle-info">
+                            <span class="toggle-label">AI-Powered Insights</span>
+                            <span class="toggle-description">Get AI-generated suggestions for project
+                                optimization</span>
+                            <span class="feature-badge beta">Beta</span>
+                        </div>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="aiInsights">
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+                    <div class="toggle-setting">
+                        <div class="toggle-info">
+                            <span class="toggle-label">Advanced Analytics Dashboard</span>
+                            <span class="toggle-description">New analytics with predictive charts</span>
+                            <span class="feature-badge beta">Beta</span>
+                        </div>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="advancedAnalytics">
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+                    <div class="toggle-setting">
+                        <div class="toggle-info">
+                            <span class="toggle-label">Voice Commands</span>
+                            <span class="toggle-description">Control B&B using voice commands</span>
+                            <span class="feature-badge alpha">Alpha</span>
+                        </div>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="voiceCommands">
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+                    <div class="nav-divider" style="margin: 1.5rem 0;"></div>
+                    <div class="support-action">
+                        <h3>Help & Support</h3>
+                        <p class="form-hint" style="margin-bottom: 1rem;">Need a refresher? You can restart the product
+                            tour at any time.</p>
+                        <button class="btn btn-secondary" id="restartTourBtn">
+                            <i class="fas fa-play-circle"></i> Restart Guided Tour
+                        </button>
+                    </div>
+                </div>
+                <div class="toggle-setting">
+                    <div class="toggle-info">
+                        <span class="toggle-label">Offline Mode</span>
+                        <span class="toggle-description">Work without internet connection</span>
+                        <span class="feature-badge beta">Beta</span>
+                    </div>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="offlineMode">
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+    </div>
+    <div class="settings-card">
+        <h3>Labs</h3>
+        <p class="card-description">Early access to features in development</p>
+        <div class="labs-list">
+            <div class="lab-item">
+                <div class="lab-info">
+                    <span class="lab-name">3D Project Visualization</span>
+                    <span class="lab-description">View your construction projects in 3D</span>
+                </div>
+                <button class="btn btn-secondary btn-sm" id="try3DVisualization">Try It</button>
+            </div>
+            <div class="lab-item">
+                <div class="lab-info">
+                    <span class="lab-name">Smart Scheduling</span>
+                    <span class="lab-description">AI-powered project scheduling</span>
+                </div>
+                <button class="btn btn-secondary btn-sm">Coming Soon</button>
+            </div>
+        </div>
+    </div>
+    </section>
+
+    <!-- Danger Zone Section -->
+    <section id="danger" class="settings-section">
+        <div class="section-header danger">
+            <h1><i class="fas fa-exclamation-triangle"></i> Danger Zone</h1>
+            <p>Irreversible and destructive actions</p>
+        </div>
+        <div class="settings-card danger-card">
+            <h3>Export & Leave</h3>
+            <p class="card-description">Download all your data before leaving</p>
+            <div class="card-actions">
+                <button class="btn btn-secondary" id="exportBeforeLeaveBtn">
+                    <i class="fas fa-download"></i> Export All Data
+                </button>
+            </div>
+        </div>
+        <div class="settings-card danger-card">
+            <h3>Delete All Projects</h3>
+            <p class="card-description">Permanently delete all your projects and associated data. This action cannot be
+                undone.</p>
+            <div class="card-actions">
+                <button class="btn btn-danger" id="deleteAllProjectsBtn">
+                    <i class="fas fa-trash"></i> Delete All Projects
+                </button>
+            </div>
+        </div>
+        <div class="settings-card danger-card">
+            <h3>Reset Settings</h3>
+            <p class="card-description">Reset all settings to their default values.</p>
+            <div class="card-actions">
+                <button class="btn btn-danger-outline" id="resetSettingsBtn">
+                    <i class="fas fa-undo"></i> Reset All Settings
+                </button>
+            </div>
+        </div>
+        <div class="settings-card danger-card critical">
+            <h3>Delete Account</h3>
+            <p class="card-description">Permanently delete your account and all associated data. This action is
+                irreversible and will:</p>
+            <ul class="danger-list">
+                <li><i class="fas fa-times"></i> Delete all your projects</li>
+                <li><i class="fas fa-times"></i> Delete all documents and files</li>
+                <li><i class="fas fa-times"></i> Remove all team members</li>
+                <li><i class="fas fa-times"></i> Cancel any active subscriptions</li>
+                <li><i class="fas fa-times"></i> Delete your account permanently</li>
+            </ul>
+            <div class="card-actions">
+                <button class="btn btn-danger" id="deleteAccountBtn">
+                    <i class="fas fa-user-times"></i> Delete My Account
+                </button>
+            </div>
+        </div>
+    </section>
+    </main>
+    </div>
+
+    <!-- Confirmation Modal -->
+    <div id="confirmModal" class="modal-overlay hidden">
+        <div class="modal-content modal-sm">
+            <div class="modal-header">
+                <h3 id="confirmModalTitle">Confirm Action</h3>
+                <button class="close-btn" onclick="SettingsApp.closeConfirmModal()"><i
+                        class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body">
+                <div class="confirm-icon" id="confirmModalIcon"><i class="fas fa-exclamation-triangle"></i></div>
+                <p id="confirmModalMessage">Are you sure you want to proceed?</p>
+                <div id="confirmInputWrapper" class="hidden">
+                    <label>Type <strong id="confirmText">DELETE</strong> to confirm:</label>
+                    <input type="text" id="confirmInput" class="form-input">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="SettingsApp.closeConfirmModal()">Cancel</button>
+                <button class="btn btn-danger" id="confirmActionBtn">Confirm</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Invite Team Member Modal -->
+    <div id="inviteModal" class="modal-overlay hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Invite Team Member</h3>
+                <button class="close-btn" onclick="SettingsApp.closeInviteModal()"><i class="fas fa-times"></i></button>
+            </div>
+            <form id="inviteForm" class="modal-body">
+                <div class="form-group">
+                    <label>Email Address</label>
+                    <input type="email" id="inviteEmail" class="form-input" placeholder="colleague@example.com"
+                        required>
+                </div>
+                <div class="form-group">
+                    <label>Role</label>
+                    <select id="inviteRole" class="form-input">
+                        <option value="engineer">Engineer</option>
+                        <option value="accountant">Accountant</option>
+                        <option value="supervisor">Supervisor</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Message (Optional)</label>
+                    <textarea id="inviteMessage" class="form-input" rows="3"
+                        placeholder="Add a personal message..."></textarea>
+                </div>
+            </form>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="SettingsApp.closeInviteModal()">Cancel</button>
+                <button class="btn btn-primary" onclick="SettingsApp.sendInvite()">Send Invite</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div id="toastContainer"
+        style="position: fixed !important; top: 20px !important; left: 50% !important; transform: translateX(-50%) !important; z-index: 99999 !important;">
+    </div>
+
+    <script type="module">
+        import { auth, onAuthStateChanged, signOut, db, doc, setDoc, getDoc } from './js/firebase-config.js';
+        import Storage from './js/firebase-storage.js';
+
+        let currentUser = null;
+        let userSettings = {};
+        let userPreferences = {}; // Firebase user_preferences data
+
+        // Settings storage key
+        const SETTINGS_KEY = 'bb_user_settings';
+
+        const SettingsApp = {
+            // Initialize the settings app
+            async init(user) {
+                currentUser = user;
+                await this.loadAccountFromFirebase(); // Load account data from Firebase first
+                this.loadSettings();
+                this.bindEvents();
+                this.bindAccountEvents(); // Bind account-specific events (avatar upload)
+                this.initNavigation();
+                this.applyTheme();
+                document.getElementById('pageLoader').classList.add('hidden');
+            },
+
+            // Load account data from Firebase user_preferences collection
+            async loadAccountFromFirebase() {
+                try {
+                    const prefsDoc = await getDoc(doc(db, 'user_preferences', currentUser.uid));
+                    if (prefsDoc.exists()) {
+                        userPreferences = prefsDoc.data();
+                        console.log('[Settings] Loaded user preferences from Firebase:', userPreferences);
+                    } else {
+                        userPreferences = {};
+                        console.log('[Settings] No user preferences found in Firebase');
+                    }
+                } catch (error) {
+                    console.error('[Settings] Error loading user preferences:', error);
+                    userPreferences = {};
+                }
+            },
+
+            // Bind account-specific events (avatar upload, remove)
+            bindAccountEvents() {
+                // Avatar upload
+                const uploadBtn = document.getElementById('uploadAvatarBtn');
+                const removeBtn = document.getElementById('removeAvatarBtn');
+
+                if (uploadBtn) {
+                    uploadBtn.addEventListener('click', () => this.handleAvatarUpload());
+                }
+
+                if (removeBtn) {
+                    removeBtn.addEventListener('click', () => this.handleAvatarRemove());
+                }
+
+                // Restart Tour
+                const restartTourBtn = document.getElementById('restartTourBtn');
+                if (restartTourBtn) {
+                    restartTourBtn.addEventListener('click', () => {
+                        localStorage.removeItem('bb_tour_completed');
+                        this.showToast('Tour reset! Redirecting to dashboard...', 'success');
+                        setTimeout(() => window.location.href = 'index.html', 1500);
+                    });
+                }
+            },
+
+            // Handle avatar upload
+            handleAvatarUpload() {
+                const input = document.createElement('input');
+                input.type = 'file';
+                input.accept = 'image/*';
+                input.onchange = async (e) => {
+                    const file = e.target.files[0];
+                    if (!file) return;
+
+                    // Check if file is too large (over 5MB original)
+                    if (file.size > 5 * 1024 * 1024) {
+                        this.showToast('⚠️ Image is very large (' + Math.round(file.size / 1024 / 1024) + 'MB). Compressing...', 'warning');
+                    }
+
+                    try {
+                        // Compress image to fit Firestore limits
+                        const result = await this.compressImage(file, 200, 0.8);
+
+                        // Show compression info toast
+                        if (result.wasCompressed) {
+                            this.showToast(`📦 Image compressed: ${result.originalSizeKB}KB → ${result.finalSizeKB}KB (${result.newDimensions})`, 'info');
+                        }
+
+                        // Update avatar preview
+                        const avatarPreview = document.getElementById('avatarPreview');
+                        avatarPreview.innerHTML = `<img src="${result.base64}" alt="Profile" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">`;
+
+                        // Store temporarily until save
+                        userPreferences.profilePicture = result.base64;
+                        this.showToast('✅ Profile picture updated. Click "Save Changes" to save.', 'success');
+                    } catch (error) {
+                        console.error('[Settings] Error uploading avatar:', error);
+                        this.showToast('❌ Error uploading image: ' + error.message, 'error');
+                    }
+                };
+                input.click();
+            },
+
+            // Compress image to reduce size for Firestore storage
+            // Returns object with base64 data and size info for toast messages
+            async compressImage(file, maxSize = 200, quality = 0.7) {
+                const originalSizeKB = Math.round(file.size / 1024);
+                const self = this;
+
+                return new Promise((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        const img = new Image();
+                        img.onload = () => {
+                            // Create canvas
+                            const canvas = document.createElement('canvas');
+                            let width = img.width;
+                            let height = img.height;
+                            const originalDimensions = `${width}x${height}`;
+
+                            // Calculate new dimensions (max 200x200 for avatars/logos)
+                            if (width > height) {
+                                if (width > maxSize) {
+                                    height = Math.round((height * maxSize) / width);
+                                    width = maxSize;
+                                }
+                            } else {
+                                if (height > maxSize) {
+                                    width = Math.round((width * maxSize) / height);
+                                    height = maxSize;
+                                }
+                            }
+
+                            canvas.width = width;
+                            canvas.height = height;
+
+                            // Draw and compress
+                            const ctx = canvas.getContext('2d');
+                            ctx.drawImage(img, 0, 0, width, height);
+
+                            // Convert to compressed JPEG
+                            let compressedBase64 = canvas.toDataURL('image/jpeg', quality);
+                            let sizeInBytes = Math.round((compressedBase64.length * 3) / 4);
+                            let finalQuality = quality;
+
+                            // If still too large, try lower quality
+                            if (sizeInBytes > 200 * 1024) {
+                                compressedBase64 = canvas.toDataURL('image/jpeg', 0.5);
+                                sizeInBytes = Math.round((compressedBase64.length * 3) / 4);
+                                finalQuality = 0.5;
+                            }
+
+                            // If STILL too large, try even lower
+                            if (sizeInBytes > 200 * 1024) {
+                                compressedBase64 = canvas.toDataURL('image/jpeg', 0.3);
+                                sizeInBytes = Math.round((compressedBase64.length * 3) / 4);
+                                finalQuality = 0.3;
+                            }
+
+                            const finalSizeKB = Math.round(sizeInBytes / 1024);
+                            const newDimensions = `${width}x${height}`;
+
+                            console.log(`[Settings] Compressed image: ${originalDimensions} → ${newDimensions}, ${originalSizeKB}KB → ${finalSizeKB}KB`);
+
+                            // Return with size info for toast messages
+                            resolve({
+                                base64: compressedBase64,
+                                originalSizeKB,
+                                finalSizeKB,
+                                originalDimensions,
+                                newDimensions,
+                                wasCompressed: originalSizeKB > finalSizeKB || originalDimensions !== newDimensions,
+                                quality: finalQuality
+                            });
+                        };
+                        img.onerror = () => reject(new Error('Failed to load image'));
+                        img.src = e.target.result;
+                    };
+                    reader.onerror = () => reject(new Error('Failed to read file'));
+                    reader.readAsDataURL(file);
+                });
+            },
+
+            // Handle avatar remove
+            handleAvatarRemove() {
+                const avatarPreview = document.getElementById('avatarPreview');
+                const initial = (userPreferences.displayName || currentUser?.email || 'U').charAt(0).toUpperCase();
+                avatarPreview.innerHTML = `<span id="avatarInitial">${initial}</span>`;
+                userPreferences.profilePicture = null;
+                this.showToast('Profile picture removed. Click "Save Changes" to save.', 'info');
+            },
+
+            // Handle company logo upload
+            async handleCompanyLogoUpload(file) {
+                if (!file) return;
+
+                // Check if file is too large (over 5MB original)
+                if (file.size > 5 * 1024 * 1024) {
+                    this.showToast('⚠️ Image is very large (' + Math.round(file.size / 1024 / 1024) + 'MB). Compressing...', 'warning');
+                }
+
+                try {
+                    // Compress image to fit Firestore limits
+                    const result = await this.compressImage(file, 200, 0.8);
+
+                    // Show compression info toast
+                    if (result.wasCompressed) {
+                        this.showToast(`📦 Logo compressed: ${result.originalSizeKB}KB → ${result.finalSizeKB}KB (${result.newDimensions})`, 'info');
+                    }
+
+                    // Update logo preview
+                    const logoPreview = document.getElementById('companyLogoPreview');
+                    logoPreview.innerHTML = `<img src="${result.base64}" alt="Company Logo" style="width: 100%; height: 100%; object-fit: cover; border-radius: 12px;">`;
+                    logoPreview.style.border = 'none';
+
+                    // Show remove button
+                    document.getElementById('removeLogoBtn').style.display = 'inline-flex';
+
+                    // Store temporarily until save
+                    userPreferences.companyLogo = result.base64;
+                    this.showToast('✅ Company logo updated. Click "Save Changes" to save.', 'success');
+                } catch (error) {
+                    console.error('[Settings] Error uploading logo:', error);
+                    this.showToast('❌ Error uploading logo: ' + error.message, 'error');
+                }
+            },
+
+            // Handle company logo remove
+            handleCompanyLogoRemove() {
+                const logoPreview = document.getElementById('companyLogoPreview');
+                logoPreview.innerHTML = '<i class="fas fa-building" style="font-size: 1.5rem; color: var(--gray);"></i>';
+                logoPreview.style.border = '2px dashed var(--border)';
+                document.getElementById('removeLogoBtn').style.display = 'none';
+                userPreferences.companyLogo = null;
+                this.showToast('Company logo removed. Click "Save Changes" to save.', 'info');
+            },
+
+            // Load settings from localStorage            // Load settings from localStorage
+            loadSettings() {
+                try {
+                    const saved = localStorage.getItem(SETTINGS_KEY);
+                    userSettings = saved ? JSON.parse(saved) : this.getDefaultSettings();
+
+                    // Populate forms
+                    this.populateAccountForm();
+                    this.populateSettingsForms(userSettings);
+                    this.updateBillingInfo();
+                    this.updateStorageInfo();
+                } catch (error) {
+                    console.error('Error loading settings:', error);
+                    userSettings = this.getDefaultSettings();
+                    this.populateSettingsForms(userSettings);
+                }
+            },
+
+            // Save settings to localStorage
+            saveSettings() {
+                try {
+                    localStorage.setItem(SETTINGS_KEY, JSON.stringify(userSettings));
+                    return true;
+                } catch (error) {
+                    console.error('Error saving settings:', error);
+                    return false;
+                }
+            },
+
+            getDefaultSettings() {
+                return {
+                    account: {
+                        displayName: '',
+                        companyName: '',
+                        role: 'owner',
+                        phoneNumber: '',
+                        location: ''
+                    },
+                    privacy: {
+                        publicProfile: false,
+                        showEmail: false,
+                        showActivity: true,
+                        defaultProjectVisibility: 'private',
+                        hideFinancials: true,
+                        shareAnalytics: true
+                    },
+                    notifications: {
+                        emailProjectUpdates: true,
+                        emailPaymentReminders: true,
+                        emailBudgetAlerts: true,
+                        emailWeeklySummary: false,
+                        enablePushNotifications: false,
+                        pushDeadlineReminders: true,
+                        quietStart: '22:00',
+                        quietEnd: '08:00'
+                    },
+                    appearance: {
+                        theme: 'light',
+                        accentColor: 'green',
+                        fontSize: 'medium',
+                        compactMode: false,
+                        enableAnimations: true,
+                        language: 'en',
+                        currency: 'INR',
+                        dateFormat: 'DD/MM/YYYY'
+                    },
+                    experimental: {
+                        aiInsights: false,
+                        advancedAnalytics: false,
+                        voiceCommands: false,
+                        offlineMode: false
+                    },
+                    developer: {
+                        debugMode: false,
+                        consoleLogging: false
+                    }
+                };
+            },
+
+            populateAccountForm() {
+                // Use Firebase data (userPreferences) as primary source, fallback to localStorage
+                const displayName = userPreferences.displayName || userSettings.account?.displayName || '';
+                const companyName = userPreferences.companyName || userSettings.account?.companyName || '';
+                const companyLogo = userPreferences.companyLogo || userSettings.account?.companyLogo || '';
+                const role = userPreferences.role || userSettings.account?.role || 'owner';
+                const phoneNumber = userPreferences.phoneNumber || userSettings.account?.phoneNumber || '';
+                const location = userPreferences.location || userSettings.account?.location || '';
+                const profilePicture = userPreferences.profilePicture || null;
+
+                document.getElementById('displayName').value = displayName;
+                document.getElementById('userEmail').value = currentUser?.email || '';
+                document.getElementById('companyName').value = companyName;
+                document.getElementById('userRole').value = role;
+                document.getElementById('phoneNumber').value = phoneNumber;
+                document.getElementById('userLocation').value = location;
+                document.getElementById('ownerEmail').textContent = currentUser?.email || '';
+
+                // Handle avatar - show profile picture if exists, otherwise show initial
+                const avatarPreview = document.getElementById('avatarPreview');
+                if (profilePicture) {
+                    avatarPreview.innerHTML = `<img src="${profilePicture}" alt="Profile" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">`;
+                } else {
+                    const initial = (displayName || currentUser?.email || 'U').charAt(0).toUpperCase();
+                    avatarPreview.innerHTML = `<span id="avatarInitial">${initial}</span>`;
+                }
+
+                // Handle company logo
+                const logoPreview = document.getElementById('companyLogoPreview');
+                const removeLogoBtn = document.getElementById('removeLogoBtn');
+                if (companyLogo) {
+                    logoPreview.innerHTML = `<img src="${companyLogo}" alt="Company Logo" style="width: 100%; height: 100%; object-fit: cover; border-radius: 12px;">`;
+                    logoPreview.style.border = 'none';
+                    removeLogoBtn.style.display = 'inline-flex';
+                } else {
+                    logoPreview.innerHTML = '<i class="fas fa-building" style="font-size: 1.5rem; color: var(--gray);"></i>';
+                    logoPreview.style.border = '2px dashed var(--border)';
+                    removeLogoBtn.style.display = 'none';
+                }
+            },
+
+
+            populateSettingsForms(settings) {
+                // Privacy
+                document.getElementById('publicProfile').checked = settings.privacy?.publicProfile || false;
+                document.getElementById('showEmail').checked = settings.privacy?.showEmail || false;
+                document.getElementById('showActivity').checked = settings.privacy?.showActivity !== false;
+                document.getElementById('defaultProjectVisibility').value = settings.privacy?.defaultProjectVisibility || 'private';
+                document.getElementById('hideFinancials').checked = settings.privacy?.hideFinancials !== false;
+                document.getElementById('shareAnalytics').checked = settings.privacy?.shareAnalytics !== false;
+
+                // Notifications
+                document.getElementById('emailProjectUpdates').checked = settings.notifications?.emailProjectUpdates !== false;
+                document.getElementById('emailPaymentReminders').checked = settings.notifications?.emailPaymentReminders !== false;
+                document.getElementById('emailBudgetAlerts').checked = settings.notifications?.emailBudgetAlerts !== false;
+                document.getElementById('emailWeeklySummary').checked = settings.notifications?.emailWeeklySummary || false;
+                document.getElementById('enablePushNotifications').checked = settings.notifications?.enablePushNotifications || false;
+                document.getElementById('pushDeadlineReminders').checked = settings.notifications?.pushDeadlineReminders !== false;
+                document.getElementById('quietStart').value = settings.notifications?.quietStart || '22:00';
+                document.getElementById('quietEnd').value = settings.notifications?.quietEnd || '08:00';
+
+                // Appearance
+                const theme = settings.appearance?.theme || 'light';
+                document.querySelector(`input[name="theme"][value="${theme}"]`).checked = true;
+                const accentColor = settings.appearance?.accentColor || 'green';
+                document.querySelector(`input[name="accentColor"][value="${accentColor}"]`).checked = true;
+                document.getElementById('fontSize').value = settings.appearance?.fontSize || 'medium';
+                document.getElementById('compactMode').checked = settings.appearance?.compactMode || false;
+                document.getElementById('enableAnimations').checked = settings.appearance?.enableAnimations !== false;
+                document.getElementById('language').value = settings.appearance?.language || 'en';
+                document.getElementById('currency').value = settings.appearance?.currency || 'INR';
+                document.getElementById('dateFormat').value = settings.appearance?.dateFormat || 'DD/MM/YYYY';
+
+                // Experimental
+                document.getElementById('aiInsights').checked = settings.experimental?.aiInsights || false;
+                document.getElementById('advancedAnalytics').checked = settings.experimental?.advancedAnalytics || false;
+                document.getElementById('voiceCommands').checked = settings.experimental?.voiceCommands || false;
+                document.getElementById('offlineMode').checked = settings.experimental?.offlineMode || false;
+
+                // Developer
+                document.getElementById('enableDebugMode').checked = settings.developer?.debugMode || false;
+                document.getElementById('enableConsoleLogging').checked = settings.developer?.consoleLogging || false;
+            },
+
+            updateBillingInfo() {
+                const isPremium = localStorage.getItem('bb_premium') === 'true';
+                const planBadge = document.getElementById('planBadge');
+                const planName = document.getElementById('planName');
+                const planDescription = document.getElementById('planDescription');
+                const planPrice = document.getElementById('planPrice');
+                const creditsBalance = document.getElementById('creditsBalance');
+
+                if (isPremium) {
+                    planBadge.textContent = 'Premium';
+                    planBadge.className = 'plan-badge premium';
+                    planName.textContent = 'Premium Plan';
+                    planDescription.textContent = 'Full access to all features';
+                    planPrice.textContent = '₹199';
+                } else {
+                    planBadge.textContent = 'Free';
+                    planBadge.className = 'plan-badge free';
+                    planName.textContent = 'Free Plan';
+                    planDescription.textContent = 'Basic features for personal use';
+                    planPrice.textContent = '₹0';
+                }
+
+                creditsBalance.textContent = localStorage.getItem('bb_credits') || '0';
+            },
+
+            async updateStorageInfo() {
+                try {
+                    const projects = await Storage.projects.getAll();
+                    const projectSize = JSON.stringify(projects).length;
+                    const estimatedMB = Math.max(1, Math.round(projectSize / 1024 / 10));
+                    const totalMB = 1024;
+                    const percent = Math.min(100, Math.round((estimatedMB / totalMB) * 100));
+
+                    document.getElementById('storageUsed').textContent = `${estimatedMB} MB`;
+                    document.getElementById('storageTotal').textContent = '1 GB';
+                    document.getElementById('storagePercent').textContent = `${percent}%`;
+                    document.getElementById('storageUsedBar').style.width = `${percent}%`;
+                } catch (e) {
+                    console.warn('Storage info error:', e);
+                }
+            },
+
+            // Navigation
+            initNavigation() {
+                const hash = window.location.hash.slice(1) || 'account';
+                this.switchSection(hash, true); // true = initial load, don't show toast
+            },
+
+            switchSection(sectionId, isInitialLoad = false) {
+                // Sections that are fully implemented
+                const implementedSections = ['account', 'appearance'];
+
+                // Show "Coming Soon" toast for non-implemented sections
+                if (!implementedSections.includes(sectionId) && !isInitialLoad) {
+                    this.showToast(`${this.getSectionName(sectionId)} - Coming Soon!`, 'info');
+                }
+
+                // Update nav
+                document.querySelectorAll('.settings-nav-item').forEach(item => {
+                    item.classList.toggle('active', item.dataset.section === sectionId);
+                });
+
+                // Update sections
+                document.querySelectorAll('.settings-section').forEach(section => {
+                    section.classList.toggle('active', section.id === sectionId);
+                });
+
+                // Update URL
+                history.replaceState(null, '', `#${sectionId}`);
+            },
+
+            // Get friendly section name
+            getSectionName(sectionId) {
+                const names = {
+                    'account': 'Account',
+                    'security': 'Security',
+                    'access': 'Access Control',
+                    'privacy': 'Privacy & Visibility',
+                    'notifications': 'Notifications',
+                    'integrations': 'Integrations',
+                    'developer': 'Developer',
+                    'storage': 'Data & Storage',
+                    'audit': 'Audit Logs',
+                    'billing': 'Billing',
+                    'appearance': 'Appearance',
+                    'experimental': 'Experimental',
+                    'danger': 'Danger Zone'
+                };
+                return names[sectionId] || sectionId;
+            },
+
+            // Event Bindings
+            bindEvents() {
+                // Navigation
+                document.querySelectorAll('.settings-nav-item').forEach(item => {
+                    item.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        this.switchSection(item.dataset.section);
+                    });
+                });
+
+                // Account
+                document.getElementById('saveAccountBtn').addEventListener('click', () => this.saveAccount());
+
+                // Company Logo Upload
+                const companyLogoInput = document.getElementById('companyLogoInput');
+                if (companyLogoInput) {
+                    companyLogoInput.addEventListener('change', (e) => {
+                        const file = e.target.files[0];
+                        if (file) this.handleCompanyLogoUpload(file);
+                    });
+                }
+                const removeLogoBtn = document.getElementById('removeLogoBtn');
+                if (removeLogoBtn) {
+                    removeLogoBtn.addEventListener('click', () => this.handleCompanyLogoRemove());
+                }
+
+                // Security
+                document.getElementById('changePasswordBtn').addEventListener('click', () => this.changePassword());
+                document.getElementById('logoutAllBtn').addEventListener('click', () => this.logoutAllDevices());
+
+                // Access Control
+                document.getElementById('inviteTeamBtn').addEventListener('click', () => this.openInviteModal());
+
+                // Privacy
+                document.getElementById('savePrivacyBtn').addEventListener('click', () => this.savePrivacySettings());
+                // Privacy toggles - Auto-save on change
+                ['publicProfile', 'showEmail', 'showActivity', 'hideFinancials', 'shareAnalytics'].forEach(id => {
+                    document.getElementById(id).addEventListener('change', () => this.savePrivacySettings());
+                });
+                document.getElementById('defaultProjectVisibility').addEventListener('change', () => this.savePrivacySettings());
+
+                // Notifications
+                document.getElementById('saveNotificationsBtn').addEventListener('click', () => this.saveNotificationSettings());
+                // Notification toggles - Auto-save on change
+                ['emailProjectUpdates', 'emailPaymentReminders', 'emailBudgetAlerts', 'emailWeeklySummary',
+                    'enablePushNotifications', 'pushDeadlineReminders'].forEach(id => {
+                        document.getElementById(id).addEventListener('change', () => this.saveNotificationSettings());
+                    });
+                document.getElementById('quietStart').addEventListener('change', () => this.saveNotificationSettings());
+                document.getElementById('quietEnd').addEventListener('change', () => this.saveNotificationSettings());
+
+                // Appearance
+                document.getElementById('saveAppearanceBtn').addEventListener('click', () => this.saveAppearanceSettings());
+                document.querySelectorAll('input[name="theme"]').forEach(input => {
+                    input.addEventListener('change', () => this.previewTheme(input.value));
+                });
+                document.querySelectorAll('input[name="accentColor"]').forEach(input => {
+                    input.addEventListener('change', () => this.previewAccentColor(input.value));
+                });
+
+                // Data & Storage
+                document.getElementById('exportAllDataBtn').addEventListener('click', () => this.exportAllData());
+                document.getElementById('exportProjectsBtn').addEventListener('click', () => this.exportProjects());
+                document.getElementById('clearCacheBtn').addEventListener('click', () => this.clearCache());
+                document.getElementById('createBackupBtn').addEventListener('click', () => this.createBackup());
+
+                // Danger Zone
+                document.getElementById('deleteAllProjectsBtn').addEventListener('click', () => this.confirmDeleteAllProjects());
+                document.getElementById('resetSettingsBtn').addEventListener('click', () => this.confirmResetSettings());
+                document.getElementById('deleteAccountBtn').addEventListener('click', () => this.confirmDeleteAccount());
+
+                // Experimental - Auto-save on toggle
+                ['aiInsights', 'advancedAnalytics', 'voiceCommands', 'offlineMode'].forEach(id => {
+                    document.getElementById(id).addEventListener('change', () => this.saveExperimentalSettings());
+                });
+
+                // Developer - Auto-save on toggle
+                ['enableDebugMode', 'enableConsoleLogging'].forEach(id => {
+                    document.getElementById(id).addEventListener('change', () => this.saveDeveloperSettings());
+                });
+            },
+
+            // Experimental Settings - Auto-save
+            async saveExperimentalSettings() {
+                try {
+                    const experimentalSettings = {
+                        aiInsights: document.getElementById('aiInsights').checked,
+                        advancedAnalytics: document.getElementById('advancedAnalytics').checked,
+                        voiceCommands: document.getElementById('voiceCommands').checked,
+                        offlineMode: document.getElementById('offlineMode').checked
+                    };
+
+                    await setDoc(doc(db, 'user_settings', currentUser.uid), {
+                        experimental: experimentalSettings,
+                        updatedAt: new Date()
+                    }, { merge: true });
+
+                    userSettings.experimental = experimentalSettings;
+                    this.showToast('Experimental settings saved', 'success');
+                } catch (error) {
+                    console.error('Error saving experimental settings:', error);
+                    this.showToast('Error saving settings', 'error');
+                }
+            },
+
+            // Developer Settings - Auto-save
+            async saveDeveloperSettings() {
+                try {
+                    const developerSettings = {
+                        debugMode: document.getElementById('enableDebugMode').checked,
+                        consoleLogging: document.getElementById('enableConsoleLogging').checked
+                    };
+
+                    await setDoc(doc(db, 'user_settings', currentUser.uid), {
+                        developer: developerSettings,
+                        updatedAt: new Date()
+                    }, { merge: true });
+
+                    userSettings.developer = developerSettings;
+                    this.showToast('Developer settings saved', 'success');
+                } catch (error) {
+                    console.error('Error saving developer settings:', error);
+                    this.showToast('Error saving settings', 'error');
+                }
+            },
+
+            // Account Actions - Save to Firebase
+            async saveAccount() {
+                console.log('[Settings] saveAccount called');
+
+                const displayName = document.getElementById('displayName').value.trim();
+                const companyName = document.getElementById('companyName').value.trim();
+                const role = document.getElementById('userRole').value;
+                const phoneNumber = document.getElementById('phoneNumber').value.trim();
+                const location = document.getElementById('userLocation').value.trim();
+
+                // Prepare data for Firebase
+                const updateData = {
+                    displayName,
+                    companyName,
+                    role,
+                    phoneNumber,
+                    location,
+                    updatedAt: new Date().toISOString()
+                };
+
+                // Include profile picture if it was updated
+                if (userPreferences.profilePicture !== undefined) {
+                    updateData.profilePicture = userPreferences.profilePicture;
+                }
+
+                // Include company logo if it was updated
+                if (userPreferences.companyLogo !== undefined) {
+                    updateData.companyLogo = userPreferences.companyLogo;
+                }
+
+                // Disable button and show loading state
+                const saveBtn = document.getElementById('saveAccountBtn');
+                const originalText = saveBtn.innerHTML;
+                saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+                saveBtn.disabled = true;
+
+                try {
+                    // Save to Firebase user_preferences collection
+                    await setDoc(doc(db, 'user_preferences', currentUser.uid), updateData, { merge: true });
+
+                    // Update local userPreferences
+                    userPreferences = { ...userPreferences, ...updateData };
+
+                    // Also save to localStorage for backward compatibility
+                    userSettings.account = { displayName, companyName, companyLogo: userPreferences.companyLogo, role, phoneNumber, location };
+                    this.saveSettings();
+
+                    // Update avatar initial if no profile picture
+                    if (!userPreferences.profilePicture) {
+                        const avatarPreview = document.getElementById('avatarPreview');
+                        const initial = (displayName || currentUser?.email || 'U').charAt(0).toUpperCase();
+                        avatarPreview.innerHTML = `<span id="avatarInitial">${initial}</span>`;
+                    }
+
+                    // Show success
+                    saveBtn.innerHTML = '<i class="fas fa-check"></i> Saved!';
+                    saveBtn.style.background = '#10B981';
+                    this.showToast('Account settings saved successfully', 'success');
+                    console.log('[Settings] Account saved to Firebase:', updateData);
+
+                    // Reset button after 2 seconds
+                    setTimeout(() => {
+                        saveBtn.innerHTML = originalText;
+                        saveBtn.style.background = '';
+                        saveBtn.disabled = false;
+                    }, 2000);
+
+                } catch (error) {
+                    console.error('[Settings] Error saving account to Firebase:', error);
+                    saveBtn.innerHTML = '<i class="fas fa-times"></i> Error';
+                    saveBtn.style.background = '#EF4444';
+
+                    // Check for Firestore document size error
+                    if (error.message && error.message.includes('exceeds the maximum allowed size')) {
+                        this.showToast('❌ Data too large for Firebase (1MB limit). Try removing the profile picture or logo and re-uploading a smaller image.', 'error');
+                    } else {
+                        this.showToast('❌ Error saving account settings: ' + error.message, 'error');
+                    }
+
+                    // Reset button after 2 seconds
+                    setTimeout(() => {
+                        saveBtn.innerHTML = originalText;
+                        saveBtn.style.background = '';
+                        saveBtn.disabled = false;
+                    }, 2000);
+                }
+            },
+
+            async changePassword() {
+                const current = document.getElementById('currentPassword').value;
+                const newPass = document.getElementById('newPassword').value;
+                const confirm = document.getElementById('confirmPassword').value;
+
+                if (!current || !newPass || !confirm) {
+                    this.showToast('Please fill all password fields', 'error');
+                    return;
+                }
+
+                if (newPass !== confirm) {
+                    this.showToast('New passwords do not match', 'error');
+                    return;
+                }
+
+                if (newPass.length < 6) {
+                    this.showToast('Password must be at least 6 characters', 'error');
+                    return;
+                }
+
+                try {
+                    const { EmailAuthProvider, reauthenticateWithCredential, updatePassword } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js');
+                    const credential = EmailAuthProvider.credential(currentUser.email, current);
+                    await reauthenticateWithCredential(currentUser, credential);
+                    await updatePassword(currentUser, newPass);
+
+                    document.getElementById('currentPassword').value = '';
+                    document.getElementById('newPassword').value = '';
+                    document.getElementById('confirmPassword').value = '';
+
+                    this.showToast('Password updated successfully', 'success');
+                } catch (error) {
+                    console.error('Password change error:', error);
+                    if (error.code === 'auth/wrong-password') {
+                        this.showToast('Current password is incorrect', 'error');
+                    } else {
+                        this.showToast('Error updating password', 'error');
+                    }
+                }
+            },
+
+            async logoutAllDevices() {
+                this.showToast('Signed out from all other devices', 'success');
+            },
+
+            // Privacy Settings
+            savePrivacySettings() {
+                userSettings.privacy = {
+                    publicProfile: document.getElementById('publicProfile').checked,
+                    showEmail: document.getElementById('showEmail').checked,
+                    showActivity: document.getElementById('showActivity').checked,
+                    defaultProjectVisibility: document.getElementById('defaultProjectVisibility').value,
+                    hideFinancials: document.getElementById('hideFinancials').checked,
+                    shareAnalytics: document.getElementById('shareAnalytics').checked
+                };
+                if (this.saveSettings()) {
+                    this.showToast('Privacy settings saved', 'success');
+                }
+            },
+
+            // Notification Settings
+            saveNotificationSettings() {
+                userSettings.notifications = {
+                    emailProjectUpdates: document.getElementById('emailProjectUpdates').checked,
+                    emailPaymentReminders: document.getElementById('emailPaymentReminders').checked,
+                    emailBudgetAlerts: document.getElementById('emailBudgetAlerts').checked,
+                    emailWeeklySummary: document.getElementById('emailWeeklySummary').checked,
+                    enablePushNotifications: document.getElementById('enablePushNotifications').checked,
+                    pushDeadlineReminders: document.getElementById('pushDeadlineReminders').checked,
+                    quietStart: document.getElementById('quietStart').value,
+                    quietEnd: document.getElementById('quietEnd').value
+                };
+                if (this.saveSettings()) {
+                    this.showToast('Notification settings saved', 'success');
+                }
+            },
+
+            // Appearance Settings
+            previewTheme(theme) {
+                document.body.setAttribute('data-theme', theme);
+                if (theme === 'system') {
+                    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+                    document.body.setAttribute('data-theme', prefersDark ? 'dark' : 'light');
+                }
+            },
+
+            previewAccentColor(color) {
+                document.body.setAttribute('data-accent', color);
+            },
+
+            applyTheme() {
+                const theme = userSettings.appearance?.theme || 'light';
+                const accentColor = userSettings.appearance?.accentColor || 'green';
+                this.previewTheme(theme);
+                this.previewAccentColor(accentColor);
+            },
+
+            saveAppearanceSettings() {
+                userSettings.appearance = {
+                    theme: document.querySelector('input[name="theme"]:checked')?.value || 'light',
+                    accentColor: document.querySelector('input[name="accentColor"]:checked')?.value || 'green',
+                    fontSize: document.getElementById('fontSize').value,
+                    compactMode: document.getElementById('compactMode').checked,
+                    enableAnimations: document.getElementById('enableAnimations').checked,
+                    language: document.getElementById('language').value,
+                    currency: document.getElementById('currency').value,
+                    dateFormat: document.getElementById('dateFormat').value
+                };
+
+                localStorage.setItem('bb_theme', userSettings.appearance.theme);
+                localStorage.setItem('bb_accent', userSettings.appearance.accentColor);
+
+                if (this.saveSettings()) {
+                    this.showToast('Appearance settings saved', 'success');
+                }
+            },
+
+            // Experimental Settings
+            saveExperimentalSettings() {
+                userSettings.experimental = {
+                    aiInsights: document.getElementById('aiInsights').checked,
+                    advancedAnalytics: document.getElementById('advancedAnalytics').checked,
+                    voiceCommands: document.getElementById('voiceCommands').checked,
+                    offlineMode: document.getElementById('offlineMode').checked
+                };
+                if (this.saveSettings()) {
+                    this.showToast('Experimental settings saved', 'success');
+                }
+            },
+
+            // Developer Settings
+            saveDeveloperSettings() {
+                userSettings.developer = {
+                    debugMode: document.getElementById('enableDebugMode').checked,
+                    consoleLogging: document.getElementById('enableConsoleLogging').checked
+                };
+                if (this.saveSettings()) {
+                    this.showToast('Developer settings saved', 'success');
+                }
+            },
+
+            // Data Export
+            async exportAllData() {
+                try {
+                    this.showToast('Preparing export...', 'info');
+                    const projects = await Storage.projects.getAll();
+                    const allData = {
+                        projects: [],
+                        settings: userSettings,
+                        exportDate: new Date().toISOString()
+                    };
+
+                    for (const project of projects) {
+                        const materials = await Storage.materials.getByProject(project.id);
+                        const labour = await Storage.labour.getByProject(project.id);
+                        const expenses = await Storage.expenses.getByProject(project.id);
+                        allData.projects.push({ ...project, materials, labour, expenses });
+                    }
+
+                    const blob = new Blob([JSON.stringify(allData, null, 2)], { type: 'application/json' });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `bb_export_${new Date().toISOString().split('T')[0]}.json`;
+                    a.click();
+                    URL.revokeObjectURL(url);
+                    this.showToast('Data exported successfully', 'success');
+                } catch (error) {
+                    console.error('Export error:', error);
+                    this.showToast('Error exporting data', 'error');
+                }
+            },
+
+            async exportProjects() {
+                try {
+                    const projects = await Storage.projects.getAll();
+                    const csv = this.convertToCSV(projects.map(p => ({
+                        Name: p.name, Client: p.clientName, Location: p.location,
+                        Budget: p.budget, Status: p.status, StartDate: p.startDate, EndDate: p.endDate
+                    })));
+                    const blob = new Blob([csv], { type: 'text/csv' });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `bb_projects_${new Date().toISOString().split('T')[0]}.csv`;
+                    a.click();
+                    URL.revokeObjectURL(url);
+                    this.showToast('Projects exported', 'success');
+                } catch (error) {
+                    this.showToast('Error exporting projects', 'error');
+                }
+            },
+
+            convertToCSV(data) {
+                if (!data.length) return '';
+                const headers = Object.keys(data[0]);
+                const rows = data.map(row => headers.map(h => `"${(row[h] || '').toString().replace(/"/g, '""')}"`).join(','));
+                return [headers.join(','), ...rows].join('\n');
+            },
+
+            async clearCache() {
+                try {
+                    localStorage.removeItem('bb_cache');
+                    if ('caches' in window) {
+                        const cacheNames = await caches.keys();
+                        await Promise.all(cacheNames.map(name => caches.delete(name)));
+                    }
+                    this.showToast('Cache cleared', 'success');
+                } catch (error) {
+                    console.error('Clear cache error:', error);
+                    this.showToast('Error clearing cache', 'error');
+                }
+            },
+
+            async createBackup() {
+                await this.exportAllData();
+                try {
+                    await setDoc(doc(db, 'user_settings', currentUser.uid), {
+                        lastBackup: new Date()
+                    }, { merge: true });
+                    document.getElementById('lastBackupDate').textContent = 'Just now';
+                } catch (e) { }
+            },
+
+            // Danger Zone Actions
+            confirmDeleteAllProjects() {
+                this.openConfirmModal({
+                    title: 'Delete All Projects',
+                    message: 'This will permanently delete all your projects and associated data. This action cannot be undone.',
+                    confirmText: 'DELETE',
+                    requireInput: true,
+                    action: () => this.deleteAllProjects()
+                });
+            },
+
+            confirmResetSettings() {
+                this.openConfirmModal({
+                    title: 'Reset All Settings',
+                    message: 'This will reset all your settings to their default values.',
+                    action: () => this.resetSettings()
+                });
+            },
+
+            confirmDeleteAccount() {
+                this.openConfirmModal({
+                    title: 'Delete Account',
+                    message: 'This will permanently delete your account and all data. This action is irreversible.',
+                    confirmText: 'DELETE MY ACCOUNT',
+                    requireInput: true,
+                    action: () => this.deleteAccount()
+                });
+            },
+
+            async deleteAllProjects() {
+                try {
+                    this.showToast('Deleting projects...', 'info');
+                    const projects = await Storage.projects.getAll();
+                    for (const project of projects) {
+                        await Storage.projects.delete(project.id);
+                    }
+                    this.showToast('All projects deleted', 'success');
+                    this.closeConfirmModal();
+                } catch (error) {
+                    this.showToast('Error deleting projects', 'error');
+                }
+            },
+
+            resetSettings() {
+                userSettings = this.getDefaultSettings();
+                this.saveSettings();
+                this.populateSettingsForms(userSettings);
+                this.applyTheme();
+                localStorage.setItem('bb_theme', 'light');
+                localStorage.setItem('bb_accent', 'green');
+                this.showToast('Settings reset to defaults', 'success');
+                this.closeConfirmModal();
+            },
+
+            async deleteAccount() {
+                try {
+                    this.showToast('Deleting account...', 'info');
+                    const projects = await Storage.projects.getAll();
+                    for (const project of projects) {
+                        await Storage.projects.delete(project.id);
+                    }
+                    localStorage.removeItem('bb_user_settings');
+                    localStorage.removeItem('bb_theme');
+                    localStorage.removeItem('bb_accent');
+                    await currentUser.delete();
+                    window.location.href = 'login.html';
+                } catch (error) {
+                    console.error('Delete account error:', error);
+                    this.showToast(error.code === 'auth/requires-recent-login'
+                        ? 'Please log out and log in again before deleting'
+                        : 'Error deleting account', 'error');
+                }
+            },
+
+            // Modal Helpers
+            pendingAction: null,
+
+            openConfirmModal({ title, message, confirmText, requireInput, action }) {
+                document.getElementById('confirmModalTitle').textContent = title;
+                document.getElementById('confirmModalMessage').textContent = message;
+
+                const inputWrapper = document.getElementById('confirmInputWrapper');
+                const confirmInput = document.getElementById('confirmInput');
+
+                if (requireInput) {
+                    document.getElementById('confirmText').textContent = confirmText;
+                    inputWrapper.classList.remove('hidden');
+                    confirmInput.value = '';
+                } else {
+                    inputWrapper.classList.add('hidden');
+                }
+
+                this.pendingAction = { action, confirmText, requireInput };
+                document.getElementById('confirmModal').classList.remove('hidden');
+                document.getElementById('confirmModal').classList.add('active');
+
+                document.getElementById('confirmActionBtn').onclick = () => {
+                    if (requireInput && confirmInput.value !== confirmText) {
+                        this.showToast(`Please type "${confirmText}" to confirm`, 'error');
+                        return;
+                    }
+                    action();
+                };
+            },
+
+            closeConfirmModal() {
+                document.getElementById('confirmModal').classList.add('hidden');
+                document.getElementById('confirmModal').classList.remove('active');
+                this.pendingAction = null;
+            },
+
+            openInviteModal() {
+                document.getElementById('inviteModal').classList.remove('hidden');
+                document.getElementById('inviteModal').classList.add('active');
+            },
+
+            closeInviteModal() {
+                document.getElementById('inviteModal').classList.add('hidden');
+                document.getElementById('inviteModal').classList.remove('active');
+            },
+
+            sendInvite() {
+                const email = document.getElementById('inviteEmail').value.trim();
+                if (!email) {
+                    this.showToast('Please enter an email address', 'error');
+                    return;
+                }
+                this.showToast(`Invitation sent to ${email}`, 'success');
+                this.closeInviteModal();
+            },
+
+            // Toast Notifications
+            showToast(message, type = 'info') {
+                const container = document.getElementById('toastContainer');
+                const toast = document.createElement('div');
+                toast.className = `toast ${type}`;
+
+                // Apply inline styles to override any conflicting CSS
+                toast.style.cssText = `
+                    position: static !important;
+                    display: flex !important;
+                    align-items: center !important;
+                    gap: 0.75rem !important;
+                    padding: 1rem 1.5rem !important;
+                    background: #FFFFFF !important;
+                    border-radius: 12px !important;
+                    box-shadow: 0 10px 40px rgba(0,0,0,0.2) !important;
+                    font-weight: 600 !important;
+                    font-size: 1rem !important;
+                    opacity: 0 !important;
+                    transition: opacity 0.3s ease, transform 0.3s ease !important;
+                    min-width: 280px !important;
+                    max-width: 400px !important;
+                    color: #1A1A1A !important;
+                    transform: translateY(-10px) !important;
+                `;
+
+                // Set border color based on type
+                const borderColors = {
+                    success: '#10B981',
+                    error: '#EF4444',
+                    warning: '#F59E0B',
+                    info: '#3B82F6'
+                };
+                toast.style.borderLeft = `4px solid ${borderColors[type] || '#4A7C59'}`;
+
+                const icons = {
+                    success: 'fa-check-circle',
+                    error: 'fa-exclamation-circle',
+                    warning: 'fa-exclamation-triangle',
+                    info: 'fa-info-circle'
+                };
+
+                const iconColors = {
+                    success: '#10B981',
+                    error: '#EF4444',
+                    warning: '#F59E0B',
+                    info: '#3B82F6'
+                };
+
+                toast.innerHTML = `<i class="fas ${icons[type]}" style="color: ${iconColors[type]}; font-size: 1.1rem;"></i><span>${message}</span>`;
+                container.appendChild(toast);
+
+                // Trigger show animation
+                setTimeout(() => {
+                    toast.style.opacity = '1';
+                    toast.style.transform = 'translateY(0)';
+                    toast.classList.add('show');
+                }, 10);
+
+                // Remove after 3 seconds
+                setTimeout(() => {
+                    toast.style.opacity = '0';
+                    toast.style.transform = 'translateY(-10px)';
+                    toast.classList.remove('show');
+                    setTimeout(() => toast.remove(), 300);
+                }, 3000);
+            }
+        };
+
+        // Make globally accessible
+        window.SettingsApp = SettingsApp;
+
+        // Auth state listener
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                SettingsApp.init(user);
+            } else {
+                window.location.href = 'login.html';
+            }
+        });
+    </script>
+</body>
+
+</html>

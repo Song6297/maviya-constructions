@@ -1,0 +1,1110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>B&B - Funds | Bricks & Bits</title>
+    <script>
+        // Apply saved theme immediately to prevent flash
+        (function() {
+            const theme = localStorage.getItem('bb_theme') || 'light';
+            const accent = localStorage.getItem('bb_accent') || 'green';
+            if (theme === 'dark') document.documentElement.setAttribute('data-theme', 'dark');
+            else if (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                document.documentElement.setAttribute('data-theme', 'dark');
+            }
+            if (accent !== 'green') document.documentElement.setAttribute('data-accent', accent);
+        })();
+    </script>
+    <link rel="icon" type="image/png" href="B&B.png">
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+    <link href="css/styles-professional.css" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .app-wrapper { display: flex; min-height: 100vh; }
+        
+        /* Professional Sidebar */
+        .sidebar {
+            width: 64px;
+            background: var(--white);
+            padding: 1rem 0.5rem;
+            display: flex;
+            flex-direction: column;
+            position: fixed;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            border-right: 1px solid var(--border);
+            z-index: 100;
+            transition: width 0.3s ease;
+            overflow: hidden;
+        }
+        .sidebar:hover { width: 200px; }
+        .sidebar:hover .nav-text, .sidebar:hover .logo-text, .sidebar:hover .logout-text { opacity: 1; width: auto; }
+        .nav-text, .logo-text, .logout-text { opacity: 0; width: 0; overflow: hidden; white-space: nowrap; transition: opacity 0.2s ease; }
+        
+        .logo-section { text-align: center; padding: 0.5rem 0 1rem; border-bottom: 1px solid var(--border); margin-bottom: 1rem; }
+        .logo-link { text-decoration: none; display: flex; flex-direction: column; align-items: center; gap: 0.25rem; }
+        .logo-img { width: 32px; height: 32px; }
+        .logo-text { font-size: 0.875rem; font-weight: 700; color: var(--primary); }
+        
+        .nav-menu { display: flex; flex-direction: column; gap: 0.25rem; flex: 1; }
+        .nav-item { display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem; border-radius: 8px; text-decoration: none; color: var(--gray); font-weight: 600; font-size: 0.8125rem; transition: all 0.2s; }
+        .nav-item:hover { background: var(--primary-muted); color: var(--primary); }
+        .nav-item.active { background: var(--primary); color: white; }
+        .nav-icon { font-size: 1rem; width: 20px; text-align: center; flex-shrink: 0; }
+        .nav-divider { height: 1px; background: var(--border); margin: 0.5rem 0.75rem; }
+        
+        .sidebar-footer { padding-top: 0.75rem; border-top: 1px solid var(--border); }
+        .logout-btn { width: 100%; padding: 0.75rem; background: none; border: none; border-radius: 6px; font-weight: 600; color: var(--gray); cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 0.75rem; font-size: 0.8125rem; }
+        .logout-btn:hover { background: var(--error-light); color: var(--error); }
+        
+        .main-content { flex: 1; margin-left: 64px; padding: 1.5rem 2rem; transition: margin-left 0.3s ease; }
+        .sidebar:hover ~ .main-content { margin-left: 200px; }
+        
+        /* Page Header */
+        .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem; }
+        .page-title { font-size: 1.5rem; font-weight: 700; color: var(--dark); display: flex; align-items: center; gap: 0.5rem; }
+        .page-title i { color: var(--primary); }
+        
+        /* Summary Grid */
+        .summary-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; margin-bottom: 1.5rem; }
+        .summary-item { background: var(--white); border-radius: var(--radius-lg); padding: 1.25rem; text-align: center; border: 1px solid var(--border); transition: all 0.2s; }
+        .summary-item:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
+        .summary-label { font-size: 0.6875rem; font-weight: 700; color: var(--gray); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 0.5rem; }
+        .summary-value { font-size: 1.5rem; font-weight: 800; }
+        .summary-item.total .summary-value { color: var(--primary); }
+        .summary-item.spent .summary-value { color: var(--error); }
+        .summary-item.available .summary-value { color: var(--success); }
+        .summary-item.loans .summary-value { color: var(--warning); }
+        .summary-item.projects .summary-value { color: var(--success); }
+        .summary-item.status .summary-value { color: var(--brown); }
+        
+        /* Tabs */
+        .tabs-nav { display: flex; gap: 0.5rem; margin-bottom: 1.5rem; flex-wrap: wrap; }
+        .tab-btn { padding: 0.75rem 1.25rem; background: var(--white); border: 1px solid var(--border); border-radius: var(--radius-md); font-weight: 600; color: var(--gray); cursor: pointer; transition: all 0.2s; display: inline-flex; align-items: center; gap: 0.5rem; font-size: 0.8125rem; }
+        .tab-btn:hover { border-color: var(--primary); color: var(--primary); }
+        .tab-btn.active { background: var(--primary); color: white; border-color: var(--primary); }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        
+        /* Section Card */
+        .section-card { background: var(--white); border: 1px solid var(--border); border-radius: var(--radius-xl); padding: 1.5rem; margin-bottom: 1.5rem; }
+        .section-title { font-size: 1rem; font-weight: 700; color: var(--dark); margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem; }
+        .section-title i { color: var(--primary); }
+        
+        /* Data Table */
+        .data-table { width: 100%; border-collapse: collapse; }
+        .data-table th { padding: 0.75rem 1rem; text-align: left; font-weight: 700; color: var(--gray); font-size: 0.6875rem; text-transform: uppercase; letter-spacing: 0.5px; background: var(--bg-light); border-bottom: 1px solid var(--border); }
+        .data-table td { padding: 0.875rem 1rem; font-size: 0.8125rem; color: var(--dark); border-bottom: 1px solid var(--border); }
+        .data-table tr:hover td { background: var(--bg-card); }
+        
+        /* Wallet Grid */
+        .wallet-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1.5rem; }
+        .wallet-card { background: var(--white); border-radius: var(--radius-lg); padding: 1.25rem; border: 1px solid var(--border); transition: all 0.2s; }
+        .wallet-card:hover { border-color: var(--primary); transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
+        
+        /* Loan Cards */
+        .loan-card { background: var(--white); border-radius: var(--radius-lg); padding: 1rem; border: 1px solid var(--border); border-left: 4px solid var(--warning); margin-bottom: 1rem; }
+        .settlement-card { background: var(--white); border-radius: var(--radius-lg); padding: 1rem; border: 1px solid var(--border); border-left: 4px solid var(--success); margin-bottom: 1rem; }
+        
+        /* Action Buttons */
+        .action-btn { padding: 0.5rem 0.75rem; border-radius: var(--radius-md); font-weight: 600; font-size: 0.75rem; transition: all 0.2s; border: none; cursor: pointer; }
+        .btn-success { background: var(--success); color: white; }
+        .btn-success:hover { background: #3D6B4A; }
+        
+        .overflow-x-auto { overflow-x: auto; }
+        
+        /* Modal Styles */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+            padding: 1rem;
+            backdrop-filter: blur(2px);
+        }
+        .modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        .modal-overlay.hidden {
+            display: none !important;
+        }
+        .modal-content {
+            background: var(--white);
+            border-radius: var(--radius-xl, 16px);
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+            transform: scale(0.95);
+            transition: transform 0.3s ease;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+        }
+        .modal-overlay.active .modal-content {
+            transform: scale(1);
+        }
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1.25rem 1.5rem;
+            border-bottom: 1px solid var(--border);
+        }
+        .modal-header h3 {
+            font-size: 1.125rem;
+            font-weight: 700;
+            color: var(--dark);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .modal-header h3 i {
+            color: var(--primary);
+        }
+        .modal-body {
+            padding: 1.5rem;
+            max-height: calc(90vh - 140px);
+            overflow-y: auto;
+        }
+        .modal-footer {
+            display: flex;
+            gap: 1rem;
+            justify-content: flex-end;
+            padding: 1rem 1.5rem;
+            border-top: 1px solid var(--border);
+        }
+        .close-modal {
+            background: none;
+            border: none;
+            font-size: 1.25rem;
+            cursor: pointer;
+            color: var(--gray);
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+        .close-modal:hover {
+            background: var(--error-light);
+            color: var(--error);
+        }
+        .form-group {
+            margin-bottom: 1rem;
+        }
+        .form-label {
+            display: block;
+            font-weight: 600;
+            color: var(--dark);
+            margin-bottom: 0.5rem;
+            font-size: 0.875rem;
+        }
+        .form-input {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md, 8px);
+            font-size: 0.9375rem;
+            transition: border-color 0.2s;
+            background: var(--white);
+        }
+        .form-input:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+        
+        @media (max-width: 1024px) { .summary-grid { grid-template-columns: repeat(2, 1fr); } }
+        @media (max-width: 768px) {
+            .sidebar { display: none; }
+            .main-content { margin-left: 0; padding: 1rem; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Loading Overlay -->
+    <link href="css/logo-loader.css" rel="stylesheet">
+    <div id="pageLoader" class="loading-overlay">
+        <svg class="logo-loader" width="120" height="110" viewBox="0 0 200 160" xmlns="http://www.w3.org/2000/svg">
+            <rect class="brick bit b1" x="20" y="100" width="24" height="24" rx="3"/>
+            <rect class="brick" x="48" y="100" width="24" height="24" rx="3"/>
+            <rect class="brick bit b2" x="76" y="100" width="24" height="24" rx="3"/>
+            <rect class="brick" x="104" y="100" width="24" height="24" rx="3"/>
+            <rect class="brick bit b3" x="132" y="100" width="24" height="24" rx="3"/>
+            <rect class="brick" x="48" y="72" width="24" height="24" rx="3"/>
+            <rect class="brick bit b4" x="76" y="72" width="24" height="24" rx="3"/>
+            <rect class="brick" x="104" y="72" width="24" height="24" rx="3"/>
+            <rect class="brick bit b5" x="76" y="44" width="24" height="24" rx="3"/>
+            <rect class="brick" x="104" y="44" width="24" height="24" rx="3"/>
+        </svg>
+        <p class="loading-text">Loading fund data...</p>
+    </div>
+
+    <div class="app-wrapper">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="logo-section">
+                <a href="hub.html" class="logo-link">
+                    <svg class="logo-img" viewBox="0 0 140 110" xmlns="http://www.w3.org/2000/svg" style="width:32px;height:32px;">
+                        <rect x="0" y="56" width="17" height="17" rx="2" fill="#2f2f2f" stroke="#000" stroke-width="1.5"/>
+                        <rect x="20" y="56" width="17" height="17" rx="2" fill="#b7c8b8" stroke="#000" stroke-width="1.5"/>
+                        <rect x="40" y="56" width="17" height="17" rx="2" fill="#2f2f2f" stroke="#000" stroke-width="1.5"/>
+                        <rect x="60" y="56" width="17" height="17" rx="2" fill="#b7c8b8" stroke="#000" stroke-width="1.5"/>
+                        <rect x="80" y="56" width="17" height="17" rx="2" fill="#2f2f2f" stroke="#000" stroke-width="1.5"/>
+                        <rect x="20" y="36" width="17" height="17" rx="2" fill="#b7c8b8" stroke="#000" stroke-width="1.5"/>
+                        <rect x="40" y="36" width="17" height="17" rx="2" fill="#2f2f2f" stroke="#000" stroke-width="1.5"/>
+                        <rect x="60" y="36" width="17" height="17" rx="2" fill="#b7c8b8" stroke="#000" stroke-width="1.5"/>
+                        <rect x="40" y="16" width="17" height="17" rx="2" fill="#b7c8b8" stroke="#000" stroke-width="1.5"/>
+                        <rect x="60" y="16" width="17" height="17" rx="2" fill="#b7c8b8" stroke="#000" stroke-width="1.5"/>
+                    </svg>
+                    <span class="logo-text">B&B</span>
+                </a>
+            </div>
+            <nav class="nav-menu">
+                <div class="nav-item-expandable" id="dashboardDropdown">
+                    <div class="nav-item" title="Dashboard" onclick="toggleDashboardDropdown(event)">
+                        <i class="fas fa-th-large nav-icon"></i>
+                        <span class="nav-text">Dashboard</span>
+                        <i class="fas fa-chevron-down nav-caret"></i>
+                    </div>
+                    <div class="nav-dropdown">
+                        <a href="index.html" class="nav-dropdown-item">
+                            <i class="fas fa-tachometer-alt"></i>
+                            <span>Go to Dashboard</span>
+                        </a>
+                        <div class="nav-dropdown-divider"></div>
+                        <div id="sidebarProjectsList">
+                            <div class="nav-dropdown-item" style="color: #95a5a6; font-style: italic;">
+                                <i class="fas fa-spinner fa-spin"></i>
+                                <span>Loading projects...</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <a href="compare.html" class="nav-item" title="Compare"><i class="fas fa-chart-bar nav-icon"></i><span class="nav-text">Compare</span></a>
+                <a href="payments.html" class="nav-item" title="Payments"><i class="fas fa-credit-card nav-icon"></i><span class="nav-text">Payments</span></a>
+                <a href="funds.html" class="nav-item active" title="Funds"><i class="fas fa-wallet nav-icon"></i><span class="nav-text">Funds</span></a>
+                <a href="materials.html" class="nav-item" title="Materials"><i class="fas fa-boxes nav-icon"></i><span class="nav-text">Materials</span></a>
+                <div class="nav-divider"></div>
+                <a href="hub.html" class="nav-item" title="Hub"><i class="fas fa-home nav-icon"></i><span class="nav-text">Hub</span></a>
+                <div class="nav-divider"></div>
+                <a href="about.html" class="nav-item" title="Help"><i class="fas fa-life-ring nav-icon"></i><span class="nav-text">Help</span></a>
+                <a href="settings.html" class="nav-item" title="Settings"><i class="fas fa-cog nav-icon"></i><span class="nav-text">Settings</span></a>
+            </nav>
+            <div class="sidebar-footer">
+                <button id="logoutBtn" class="logout-btn" title="Logout"><i class="fas fa-sign-out-alt"></i><span class="logout-text">Logout</span></button>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <div class="page-header">
+                <h1 class="page-title"><i class="fas fa-wallet"></i> Fund Management</h1>
+                <div class="flex gap-2 flex-wrap">
+                    <button id="generateCompleteFundReportBtn" class="btn btn-primary"><i class="fas fa-file-pdf"></i> Complete Report</button>
+                    <button id="generateFundUnderstandingBtn" class="btn btn-secondary"><i class="fas fa-book"></i> Guide</button>
+                    <button id="reconcileBtn" class="btn btn-secondary"><i class="fas fa-balance-scale"></i> Reconcile</button>
+                    <button id="addPaymentBtn" class="btn btn-primary"><i class="fas fa-plus"></i> Add Payment</button>
+                </div>
+            </div>
+
+            <!-- Overall Fund Status -->
+            <div class="summary-grid" id="overallStatus"></div>
+
+            <!-- Tabs -->
+            <div class="tabs-nav">
+                <button class="tab-btn active" data-tab="wallets"><i class="fas fa-wallet"></i> Project Wallets</button>
+                <button class="tab-btn" data-tab="payments"><i class="fas fa-money-bill-wave"></i> Payment Allocation</button>
+                <button class="tab-btn" data-tab="loans"><i class="fas fa-handshake"></i> Inter-Project Loans</button>
+                <button class="tab-btn" data-tab="unallocated"><i class="fas fa-question-circle"></i> Unallocated Funds</button>
+            </div>
+
+            <!-- Project Wallets Tab -->
+            <div id="walletsTab" class="tab-content active">
+                <div class="section-card">
+                    <div class="flex justify-between items-center mb-4">
+                        <h2 class="section-title"><i class="fas fa-university"></i> Virtual Project Wallets</h2>
+                        <button id="refreshWalletsBtn" class="btn btn-secondary"><i class="fas fa-sync-alt"></i> Refresh</button>
+                    </div>
+                    <div id="projectWalletsGrid" class="wallet-grid"></div>
+                </div>
+            </div>
+
+            <!-- Payment Allocation Tab -->
+            <div id="paymentsTab" class="tab-content">
+                <div class="section-card">
+                    <div class="flex justify-between items-center mb-4">
+                        <h2 class="section-title"><i class="fas fa-money-check-alt"></i> Payment Allocation History</h2>
+                        <button id="allocatePaymentBtn" class="btn btn-primary"><i class="fas fa-plus"></i> Allocate Payment</button>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="data-table">
+                            <thead>
+                                <tr><th>Date</th><th>From</th><th>Total Amount</th><th>Projects</th><th>Method & Type</th><th>Actions</th></tr>
+                            </thead>
+                            <tbody id="paymentAllocationsTable"></tbody>
+                        </table>
+                    </div>
+                    <div id="paymentsEmpty" class="empty-state hidden">
+                        <i class="fas fa-money-bill-wave"></i>
+                        <p>No payment allocations yet</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Inter-Project Loans Tab -->
+            <div id="loansTab" class="tab-content">
+                <div class="section-card">
+                    <div class="flex justify-between items-center mb-4">
+                        <h2 class="section-title"><i class="fas fa-exchange-alt"></i> Inter-Project Loans</h2>
+                        <button id="recordExpenseBtn" class="btn btn-primary"><i class="fas fa-plus"></i> Record Cross-Project Expense</button>
+                    </div>
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <div>
+                            <h3 class="font-semibold text-slate-800 mb-3 flex items-center gap-2"><i class="fas fa-clock text-warning"></i> Active Loans</h3>
+                            <div id="activeLoansContainer"></div>
+                        </div>
+                        <div>
+                            <h3 class="font-semibold text-slate-800 mb-3 flex items-center gap-2"><i class="fas fa-check-circle text-success"></i> Recent Settlements</h3>
+                            <div id="recentSettlementsContainer"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Unallocated Funds Tab -->
+            <div id="unallocatedTab" class="tab-content">
+                <div class="section-card">
+                    <div class="flex justify-between items-center mb-4">
+                        <h2 class="section-title"><i class="fas fa-question-circle"></i> Unallocated Funds</h2>
+                    </div>
+                    <div id="unallocatedFundsContainer"></div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+
+    <!-- Payment Allocation Modal -->
+    <div id="paymentAllocationModal" class="modal-overlay hidden">
+        <div class="modal-content" style="max-width: 600px; border-radius: var(--radius-xl); overflow: hidden; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);">
+            <div class="modal-header" style="background: linear-gradient(135deg, var(--primary), var(--primary-dark, #3D6B4A)); padding: 1.5rem; display: flex; justify-content: space-between; align-items: center;">
+                <div style="display: flex; align-items: center; gap: 0.75rem;">
+                    <div style="width: 40px; height: 40px; background: rgba(255,255,255,0.2); border-radius: 10px; display: flex; align-items: center; justify-content: center;">
+                        <i class="fas fa-money-check-alt" style="color: white; font-size: 1.25rem;"></i>
+                    </div>
+                    <h3 style="color: white; font-size: 1.25rem; font-weight: 700; margin: 0;">Allocate Payment</h3>
+                </div>
+                <button class="close-modal modal-close" style="background: rgba(255,255,255,0.2); border: none; width: 36px; height: 36px; border-radius: 8px; cursor: pointer; color: white; font-size: 1rem; transition: all 0.2s;">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <form id="paymentAllocationForm" class="modal-body" style="padding: 1.5rem;">
+                <div class="grid grid-cols-2 gap-4 mb-4">
+                    <div class="form-group">
+                        <label class="form-label" style="font-weight: 600; color: var(--dark); margin-bottom: 0.5rem; display: block; font-size: 0.875rem;">
+                            <i class="fas fa-rupee-sign text-primary mr-1"></i> Amount (₹) *
+                        </label>
+                        <input type="number" id="totalPaymentAmount" required min="1" step="0.01" class="form-input" style="padding: 0.75rem 1rem; border-radius: var(--radius-md); border: 1px solid var(--border); width: 100%; font-size: 0.9375rem;">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" style="font-weight: 600; color: var(--dark); margin-bottom: 0.5rem; display: block; font-size: 0.875rem;">
+                            <i class="fas fa-calendar text-primary mr-1"></i> Date *
+                        </label>
+                        <input type="date" id="paymentDate" required class="form-input" style="padding: 0.75rem 1rem; border-radius: var(--radius-md); border: 1px solid var(--border); width: 100%; font-size: 0.9375rem;">
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-4 mb-4">
+                    <div class="form-group">
+                        <label class="form-label" style="font-weight: 600; color: var(--dark); margin-bottom: 0.5rem; display: block; font-size: 0.875rem;">
+                            <i class="fas fa-user text-primary mr-1"></i> From (Client) *
+                        </label>
+                        <input type="text" id="paymentFrom" required class="form-input" placeholder="Client name" style="padding: 0.75rem 1rem; border-radius: var(--radius-md); border: 1px solid var(--border); width: 100%; font-size: 0.9375rem;">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" style="font-weight: 600; color: var(--dark); margin-bottom: 0.5rem; display: block; font-size: 0.875rem;">
+                            <i class="fas fa-user-check text-primary mr-1"></i> Received By *
+                        </label>
+                        <input type="text" id="paymentReceivedBy" required class="form-input" placeholder="Receiver name" style="padding: 0.75rem 1rem; border-radius: var(--radius-md); border: 1px solid var(--border); width: 100%; font-size: 0.9375rem;">
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-4 mb-4">
+                    <div class="form-group">
+                        <label class="form-label" style="font-weight: 600; color: var(--dark); margin-bottom: 0.5rem; display: block; font-size: 0.875rem;">
+                            <i class="fas fa-credit-card text-primary mr-1"></i> Method
+                        </label>
+                        <select id="paymentMethod" class="form-input" style="padding: 0.75rem 1rem; border-radius: var(--radius-md); border: 1px solid var(--border); width: 100%; font-size: 0.9375rem; background: white;">
+                            <option value="Bank Transfer">Bank Transfer</option>
+                            <option value="Cash">Cash</option>
+                            <option value="Cheque">Cheque</option>
+                            <option value="UPI">UPI</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" style="font-weight: 600; color: var(--dark); margin-bottom: 0.5rem; display: block; font-size: 0.875rem;">
+                            <i class="fas fa-sticky-note text-primary mr-1"></i> Notes
+                        </label>
+                        <input type="text" id="paymentNotes" class="form-input" placeholder="Optional notes" style="padding: 0.75rem 1rem; border-radius: var(--radius-md); border: 1px solid var(--border); width: 100%; font-size: 0.9375rem;">
+                    </div>
+                </div>
+                <div class="mb-4" style="background: var(--bg-light); padding: 1rem; border-radius: var(--radius-md);">
+                    <div class="flex justify-between items-center mb-3">
+                        <label class="form-label" style="font-weight: 600; color: var(--dark); font-size: 0.875rem; margin: 0;">
+                            <i class="fas fa-project-diagram text-primary mr-1"></i> Project Allocations
+                        </label>
+                        <button type="button" id="addAllocationBtn" class="text-sm font-semibold" style="background: var(--primary); color: white; padding: 0.5rem 1rem; border-radius: var(--radius-md); border: none; cursor: pointer;">
+                            <i class="fas fa-plus mr-1"></i>Add Project
+                        </button>
+                    </div>
+                    <div id="allocationsList" class="space-y-2 max-h-40 overflow-y-auto"></div>
+                </div>
+                <div style="background: linear-gradient(135deg, var(--bg-light), var(--white)); padding: 1rem; border-radius: var(--radius-md); margin-bottom: 1rem; display: flex; justify-content: space-between; border: 1px solid var(--border);">
+                    <span style="font-weight: 600; color: var(--dark);">Allocated: <strong id="totalAllocated" style="color: var(--success);">₹0</strong></span>
+                    <span style="font-weight: 600; color: var(--dark);">Remaining: <strong id="remainingAmount" style="color: var(--error);">₹0</strong></span>
+                </div>
+                <div class="modal-footer" style="padding: 1rem 0 0; border-top: 1px solid var(--border); display: flex; gap: 1rem; justify-content: flex-end;">
+                    <button type="button" class="btn btn-secondary cancel-modal" style="padding: 0.75rem 1.5rem; border-radius: var(--radius-md); font-weight: 600;">Cancel</button>
+                    <button type="submit" class="btn btn-primary" style="padding: 0.75rem 1.5rem; border-radius: var(--radius-md); font-weight: 600;">
+                        <i class="fas fa-check mr-1"></i> Allocate Payment
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Cross-Project Expense Modal -->
+    <div id="crossProjectExpenseModal" class="modal-overlay hidden">
+        <div class="modal-content" style="max-width: 600px;">
+            <div class="modal-header" style="background: linear-gradient(135deg, var(--primary), var(--primary-dark, #3D6B4A)); padding: 1.5rem;">
+                <div style="display: flex; align-items: center; gap: 0.75rem;">
+                    <div style="width: 40px; height: 40px; background: rgba(255,255,255,0.2); border-radius: 10px; display: flex; align-items: center; justify-content: center;">
+                        <i class="fas fa-exchange-alt" style="color: white; font-size: 1.25rem;"></i>
+                    </div>
+                    <h3 style="color: white; font-size: 1.25rem; font-weight: 700; margin: 0;">Cross-Project Expense</h3>
+                </div>
+                <button class="close-modal modal-close" style="background: rgba(255,255,255,0.2); border: none; width: 36px; height: 36px; border-radius: 8px; cursor: pointer; color: white; font-size: 1rem;">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <form id="crossProjectExpenseForm" class="modal-body" style="padding: 1.5rem;">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                    <div class="form-group">
+                        <label class="form-label" style="font-weight: 600; color: var(--dark); margin-bottom: 0.5rem; display: block; font-size: 0.875rem;">
+                            <i class="fas fa-project-diagram text-primary mr-1"></i> Beneficiary Project *
+                        </label>
+                        <select id="beneficiaryProject" required class="form-input" style="padding: 0.75rem 1rem; border-radius: var(--radius-md); border: 1px solid var(--border); width: 100%; font-size: 0.9375rem; background: white;">
+                            <option value="">Select project</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" style="font-weight: 600; color: var(--dark); margin-bottom: 0.5rem; display: block; font-size: 0.875rem;">
+                            <i class="fas fa-tag text-primary mr-1"></i> Type *
+                        </label>
+                        <select id="expenseType" required class="form-input" style="padding: 0.75rem 1rem; border-radius: var(--radius-md); border: 1px solid var(--border); width: 100%; font-size: 0.9375rem; background: white;">
+                            <option value="material">Material</option>
+                            <option value="labour">Labour</option>
+                            <option value="expense">Other</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" style="font-weight: 600; color: var(--dark); margin-bottom: 0.5rem; display: block; font-size: 0.875rem;">
+                            <i class="fas fa-rupee-sign text-primary mr-1"></i> Amount (₹) *
+                        </label>
+                        <input type="number" id="expenseAmount" required min="1" step="0.01" class="form-input" style="padding: 0.75rem 1rem; border-radius: var(--radius-md); border: 1px solid var(--border); width: 100%; font-size: 0.9375rem;">
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <div class="form-group">
+                        <label class="form-label" style="font-weight: 600; color: var(--dark); margin-bottom: 0.5rem; display: block; font-size: 0.875rem;">
+                            <i class="fas fa-file-alt text-primary mr-1"></i> Description *
+                        </label>
+                        <input type="text" id="expenseDescription" required class="form-input" placeholder="What was purchased" style="padding: 0.75rem 1rem; border-radius: var(--radius-md); border: 1px solid var(--border); width: 100%; font-size: 0.9375rem;">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" style="font-weight: 600; color: var(--dark); margin-bottom: 0.5rem; display: block; font-size: 0.875rem;">
+                            <i class="fas fa-calendar text-primary mr-1"></i> Date *
+                        </label>
+                        <input type="date" id="expenseDate" required class="form-input" style="padding: 0.75rem 1rem; border-radius: var(--radius-md); border: 1px solid var(--border); width: 100%; font-size: 0.9375rem;">
+                    </div>
+                </div>
+                <div class="mb-4" style="background: var(--bg-light); padding: 1rem; border-radius: var(--radius-md);">
+                    <div class="flex justify-between items-center mb-3">
+                        <label class="form-label" style="font-weight: 600; color: var(--dark); font-size: 0.875rem; margin: 0;">
+                            <i class="fas fa-wallet text-primary mr-1"></i> Payment Sources
+                        </label>
+                        <button type="button" id="addPaymentSourceBtn" class="text-sm font-semibold" style="background: var(--primary); color: white; padding: 0.5rem 1rem; border-radius: var(--radius-md); border: none; cursor: pointer;">
+                            <i class="fas fa-plus mr-1"></i>Add Source
+                        </button>
+                    </div>
+                    <div id="paymentSourcesList" class="space-y-2 max-h-40 overflow-y-auto"></div>
+                </div>
+                <div style="background: linear-gradient(135deg, var(--bg-light), var(--white)); padding: 1rem; border-radius: var(--radius-md); margin-bottom: 1rem; display: flex; justify-content: space-between; border: 1px solid var(--border);">
+                    <span style="font-weight: 600; color: var(--dark);">Paid: <strong id="totalPaid" style="color: var(--success);">₹0</strong></span>
+                    <span style="font-weight: 600; color: var(--dark);">Remaining: <strong id="remainingExpense" style="color: var(--error);">₹0</strong></span>
+                </div>
+                <div class="modal-footer" style="padding: 1rem 0 0; border-top: 1px solid var(--border); display: flex; gap: 1rem; justify-content: flex-end;">
+                    <button type="button" class="btn btn-secondary cancel-modal" style="padding: 0.75rem 1.5rem; border-radius: var(--radius-md); font-weight: 600;">Cancel</button>
+                    <button type="submit" class="btn btn-primary" style="padding: 0.75rem 1.5rem; border-radius: var(--radius-md); font-weight: 600;">
+                        <i class="fas fa-check mr-1"></i> Record Expense
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script type="module">
+        import { auth, onAuthStateChanged, signOut } from './js/firebase-config.js';
+        import { initAuthHeader } from './js/auth-header.js';
+        import Storage from './js/firebase-storage.js';
+        import FundManagement from './js/fund-management.js?v=2';
+        import UserPreferences from './js/user-preferences.js';
+        import { initSidebarDropdown, toggleDashboardDropdown } from './js/sidebar-dropdown.js';
+        
+        window.Storage = Storage;
+        window.FundManagement = FundManagement;
+        window.toggleDashboardDropdown = toggleDashboardDropdown;
+        
+        initSidebarDropdown();
+        
+        // Check if user has premium access
+        async function checkPremiumAccess(user) {
+            if (user.email === 'sulaimaansong6297@gmail.com' || user.email === 'saqlainmohammed1122@gmail.com') {
+                return true;
+            }
+            try {
+                const { doc, getDoc } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
+                const { db } = await import('./js/firebase-config.js');
+                const userDoc = await getDoc(doc(db, 'users', user.uid));
+                if (!userDoc.exists()) return false;
+                const userData = userDoc.data();
+                if (userData.premiumStatus === 'PREMIUM' && userData.premiumEnd) {
+                    const endDate = userData.premiumEnd.toDate ? userData.premiumEnd.toDate() : new Date(userData.premiumEnd);
+                    return endDate > new Date();
+                }
+                return false;
+            } catch (e) {
+                console.error('Premium check error:', e);
+                return false;
+            }
+        }
+        
+        function showPremiumRequired() {
+            document.getElementById('pageLoader')?.classList.add('hidden');
+            document.body.innerHTML = `
+                <div style="min-height: 100vh; display: flex; align-items: center; justify-content: center; background: var(--bg-light); padding: 2rem;">
+                    <div style="background: white; border-radius: 16px; padding: 3rem; max-width: 450px; text-align: center; box-shadow: 0 10px 40px rgba(0,0,0,0.1);">
+                        <div style="width: 80px; height: 80px; background: linear-gradient(135deg, #FFD700, #FFA500); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem;">
+                            <i class="fas fa-crown" style="font-size: 2rem; color: white;"></i>
+                        </div>
+                        <h1 style="font-size: 1.5rem; font-weight: 700; color: #1A1A1A; margin-bottom: 0.5rem;">Premium Feature</h1>
+                        <p style="color: #6B6B6B; margin-bottom: 1.5rem; line-height: 1.6;">
+                            <strong>Fund Management</strong> is a premium feature. Upgrade to unlock powerful financial tools for your projects!
+                        </p>
+                        <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
+                            <a href="upgrade.html" style="background: linear-gradient(135deg, #FFD700, #FFA500); color: #5D4E00; padding: 0.875rem 1.5rem; border-radius: 8px; font-weight: 700; text-decoration: none; display: inline-flex; align-items: center; gap: 0.5rem;">
+                                <i class="fas fa-crown"></i> Upgrade Now
+                            </a>
+                            <a href="hub.html" style="background: #F5F5F5; color: #4A7C59; padding: 0.875rem 1.5rem; border-radius: 8px; font-weight: 700; text-decoration: none;">
+                                Go Back
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+        
+        onAuthStateChanged(auth, async (user) => {
+            if (!user) { window.location.href = 'login.html'; return; }
+            
+            const hasPremium = await checkPremiumAccess(user);
+            if (!hasPremium) { showPremiumRequired(); return; }
+            
+            initAuthHeader({ requireAuth: false });
+            UserPreferences.trackActivity('funds.html', null, 'funds');
+            
+            try {
+                await FundsApp.init();
+            } catch (error) {
+                console.error('Error initializing funds app:', error);
+            }
+        });
+        
+        document.getElementById('logoutBtn').addEventListener('click', async () => {
+            await signOut(auth);
+            window.location.href = 'login.html';
+        });
+
+        const FundsApp = {
+            projects: [],
+            allocationCount: 0,
+            paymentSourceCount: 0,
+            loadingTimeout: null,
+            maxLoadingTimeout: null,
+
+            showLoader(show, message = 'Loading fund data...') {
+                const loader = document.getElementById('pageLoader');
+                if (loader) { 
+                    if (show) {
+                        // Update loading message
+                        const loadingText = loader.querySelector('.loading-text');
+                        if (loadingText) loadingText.textContent = message;
+                        
+                        loader.classList.remove('hidden');
+                        
+                        // Set timeout to handle long operations (Requirement 9.5)
+                        this.loadingTimeout = setTimeout(() => {
+                            const loadingText = loader.querySelector('.loading-text');
+                            if (loadingText) loadingText.textContent = 'This is taking longer than expected...';
+                        }, 5000);
+                        
+                        // Set maximum timeout
+                        this.maxLoadingTimeout = setTimeout(() => {
+                            this.showLoader(false);
+                            this.showToast('Operation timed out. Please try again.', 'error');
+                        }, 30000);
+                    } else {
+                        // Clear timeouts
+                        if (this.loadingTimeout) {
+                            clearTimeout(this.loadingTimeout);
+                            this.loadingTimeout = null;
+                        }
+                        if (this.maxLoadingTimeout) {
+                            clearTimeout(this.maxLoadingTimeout);
+                            this.maxLoadingTimeout = null;
+                        }
+                        loader.classList.add('hidden');
+                    }
+                }
+            },
+
+            formatNumber(num) { return (num || 0).toLocaleString('en-IN'); },
+            formatDate(date) { return new Date(date).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }); },
+            
+            /**
+             * Show toast notification with proper styling (Requirement 9.1)
+             * @param {string} message - Message to display
+             * @param {string} type - 'success', 'error', 'info', or 'warning'
+             */
+            showToast(message, type = 'info') { 
+                // Remove existing toast
+                document.querySelector('.toast-notification')?.remove();
+                
+                const colors = {
+                    success: { bg: 'bg-green-500', icon: 'fa-check-circle' },
+                    error: { bg: 'bg-red-500', icon: 'fa-exclamation-circle' },
+                    warning: { bg: 'bg-amber-500', icon: 'fa-exclamation-triangle' },
+                    info: { bg: 'bg-sky-500', icon: 'fa-info-circle' }
+                };
+                
+                const config = colors[type] || colors.info;
+                
+                const toast = document.createElement('div');
+                toast.className = `toast-notification fixed bottom-4 right-4 ${config.bg} text-white px-4 py-3 rounded-lg shadow-lg z-50 max-w-md transform translate-y-full opacity-0 transition-all duration-300`;
+                toast.innerHTML = `
+                    <div class="flex items-start gap-3">
+                        <i class="fas ${config.icon} mt-0.5"></i>
+                        <div class="flex-1 text-sm whitespace-pre-line">${message}</div>
+                        <button onclick="this.parentElement.parentElement.remove()" class="text-white/80 hover:text-white">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                `;
+                document.body.appendChild(toast);
+                
+                // Animate in
+                requestAnimationFrame(() => {
+                    toast.classList.remove('translate-y-full', 'opacity-0');
+                });
+                
+                // Auto-remove after delay (longer for errors)
+                const delay = type === 'error' ? 8000 : 4000;
+                setTimeout(() => {
+                    toast.classList.add('translate-y-full', 'opacity-0');
+                    setTimeout(() => toast.remove(), 300);
+                }, delay);
+            },
+
+            async init() {
+                this.showLoader(true);
+                try {
+                    this.projects = await Storage.projects.getAll();
+                    this.bindEvents();
+                    await Promise.all([this.renderOverallStatus(), this.renderProjectWallets()]);
+                } catch (error) {
+                    console.error('Error loading fund data:', error);
+                } finally {
+                    this.showLoader(false);
+                }
+            },
+
+            bindEvents() {
+                document.querySelectorAll('.tab-btn').forEach(btn => btn.addEventListener('click', () => this.switchTab(btn.dataset.tab)));
+                document.querySelectorAll('.close-modal, .cancel-modal').forEach(btn => btn.addEventListener('click', () => this.closeAllModals()));
+                document.getElementById('addPaymentBtn').addEventListener('click', () => this.openPaymentAllocationModal());
+                document.getElementById('allocatePaymentBtn').addEventListener('click', () => this.openPaymentAllocationModal());
+                document.getElementById('recordExpenseBtn').addEventListener('click', () => this.openCrossProjectExpenseModal());
+                document.getElementById('refreshWalletsBtn').addEventListener('click', () => this.renderProjectWallets());
+                document.getElementById('generateCompleteFundReportBtn').addEventListener('click', () => this.generateCompleteFundReport());
+                document.getElementById('generateFundUnderstandingBtn').addEventListener('click', () => this.generateFundUnderstandingGuide());
+                document.getElementById('reconcileBtn').addEventListener('click', () => this.reconcileSystem());
+                document.getElementById('paymentAllocationForm').addEventListener('submit', (e) => this.handlePaymentAllocation(e));
+                document.getElementById('crossProjectExpenseForm').addEventListener('submit', (e) => this.handleCrossProjectExpense(e));
+                document.getElementById('addAllocationBtn').addEventListener('click', () => this.addAllocationRow());
+                document.getElementById('addPaymentSourceBtn').addEventListener('click', () => this.addPaymentSourceRow());
+                document.getElementById('totalPaymentAmount').addEventListener('input', () => this.updateAllocationCalculations());
+                document.getElementById('expenseAmount').addEventListener('input', () => this.updatePaymentSourceCalculations());
+            },
+
+            closeAllModals() {
+                document.querySelectorAll('.modal-overlay').forEach(m => { m.classList.remove('active'); m.classList.add('hidden'); });
+            },
+
+            async switchTab(tabName) {
+                document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                document.querySelector(`[data-tab="${tabName}"]`).classList.add('active');
+                document.getElementById(`${tabName}Tab`).classList.add('active');
+                
+                try {
+                    if (tabName === 'wallets') await this.renderProjectWallets();
+                    if (tabName === 'payments') await this.renderPaymentAllocations();
+                    if (tabName === 'loans') await this.renderInterProjectLoans();
+                    if (tabName === 'unallocated') await this.renderUnallocatedFunds();
+                } catch (error) { console.error('Error loading tab:', error); }
+            },
+
+            async renderOverallStatus() {
+                const status = await FundManagement.getOverallFundStatus();
+                const netAvailableClass = status.netAvailable >= 0 ? 'text-success' : 'text-error';
+                document.getElementById('overallStatus').innerHTML = `
+                    <div class="summary-item total"><p class="summary-label">Total Bank Balance</p><p class="summary-value">₹${this.formatNumber(status.totalVirtualBalance)}</p><p class="text-xs text-gray mt-1">All payments received</p></div>
+                    <div class="summary-item spent"><p class="summary-label">Total Spent</p><p class="summary-value">₹${this.formatNumber(status.totalSpent || 0)}</p><p class="text-xs text-gray mt-1">All projects combined</p></div>
+                    <div class="summary-item available"><p class="summary-label">Net Available</p><p class="summary-value ${netAvailableClass}">₹${this.formatNumber(status.netAvailable || 0)}</p><p class="text-xs text-gray mt-1">Current bank balance</p></div>
+                    <div class="summary-item loans"><p class="summary-label">Active Inter-Project Loans</p><p class="summary-value">₹${this.formatNumber(status.totalActiveLoans)}</p></div>
+                    <div class="summary-item projects"><p class="summary-label">Projects</p><p class="summary-value">${status.projectSummaries.length}</p></div>
+                    <div class="summary-item status"><p class="summary-label">System Status</p><p class="summary-value ${status.isBalanced ? 'text-success' : 'text-error'}">${status.isBalanced ? 'Balanced' : 'Unbalanced'}</p></div>
+                `;
+            },
+
+            async renderProjectWallets() {
+                const status = await FundManagement.getOverallFundStatus();
+                const container = document.getElementById('projectWalletsGrid');
+                if (!status.projectSummaries.length) { container.innerHTML = '<div class="col-span-full text-center text-gray py-8">No projects found</div>'; return; }
+                container.innerHTML = status.projectSummaries.map(project => `
+                    <div class="wallet-card">
+                        <div class="flex items-start justify-between mb-3">
+                            <div><h3 class="font-bold text-dark">${project.projectName}</h3><p class="text-xs text-gray">ID: ${project.projectId}</p></div>
+                            <div class="text-right"><p class="text-xs text-gray">Net Available</p><p class="font-bold text-lg ${project.netAvailableBalance >= 0 ? 'text-success' : 'text-error'}">₹${this.formatNumber(project.netAvailableBalance)}</p></div>
+                        </div>
+                        <div class="space-y-2 text-sm">
+                            <div class="flex justify-between"><span class="text-gray">Virtual Balance</span><span class="font-semibold">₹${this.formatNumber(project.virtualBalance)}</span></div>
+                            <div class="flex justify-between"><span class="text-gray">Loans Given</span><span class="font-semibold text-warning">₹${this.formatNumber(project.activeLoansGiven)}</span></div>
+                            <div class="flex justify-between"><span class="text-gray">Loans Received</span><span class="font-semibold text-error">₹${this.formatNumber(project.activeLoansReceived)}</span></div>
+                            <div class="flex justify-between"><span class="text-gray">Advance Received</span><span class="font-semibold text-success">₹${this.formatNumber(project.advanceReceived)}</span></div>
+                        </div>
+                        <div class="mt-3 pt-3 border-t border-border"><button onclick="window.location.href='project.html?id=${project.projectId}'" class="btn btn-secondary text-xs w-full"><i class="fas fa-external-link-alt mr-1"></i>View Project</button></div>
+                    </div>
+                `).join('');
+            },
+
+            async renderPaymentAllocations() { document.getElementById('paymentAllocationsTable').innerHTML = '<tr><td colspan="6" class="text-center py-4 text-gray">Loading...</td></tr>'; },
+            async renderInterProjectLoans() { document.getElementById('activeLoansContainer').innerHTML = '<p class="text-gray text-center py-4">No active loans</p>'; document.getElementById('recentSettlementsContainer').innerHTML = '<p class="text-gray text-center py-4">No settlements</p>'; },
+            async renderUnallocatedFunds() { document.getElementById('unallocatedFundsContainer').innerHTML = '<p class="text-gray text-center py-8">No unallocated funds</p>'; },
+
+            openPaymentAllocationModal() { 
+                console.log('[FundsApp] Opening payment allocation modal');
+                this.populateProjectDropdowns(); 
+                this.resetAllocationForm(); 
+                document.getElementById('paymentDate').value = new Date().toISOString().split('T')[0]; 
+                const modal = document.getElementById('paymentAllocationModal');
+                // First remove hidden to make it visible (display: flex)
+                modal.classList.remove('hidden'); 
+                // Force a reflow before adding active class for smooth transition
+                modal.offsetHeight;
+                // Then add active for opacity/visibility transition
+                modal.classList.add('active');
+            },
+            openCrossProjectExpenseModal() { 
+                console.log('[FundsApp] Opening cross-project expense modal');
+                this.populateProjectDropdowns(); 
+                this.resetExpenseForm(); 
+                document.getElementById('expenseDate').value = new Date().toISOString().split('T')[0]; 
+                const modal = document.getElementById('crossProjectExpenseModal');
+                modal.classList.remove('hidden'); 
+                modal.offsetHeight;
+                modal.classList.add('active');
+            },
+            populateProjectDropdowns() { const sel = document.getElementById('beneficiaryProject'); if (sel) sel.innerHTML = '<option value="">Select project</option>' + this.projects.map(p => `<option value="${p.id}">${p.name}</option>`).join(''); },
+            resetAllocationForm() { this.allocationCount = 0; document.getElementById('allocationsList').innerHTML = ''; this.addAllocationRow(); this.updateAllocationCalculations(); },
+            resetExpenseForm() { this.paymentSourceCount = 0; document.getElementById('paymentSourcesList').innerHTML = ''; this.addPaymentSourceRow(); this.updatePaymentSourceCalculations(); },
+            addAllocationRow() { const c = document.getElementById('allocationsList'); const r = document.createElement('div'); r.className = 'grid grid-cols-4 gap-2 p-2 bg-slate-50 rounded'; r.innerHTML = `<select class="form-input project-select" required><option value="">Select Project</option>${this.projects.map(p => `<option value="${p.id}">${p.name}</option>`).join('')}</select><input type="number" class="form-input allocation-amount" placeholder="Amount" min="1" step="0.01" required><input type="text" class="form-input" placeholder="Description"><button type="button" class="btn btn-danger text-sm" onclick="this.parentElement.remove(); FundsApp.updateAllocationCalculations();"><i class="fas fa-trash"></i></button>`; c.appendChild(r); r.querySelector('.allocation-amount').addEventListener('input', () => this.updateAllocationCalculations()); },
+            addPaymentSourceRow() { const c = document.getElementById('paymentSourcesList'); const r = document.createElement('div'); r.className = 'grid grid-cols-3 gap-2 p-2 bg-slate-50 rounded'; r.innerHTML = `<select class="form-input project-select" required><option value="">Select Paying Project</option>${this.projects.map(p => `<option value="${p.id}">${p.name}</option>`).join('')}</select><input type="number" class="form-input source-amount" placeholder="Amount" min="1" step="0.01" required><button type="button" class="btn btn-danger text-sm" onclick="this.parentElement.remove(); FundsApp.updatePaymentSourceCalculations();"><i class="fas fa-trash"></i></button>`; c.appendChild(r); r.querySelector('.source-amount').addEventListener('input', () => this.updatePaymentSourceCalculations()); },
+            updateAllocationCalculations() { const t = parseFloat(document.getElementById('totalPaymentAmount').value) || 0; const a = Array.from(document.querySelectorAll('.allocation-amount')).map(i => parseFloat(i.value) || 0).reduce((s, v) => s + v, 0); const r = t - a; document.getElementById('totalAllocated').textContent = `₹${this.formatNumber(a)}`; document.getElementById('remainingAmount').textContent = `₹${this.formatNumber(r)}`; document.getElementById('remainingAmount').className = `font-bold ${r === 0 ? 'text-success' : 'text-error'}`; },
+            updatePaymentSourceCalculations() { const t = parseFloat(document.getElementById('expenseAmount').value) || 0; const p = Array.from(document.querySelectorAll('.source-amount')).map(i => parseFloat(i.value) || 0).reduce((s, v) => s + v, 0); const r = t - p; document.getElementById('totalPaid').textContent = `₹${this.formatNumber(p)}`; document.getElementById('remainingExpense').textContent = `₹${this.formatNumber(r)}`; document.getElementById('remainingExpense').className = `font-bold ${r === 0 ? 'text-success' : 'text-error'}`; },
+            async handlePaymentAllocation(e) { 
+                e.preventDefault(); 
+                
+                // Gather form data
+                const totalAmount = parseFloat(document.getElementById('totalPaymentAmount').value) || 0;
+                const paymentDate = document.getElementById('paymentDate').value;
+                const from = document.getElementById('paymentFrom').value.trim();
+                const receivedBy = document.getElementById('paymentReceivedBy').value.trim();
+                const method = document.getElementById('paymentMethod').value;
+                const notes = document.getElementById('paymentNotes').value.trim();
+                
+                // Gather allocations
+                const allocationRows = document.querySelectorAll('#allocationsList > div');
+                const allocations = [];
+                allocationRows.forEach(row => {
+                    const projectId = row.querySelector('.project-select').value;
+                    const amount = parseFloat(row.querySelector('.allocation-amount').value) || 0;
+                    const description = row.querySelector('input[placeholder="Description"]')?.value || '';
+                    if (projectId || amount > 0) {
+                        allocations.push({ projectId, amount, description });
+                    }
+                });
+                
+                // Import FinancialCalculator for validation
+                const { default: FinancialCalculator } = await import('./js/financial-calculator.js');
+                
+                // Validate form data (Requirements 9.2, 9.3)
+                const errors = [];
+                
+                // Validate required fields
+                if (!from) errors.push('Client name is required');
+                if (!receivedBy) errors.push('Receiver name is required');
+                if (!paymentDate) errors.push('Payment date is required');
+                
+                // Validate amount (Requirement 9.2)
+                const amountValidation = FinancialCalculator.validatePaymentAmount(totalAmount);
+                if (!amountValidation.isValid) {
+                    errors.push(amountValidation.message);
+                }
+                
+                // Validate allocations (Requirement 9.3)
+                const allocationValidation = FinancialCalculator.validateAllocations(totalAmount, allocations);
+                if (!allocationValidation.isValid) {
+                    errors.push(...allocationValidation.errors);
+                }
+                
+                if (errors.length > 0) {
+                    this.showToast('Validation Error:\n• ' + errors.join('\n• '), 'error');
+                    return;
+                }
+                
+                this.showLoader(true, 'Allocating payment...');
+                try {
+                    await FundManagement.allocatePayment({
+                        totalAmount,
+                        allocations,
+                        paymentDate,
+                        receivedBy,
+                        from,
+                        method,
+                        notes
+                    });
+                    this.showToast('Payment allocated successfully', 'success');
+                    this.closeAllModals();
+                    await this.renderOverallStatus();
+                    await this.renderProjectWallets();
+                } catch (error) {
+                    console.error('Error allocating payment:', error);
+                    this.showToast('Error: ' + (error.message || 'Failed to allocate payment'), 'error');
+                } finally {
+                    this.showLoader(false);
+                }
+            },
+            async handleCrossProjectExpense(e) { 
+                e.preventDefault(); 
+                
+                // Gather form data
+                const beneficiaryProjectId = document.getElementById('beneficiaryProject').value;
+                const expenseType = document.getElementById('expenseType').value;
+                const totalAmount = parseFloat(document.getElementById('expenseAmount').value) || 0;
+                const description = document.getElementById('expenseDescription').value.trim();
+                const date = document.getElementById('expenseDate').value;
+                
+                // Gather payment sources
+                const sourceRows = document.querySelectorAll('#paymentSourcesList > div');
+                const paymentSources = [];
+                sourceRows.forEach(row => {
+                    const projectId = row.querySelector('.project-select').value;
+                    const amount = parseFloat(row.querySelector('.source-amount').value) || 0;
+                    if (projectId || amount > 0) {
+                        paymentSources.push({ projectId, amount });
+                    }
+                });
+                
+                // Import FinancialCalculator for validation
+                const { default: FinancialCalculator } = await import('./js/financial-calculator.js');
+                
+                // Validate expense data (Requirements 9.2, 9.3)
+                const expenseData = {
+                    beneficiaryProjectId,
+                    totalAmount,
+                    description,
+                    date,
+                    paymentSources
+                };
+                
+                const validation = FinancialCalculator.validateExpenseData(expenseData);
+                if (!validation.isValid) {
+                    this.showToast('Validation Error:\n• ' + validation.errors.join('\n• '), 'error');
+                    return;
+                }
+                
+                this.showLoader(true, 'Recording expense...');
+                try {
+                    await FundManagement.recordCrossProjectExpense({
+                        beneficiaryProjectId,
+                        paymentSources,
+                        expenseDetails: {
+                            description,
+                            totalAmount,
+                            date,
+                            category: expenseType
+                        },
+                        expenseType
+                    });
+                    this.showToast('Cross-project expense recorded successfully', 'success');
+                    this.closeAllModals();
+                    await this.renderOverallStatus();
+                    await this.renderProjectWallets();
+                } catch (error) {
+                    console.error('Error recording expense:', error);
+                    this.showToast('Error: ' + (error.message || 'Failed to record expense'), 'error');
+                } finally {
+                    this.showLoader(false);
+                }
+            },
+            generateCompleteFundReport() { 
+                console.log('[FundsApp] Generating complete fund report');
+                this.showToast('Generating complete fund report...', 'info');
+                setTimeout(async () => {
+                    try {
+                        const status = await FundManagement.getOverallFundStatus();
+                        let reportContent = `FUND MANAGEMENT REPORT\n`;
+                        reportContent += `Generated: ${new Date().toLocaleDateString('en-IN')}\n\n`;
+                        reportContent += `SUMMARY\n`;
+                        reportContent += `Total Bank Balance: Rs.${this.formatNumber(status.totalVirtualBalance)}\n`;
+                        reportContent += `Total Spent: Rs.${this.formatNumber(status.totalSpent || 0)}\n`;
+                        reportContent += `Net Available: Rs.${this.formatNumber(status.netAvailable || 0)}\n`;
+                        reportContent += `Active Loans: Rs.${this.formatNumber(status.totalActiveLoans)}\n`;
+                        reportContent += `Projects: ${status.projectSummaries.length}\n\n`;
+                        reportContent += `PROJECT BREAKDOWN\n`;
+                        status.projectSummaries.forEach(p => {
+                            reportContent += `- ${p.projectName}: Rs.${this.formatNumber(p.virtualBalance)} received\n`;
+                        });
+                        
+                        const blob = new Blob([reportContent], { type: 'text/plain' });
+                        const url = URL.createObjectURL(blob);
+                        const a = document.createElement('a');
+                        a.href = url;
+                        a.download = `Fund_Report_${new Date().toISOString().split('T')[0]}.txt`;
+                        document.body.appendChild(a);
+                        a.click();
+                        document.body.removeChild(a);
+                        URL.revokeObjectURL(url);
+                        this.showToast('Report downloaded!', 'success');
+                    } catch (e) {
+                        console.error('Report error:', e);
+                        this.showToast('Error generating report: ' + e.message, 'error');
+                    }
+                }, 100);
+            },
+            generateFundUnderstandingGuide() { 
+                console.log('[FundsApp] Generating fund understanding guide');
+                // Create a modal to show the guide
+                const guideModal = document.createElement('div');
+                guideModal.className = 'modal-overlay active';
+                guideModal.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.6);display:flex;align-items:center;justify-content:center;z-index:9999;';
+                guideModal.innerHTML = `
+                    <div style="background:white;border-radius:12px;max-width:600px;max-height:80vh;overflow-y:auto;padding:2rem;margin:1rem;">
+                        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
+                            <h2 style="margin:0;color:#1e293b;"><i class="fas fa-book" style="color:#4A7C59;margin-right:0.5rem;"></i>Fund Management Guide</h2>
+                            <button onclick="this.closest('.modal-overlay').remove()" style="background:none;border:none;font-size:1.5rem;cursor:pointer;color:#64748b;">&times;</button>
+                        </div>
+                        <div style="color:#475569;line-height:1.8;">
+                            <h3 style="color:#4A7C59;margin-top:1rem;">1. Total Bank Balance</h3>
+                            <p>All money received from clients across all projects. Represents your single bank account.</p>
+                            
+                            <h3 style="color:#4A7C59;margin-top:1rem;">2. Total Spent</h3>
+                            <p>Sum of all expenses: Materials, Worker payments, Vendor payments, Other expenses.</p>
+                            
+                            <h3 style="color:#4A7C59;margin-top:1rem;">3. Net Available</h3>
+                            <p>Total Bank Balance - Total Spent = What's left in your bank.</p>
+                            
+                            <h3 style="color:#4A7C59;margin-top:1rem;">4. Payment Allocation</h3>
+                            <p>When you receive money, allocate it to the correct project(s) to track which project the money belongs to.</p>
+                            
+                            <h3 style="color:#4A7C59;margin-top:1rem;">5. Cross-Project Expenses</h3>
+                            <p>When Project A pays for Project B's expense, record it here. Creates a loan that can be settled later.</p>
+                            
+                            <h3 style="color:#4A7C59;margin-top:1rem;">6. Inter-Project Loans</h3>
+                            <p><strong>Loans Given:</strong> Money your project lent to others<br>
+                            <strong>Loans Received:</strong> Money borrowed from others<br>
+                            These should balance out across all projects.</p>
+                        </div>
+                    </div>
+                `;
+                document.body.appendChild(guideModal);
+                guideModal.addEventListener('click', (e) => { if (e.target === guideModal) guideModal.remove(); });
+            },
+            async reconcileSystem() { 
+                console.log('[FundsApp] Reconciling system');
+                this.showToast('Reconciling system...', 'info');
+                try {
+                    const result = await FundManagement.reconcileAllProjects();
+                    
+                    // Create a modal to show results
+                    const resultModal = document.createElement('div');
+                    resultModal.className = 'modal-overlay active';
+                    resultModal.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.6);display:flex;align-items:center;justify-content:center;z-index:9999;';
+                    
+                    const statusIcon = result.isBalanced ? '✓' : '✗';
+                    const statusColor = result.isBalanced ? '#22c55e' : '#ef4444';
+                    const statusText = result.isBalanced ? 'BALANCED' : 'UNBALANCED';
+                    
+                    resultModal.innerHTML = `
+                        <div style="background:white;border-radius:12px;max-width:500px;padding:2rem;margin:1rem;text-align:center;">
+                            <div style="font-size:4rem;color:${statusColor};margin-bottom:1rem;">${statusIcon}</div>
+                            <h2 style="margin:0 0 1rem;color:#1e293b;">Reconciliation ${statusText}</h2>
+                            <div style="background:#f8fafc;border-radius:8px;padding:1rem;margin-bottom:1rem;text-align:left;">
+                                <p style="margin:0.5rem 0;"><strong>Total Loans Given:</strong> ₹${this.formatNumber(result.totalLoansGiven || 0)}</p>
+                                <p style="margin:0.5rem 0;"><strong>Total Loans Received:</strong> ₹${this.formatNumber(result.totalLoansReceived || 0)}</p>
+                            </div>
+                            ${result.discrepancies?.length ? `<p style="color:#ef4444;">Found ${result.discrepancies.length} discrepancies</p>` : ''}
+                            <button onclick="this.closest('.modal-overlay').remove()" style="background:#4A7C59;color:white;border:none;padding:0.75rem 2rem;border-radius:8px;font-weight:600;cursor:pointer;margin-top:1rem;">Close</button>
+                        </div>
+                    `;
+                    document.body.appendChild(resultModal);
+                    resultModal.addEventListener('click', (e) => { if (e.target === resultModal) resultModal.remove(); });
+                    
+                    this.showToast(result.isBalanced ? 'System is balanced!' : 'Discrepancies found', result.isBalanced ? 'success' : 'warning');
+                } catch (e) {
+                    console.error('Reconcile error:', e);
+                    this.showToast('Error reconciling: ' + e.message, 'error');
+                }
+            }
+        };
+        
+        window.FundsApp = FundsApp;
+    </script>
+</body>
+</html>

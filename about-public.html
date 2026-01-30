@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>About B&B - Bricks & Bits | Construction Management</title>
+    <link rel="icon" type="image/png" href="B&B.png">
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --green-primary: #4A7C59;
+            --green-light: #6B9B7A;
+            --green-dark: #3D6B4A;
+            --brown-primary: #8B7355;
+            --brown-light: #C9A962;
+            --black: #1A1A1A;
+            --dark-gray: #2D2D2D;
+            --gray: #6B6B6B;
+            --light-gray: #E5E5E5;
+            --off-white: #F5F5F5;
+            --white: #FFFFFF;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Nunito', sans-serif; background: var(--off-white); min-height: 100vh; }
+        
+        /* Navbar */
+        .navbar {
+            background: var(--white);
+            padding: 1rem 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        .logo { display: flex; align-items: center; gap: 0.75rem; text-decoration: none; }
+        .logo img { height: 40px; }
+        .logo span { font-weight: 800; font-size: 1.25rem; color: var(--green-primary); }
+        .nav-links { display: flex; align-items: center; gap: 2rem; }
+        .nav-link { color: var(--gray); text-decoration: none; font-weight: 600; font-size: 0.9375rem; transition: color 0.2s; }
+        .nav-link:hover { color: var(--green-primary); }
+        .btn { padding: 0.625rem 1.25rem; border-radius: 8px; font-weight: 700; font-size: 0.875rem; cursor: pointer; transition: all 0.2s; text-decoration: none; display: inline-block; }
+        .btn-primary { background: var(--green-primary); color: white; border: none; }
+        .btn-primary:hover { background: var(--green-dark); transform: translateY(-1px); }
+        
+        /* Hero */
+        .hero {
+            background: linear-gradient(135deg, var(--green-primary), var(--green-dark));
+            padding: 4rem 2rem;
+            text-align: center;
+            color: white;
+        }
+        .hero h1 { font-size: 2.5rem; font-weight: 900; margin-bottom: 1rem; }
+        .hero p { font-size: 1.125rem; opacity: 0.9; max-width: 600px; margin: 0 auto; }
+        
+        /* Content */
+        .content { max-width: 1000px; margin: 0 auto; padding: 3rem 2rem; }
+        
+        /* Section */
+        .section { margin-bottom: 3rem; }
+        .section-title { font-size: 1.5rem; font-weight: 800; color: var(--black); margin-bottom: 1rem; display: flex; align-items: center; gap: 0.75rem; }
+        .section-title i { color: var(--green-primary); }
+        
+        /* Cards */
+        .card { background: var(--white); border-radius: 16px; padding: 2rem; box-shadow: 0 4px 12px rgba(0,0,0,0.05); margin-bottom: 1.5rem; }
+        .card p { color: var(--gray); line-height: 1.8; font-size: 1rem; }
+        
+        /* Team Grid */
+        .team-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem; }
+        .team-card { background: var(--white); border-radius: 16px; padding: 2rem; text-align: center; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+        .team-avatar { width: 100px; height: 100px; border-radius: 50%; background: linear-gradient(135deg, var(--green-primary), var(--green-light)); display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem; font-size: 2.5rem; color: white; font-weight: 800; }
+        .team-name { font-size: 1.25rem; font-weight: 800; color: var(--black); margin-bottom: 0.25rem; }
+        .team-role { font-size: 0.875rem; color: var(--green-primary); font-weight: 700; margin-bottom: 0.75rem; }
+        .team-bio { font-size: 0.875rem; color: var(--gray); line-height: 1.6; }
+        
+        /* Features */
+        .features-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem; }
+        .feature-card { background: var(--white); border-radius: 12px; padding: 1.5rem; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+        .feature-icon { width: 50px; height: 50px; border-radius: 12px; background: linear-gradient(135deg, var(--green-primary), var(--green-light)); display: flex; align-items: center; justify-content: center; margin-bottom: 1rem; color: white; font-size: 1.25rem; }
+        .feature-title { font-size: 1rem; font-weight: 700; color: var(--black); margin-bottom: 0.5rem; }
+        .feature-desc { font-size: 0.875rem; color: var(--gray); line-height: 1.6; }
+        
+        /* Contact */
+        .contact-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem; }
+        .contact-item { display: flex; align-items: center; gap: 1rem; padding: 1rem; background: var(--off-white); border-radius: 12px; }
+        .contact-icon { width: 45px; height: 45px; border-radius: 10px; background: var(--green-primary); display: flex; align-items: center; justify-content: center; color: white; font-size: 1.125rem; }
+        .contact-text { font-size: 0.875rem; color: var(--gray); }
+        .contact-text strong { display: block; color: var(--black); font-weight: 700; margin-bottom: 0.125rem; }
+        
+        /* Footer */
+        .footer { background: var(--black); color: white; padding: 2rem; text-align: center; }
+        .footer p { opacity: 0.7; font-size: 0.875rem; }
+        
+        @media (max-width: 768px) {
+            .navbar { padding: 1rem; }
+            .nav-links { display: none; }
+            .hero h1 { font-size: 1.75rem; }
+            .hero { padding: 2.5rem 1rem; }
+            .content { padding: 2rem 1rem; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar">
+        <a href="login.html" class="logo">
+            <svg viewBox="0 0 140 110" xmlns="http://www.w3.org/2000/svg" style="height:40px;width:40px;">
+                <rect x="0" y="56" width="17" height="17" rx="2" fill="#2f2f2f" stroke="#000" stroke-width="1.5"/>
+                <rect x="20" y="56" width="17" height="17" rx="2" fill="#b7c8b8" stroke="#000" stroke-width="1.5"/>
+                <rect x="40" y="56" width="17" height="17" rx="2" fill="#2f2f2f" stroke="#000" stroke-width="1.5"/>
+                <rect x="60" y="56" width="17" height="17" rx="2" fill="#b7c8b8" stroke="#000" stroke-width="1.5"/>
+                <rect x="80" y="56" width="17" height="17" rx="2" fill="#2f2f2f" stroke="#000" stroke-width="1.5"/>
+                <rect x="20" y="36" width="17" height="17" rx="2" fill="#b7c8b8" stroke="#000" stroke-width="1.5"/>
+                <rect x="40" y="36" width="17" height="17" rx="2" fill="#2f2f2f" stroke="#000" stroke-width="1.5"/>
+                <rect x="60" y="36" width="17" height="17" rx="2" fill="#b7c8b8" stroke="#000" stroke-width="1.5"/>
+                <rect x="40" y="16" width="17" height="17" rx="2" fill="#b7c8b8" stroke="#000" stroke-width="1.5"/>
+                <rect x="60" y="16" width="17" height="17" rx="2" fill="#b7c8b8" stroke="#000" stroke-width="1.5"/>
+            </svg>
+            <span>B&B</span>
+        </a>
+        <div class="nav-links">
+            <a href="login.html#features" class="nav-link">Features</a>
+            <a href="login.html#pricing" class="nav-link">Pricing</a>
+            <a href="about-public.html" class="nav-link" style="color: var(--green-primary);">About</a>
+            <a href="login.html" class="btn btn-primary">Login</a>
+        </div>
+    </nav>
+    
+    <!-- Hero -->
+    <section class="hero">
+        <h1>About Bricks & Bits</h1>
+        <p>Empowering construction professionals with smart, simple tools to manage projects efficiently.</p>
+    </section>
+    
+    <!-- Content -->
+    <div class="content">
+        <!-- Our Story -->
+        <section class="section">
+            <h2 class="section-title"><i class="fas fa-book-open"></i> Our Story</h2>
+            <div class="card">
+                <p>
+                    <strong>B&B (Bricks & Bits)</strong> was born from a simple observation: construction professionals deserve better tools. 
+                    While the construction industry builds the world around us, many contractors and builders still rely on paper notebooks, 
+                    scattered spreadsheets, and memory to track their projects.
+                </p>
+                <br>
+                <p>
+                    We set out to change that. B&B is a comprehensive construction management platform designed specifically for 
+                    Indian contractors, builders, and construction companies. From tracking materials and labor costs to managing 
+                    payments and generating reports, B&B brings everything together in one simple, powerful app.
+                </p>
+            </div>
+        </section>
+        
+        <!-- Our Team -->
+        <section class="section">
+            <h2 class="section-title"><i class="fas fa-users"></i> Our Team</h2>
+            <div class="team-grid">
+                <div class="team-card">
+                    <div class="team-avatar">MS</div>
+                    <div class="team-name">Mohammed Saqlain</div>
+                    <div class="team-role">Founder & MD</div>
+                    <p class="team-bio">Visionary leader with deep understanding of construction industry challenges. Driving B&B's mission to digitize construction management.</p>
+                </div>
+                <div class="team-card">
+                    <div class="team-avatar">S</div>
+                    <div class="team-name">Sulaimaan</div>
+                    <div class="team-role">CTO</div>
+                    <p class="team-bio">Tech expert building the robust platform that powers B&B. Focused on creating intuitive, reliable tools for construction professionals.</p>
+                </div>
+            </div>
+        </section>
+        
+        <!-- What We Offer -->
+        <section class="section">
+            <h2 class="section-title"><i class="fas fa-star"></i> What We Offer</h2>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon"><i class="fas fa-building"></i></div>
+                    <div class="feature-title">Project Management</div>
+                    <div class="feature-desc">Track multiple construction projects with budgets, timelines, and progress all in one place.</div>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon"><i class="fas fa-boxes"></i></div>
+                    <div class="feature-title">Material Tracking</div>
+                    <div class="feature-desc">Monitor material purchases, usage, and costs. Never lose track of where your money goes.</div>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon"><i class="fas fa-users"></i></div>
+                    <div class="feature-title">Labor Management</div>
+                    <div class="feature-desc">Track worker attendance, payments, and assignments across all your projects.</div>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon"><i class="fas fa-credit-card"></i></div>
+                    <div class="feature-title">Payment Tracking</div>
+                    <div class="feature-desc">Record all payments - to vendors, workers, and from clients. Know your cash flow instantly.</div>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon"><i class="fas fa-chart-bar"></i></div>
+                    <div class="feature-title">Reports & Analytics</div>
+                    <div class="feature-desc">Generate detailed reports and compare projects to make better business decisions.</div>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon"><i class="fas fa-mobile-alt"></i></div>
+                    <div class="feature-title">Works Everywhere</div>
+                    <div class="feature-desc">Access your data from any device - phone, tablet, or computer. Your office is wherever you are.</div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Contact -->
+        <section class="section" id="contact">
+            <h2 class="section-title"><i class="fas fa-envelope"></i> Contact Us</h2>
+            <div class="card">
+                <div class="contact-grid">
+                    <div class="contact-item">
+                        <div class="contact-icon"><i class="fas fa-envelope"></i></div>
+                        <div class="contact-text">
+                            <strong>Email</strong>
+                            support@bricksandbits.in
+                        </div>
+                    </div>
+                    <div class="contact-item">
+                        <div class="contact-icon"><i class="fab fa-whatsapp"></i></div>
+                        <div class="contact-text">
+                            <strong>WhatsApp</strong>
+                            +91 6364630740
+                        </div>
+                    </div>
+                    <div class="contact-item">
+                        <div class="contact-icon"><i class="fas fa-map-marker-alt"></i></div>
+                        <div class="contact-text">
+                            <strong>Location</strong>
+                            Bangalore, India
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+    
+    <!-- Footer -->
+    <footer class="footer">
+        <p>&copy; 2024 B&B (Bricks & Bits). All rights reserved.</p>
+    </footer>
+</body>
+</html>

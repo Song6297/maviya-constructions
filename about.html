@@ -1,0 +1,873 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>B&B - Help & Support | Bricks & Bits</title>
+    <link rel="icon" type="image/png" href="B&B.png">
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="css/styles-professional.css" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        
+        /* Sidebar overrides for this page */
+        .sidebar { width: 64px; }
+        .sidebar:hover { width: 200px; }
+        
+        /* Hero Banner */
+        .help-hero {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            padding: 3rem 2rem;
+            border-radius: var(--radius-xl);
+            margin-bottom: 2rem;
+            position: relative;
+            overflow: hidden;
+        }
+        .help-hero::before {
+            content: '';
+            position: absolute;
+            right: -50px;
+            top: -50px;
+            width: 200px;
+            height: 200px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 50%;
+        }
+        .help-hero h1 {
+            color: white;
+            font-size: 2rem;
+            font-weight: 800;
+            margin-bottom: 0.5rem;
+        }
+        .help-hero p {
+            color: rgba(255,255,255,0.8);
+            font-size: 1rem;
+        }
+        
+        /* Quick Links Grid */
+        .quick-links {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        .quick-link-card {
+            background: var(--white);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 1.5rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all var(--transition-base);
+        }
+        .quick-link-card:hover {
+            border-color: var(--primary);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+        .quick-link-card i {
+            font-size: 2rem;
+            color: var(--primary);
+            margin-bottom: 0.75rem;
+        }
+        .quick-link-card h3 {
+            font-size: 0.9375rem;
+            font-weight: 700;
+            color: var(--dark);
+            margin-bottom: 0.25rem;
+        }
+        .quick-link-card p {
+            font-size: 0.75rem;
+            color: var(--gray);
+        }
+        
+        /* Section Cards */
+        .help-section {
+            background: var(--white);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-xl);
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+        .help-section h2 {
+            font-size: 1.125rem;
+            font-weight: 700;
+            color: var(--dark);
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        .help-section h2 i {
+            color: var(--primary);
+        }
+        
+        /* Contact Cards */
+        .contact-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem;
+        }
+        .contact-card {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1rem;
+            background: var(--bg-light);
+            border-radius: var(--radius-lg);
+            transition: all var(--transition-base);
+        }
+        .contact-card:hover {
+            background: var(--primary-muted);
+        }
+        .contact-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: var(--radius-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+            color: white;
+            flex-shrink: 0;
+        }
+        .contact-icon.phone { background: var(--success); }
+        .contact-icon.email { background: var(--primary); }
+        .contact-icon.whatsapp { background: #25D366; }
+        .contact-icon.location { background: var(--accent); }
+        .contact-info h4 {
+            font-size: 0.875rem;
+            font-weight: 700;
+            color: var(--dark);
+        }
+        .contact-info p {
+            font-size: 0.8125rem;
+            color: var(--gray);
+        }
+        .contact-info a {
+            color: var(--primary);
+            text-decoration: none;
+        }
+        
+        /* FAQ Accordion */
+        .faq-item {
+            border-bottom: 1px solid var(--border);
+            padding: 1rem 0;
+        }
+        .faq-item:last-child { border-bottom: none; }
+        .faq-question {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            font-weight: 600;
+            color: var(--dark);
+            font-size: 0.9375rem;
+        }
+        .faq-question i {
+            color: var(--gray);
+            transition: transform var(--transition-base);
+        }
+        .faq-item.active .faq-question i {
+            transform: rotate(180deg);
+        }
+        .faq-answer {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height var(--transition-slow);
+            color: var(--gray);
+            font-size: 0.875rem;
+            line-height: 1.6;
+        }
+        .faq-item.active .faq-answer {
+            max-height: 200px;
+            padding-top: 0.75rem;
+        }
+        
+        /* Team Section */
+        .team-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+        }
+        .team-card {
+            background: var(--bg-light);
+            border-radius: var(--radius-lg);
+            padding: 1.5rem;
+            text-align: center;
+        }
+        .team-avatar {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            margin: 0 auto 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            font-weight: 800;
+            color: white;
+        }
+        .team-avatar.ceo { background: linear-gradient(135deg, var(--accent), var(--accent-dark)); }
+        .team-avatar.cto { background: linear-gradient(135deg, var(--primary), var(--primary-dark)); }
+        .team-name {
+            font-size: 1.125rem;
+            font-weight: 700;
+            color: var(--dark);
+            margin-bottom: 0.25rem;
+        }
+        .team-role {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--primary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 0.75rem;
+        }
+        .team-bio {
+            font-size: 0.8125rem;
+            color: var(--gray);
+            line-height: 1.5;
+        }
+        
+        /* App Info */
+        .app-info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1rem;
+        }
+        .app-info-item {
+            text-align: center;
+            padding: 1rem;
+        }
+        .app-info-item .value {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: var(--primary);
+        }
+        .app-info-item .label {
+            font-size: 0.75rem;
+            color: var(--gray);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        /* Legal Links */
+        .legal-links {
+            display: flex;
+            gap: 1.5rem;
+            flex-wrap: wrap;
+        }
+        .legal-links a {
+            color: var(--gray);
+            font-size: 0.8125rem;
+            font-weight: 600;
+            text-decoration: none;
+            transition: color var(--transition-base);
+        }
+        .legal-links a:hover {
+            color: var(--primary);
+        }
+    </style>
+</head>
+<body>
+    <!-- Loading Overlay -->
+    <link href="css/logo-loader.css" rel="stylesheet">
+    <div id="pageLoader" class="loading-overlay">
+        <svg class="logo-loader" width="120" height="110" viewBox="0 0 200 160" xmlns="http://www.w3.org/2000/svg">
+            <rect class="brick bit b1" x="20" y="100" width="24" height="24" rx="3"/>
+            <rect class="brick" x="48" y="100" width="24" height="24" rx="3"/>
+            <rect class="brick bit b2" x="76" y="100" width="24" height="24" rx="3"/>
+            <rect class="brick" x="104" y="100" width="24" height="24" rx="3"/>
+            <rect class="brick bit b3" x="132" y="100" width="24" height="24" rx="3"/>
+            <rect class="brick" x="48" y="72" width="24" height="24" rx="3"/>
+            <rect class="brick bit b4" x="76" y="72" width="24" height="24" rx="3"/>
+            <rect class="brick" x="104" y="72" width="24" height="24" rx="3"/>
+            <rect class="brick bit b5" x="76" y="44" width="24" height="24" rx="3"/>
+            <rect class="brick" x="104" y="44" width="24" height="24" rx="3"/>
+        </svg>
+        <p class="loading-text">Loading...</p>
+    </div>
+
+    <div style="display: flex; min-height: 100vh;">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="logo-section">
+                <a href="hub.html" class="logo-link">
+                    <svg class="logo-img" viewBox="0 0 140 110" xmlns="http://www.w3.org/2000/svg" style="width:32px;height:32px;">
+                        <rect x="0" y="56" width="17" height="17" rx="2" fill="#2f2f2f" stroke="#000" stroke-width="1.5"/>
+                        <rect x="20" y="56" width="17" height="17" rx="2" fill="#b7c8b8" stroke="#000" stroke-width="1.5"/>
+                        <rect x="40" y="56" width="17" height="17" rx="2" fill="#2f2f2f" stroke="#000" stroke-width="1.5"/>
+                        <rect x="60" y="56" width="17" height="17" rx="2" fill="#b7c8b8" stroke="#000" stroke-width="1.5"/>
+                        <rect x="80" y="56" width="17" height="17" rx="2" fill="#2f2f2f" stroke="#000" stroke-width="1.5"/>
+                        <rect x="20" y="36" width="17" height="17" rx="2" fill="#b7c8b8" stroke="#000" stroke-width="1.5"/>
+                        <rect x="40" y="36" width="17" height="17" rx="2" fill="#2f2f2f" stroke="#000" stroke-width="1.5"/>
+                        <rect x="60" y="36" width="17" height="17" rx="2" fill="#b7c8b8" stroke="#000" stroke-width="1.5"/>
+                        <rect x="40" y="16" width="17" height="17" rx="2" fill="#b7c8b8" stroke="#000" stroke-width="1.5"/>
+                        <rect x="60" y="16" width="17" height="17" rx="2" fill="#b7c8b8" stroke="#000" stroke-width="1.5"/>
+                    </svg>
+                    <span class="logo-text">B&B</span>
+                </a>
+            </div>
+
+            <nav class="nav-menu">
+                <div class="nav-item-expandable" id="dashboardDropdown">
+                    <div class="nav-item" title="Dashboard" onclick="toggleDashboardDropdown(event)">
+                        <i class="fas fa-th-large nav-icon"></i>
+                        <span class="nav-text">Dashboard</span>
+                        <i class="fas fa-chevron-down nav-caret"></i>
+                    </div>
+                    <div class="nav-dropdown">
+                        <a href="index.html" class="nav-dropdown-item">
+                            <i class="fas fa-tachometer-alt"></i>
+                            <span>Go to Dashboard</span>
+                        </a>
+                        <div class="nav-dropdown-divider"></div>
+                        <div id="sidebarProjectsList">
+                            <div class="nav-dropdown-item" style="color: #95a5a6; font-style: italic;">
+                                <i class="fas fa-spinner fa-spin"></i>
+                                <span>Loading projects...</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <a href="compare.html" class="nav-item" title="Compare">
+                    <i class="fas fa-chart-bar nav-icon"></i>
+                    <span class="nav-text">Compare</span>
+                </a>
+                <a href="payments.html" class="nav-item" title="Payments">
+                    <i class="fas fa-credit-card nav-icon"></i>
+                    <span class="nav-text">Payments</span>
+                </a>
+                <a href="funds.html" class="nav-item" title="Funds">
+                    <i class="fas fa-wallet nav-icon"></i>
+                    <span class="nav-text">Funds</span>
+                </a>
+                <a href="materials.html" class="nav-item" title="Materials">
+                    <i class="fas fa-boxes nav-icon"></i>
+                    <span class="nav-text">Materials</span>
+                </a>
+                
+                <div class="nav-divider"></div>
+                
+                <a href="hub.html" class="nav-item" title="Hub">
+                    <i class="fas fa-home nav-icon"></i>
+                    <span class="nav-text">Hub</span>
+                </a>
+                
+                <div class="nav-divider"></div>
+                
+                <a href="about.html" class="nav-item active" title="Help & Support">
+                    <i class="fas fa-life-ring nav-icon"></i>
+                    <span class="nav-text">Help</span>
+                </a>
+            </nav>
+            
+            <div class="sidebar-footer">
+                <button id="logoutBtn" class="logout-btn" title="Logout">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span class="logout-text">Logout</span>
+                </button>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Hero Banner -->
+            <div class="help-hero">
+                <h1><i class="fas fa-life-ring"></i> Help & Support</h1>
+                <p>Get help, contact us, or learn more about B&B</p>
+            </div>
+
+            <!-- Quick Links -->
+            <div class="quick-links">
+                <div class="quick-link-card" onclick="scrollToSection('contact')">
+                    <i class="fas fa-headset"></i>
+                    <h3>Contact Us</h3>
+                    <p>Get in touch with support</p>
+                </div>
+                <div class="quick-link-card" onclick="scrollToSection('features')">
+                    <i class="fas fa-star"></i>
+                    <h3>New Features</h3>
+                    <p>See what's new in v2.1</p>
+                </div>
+                <div class="quick-link-card" onclick="scrollToSection('faq')">
+                    <i class="fas fa-question-circle"></i>
+                    <h3>FAQs</h3>
+                    <p>Common questions answered</p>
+                </div>
+                <div class="quick-link-card" onclick="scrollToSection('about')">
+                    <i class="fas fa-info-circle"></i>
+                    <h3>About B&B</h3>
+                    <p>Learn about our platform</p>
+                </div>
+                <div class="quick-link-card" onclick="scrollToSection('team')">
+                    <i class="fas fa-users"></i>
+                    <h3>Our Team</h3>
+                    <p>Meet the founders</p>
+                </div>
+            </div>
+
+            <!-- Contact Section -->
+            <div class="help-section" id="contact">
+                <h2><i class="fas fa-headset"></i> Contact Us</h2>
+                <div class="contact-grid">
+                    <div class="contact-card">
+                        <div class="contact-icon phone">
+                            <i class="fas fa-phone"></i>
+                        </div>
+                        <div class="contact-info">
+                            <h4>Phone</h4>
+                            <p><a href="tel:+916364630740">+91 6364630740</a></p>
+                        </div>
+                    </div>
+                    <div class="contact-card">
+                        <div class="contact-icon email">
+                            <i class="fas fa-envelope"></i>
+                        </div>
+                        <div class="contact-info">
+                            <h4>Email</h4>
+                            <p><a href="mailto:sulaimaansong6297@gmail.com">sulaimaansong6297@gmail.com</a></p>
+                        </div>
+                    </div>
+                    <div class="contact-card">
+                        <div class="contact-icon whatsapp">
+                            <i class="fab fa-whatsapp"></i>
+                        </div>
+                        <div class="contact-info">
+                            <h4>WhatsApp</h4>
+                            <p><a href="https://wa.me/916364630740" target="_blank">Chat with us</a></p>
+                        </div>
+                    </div>
+                    <div class="contact-card">
+                        <div class="contact-icon location">
+                            <i class="fas fa-map-marker-alt"></i>
+                        </div>
+                        <div class="contact-info">
+                            <h4>Location</h4>
+                            <p>Bangalore, Karnataka, India</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- FAQ Section -->
+            <div class="help-section" id="faq">
+                <h2><i class="fas fa-question-circle"></i> Frequently Asked Questions</h2>
+                
+                <div class="faq-item">
+                    <div class="faq-question" onclick="toggleFaq(this)">
+                        <span>What is B&B - Bricks & Bits?</span>
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                    <div class="faq-answer">
+                        B&B (Bricks & Bits) is a comprehensive construction management platform designed for Indian businesses. It helps you track projects, manage materials, handle payments, and monitor finances - all in one place.
+                    </div>
+                </div>
+                
+                <div class="faq-item">
+                    <div class="faq-question" onclick="toggleFaq(this)">
+                        <span>What's new in version 2.1?</span>
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                    <div class="faq-answer">
+                        Version 2.1 introduces the Labour Calendar system for daily work tracking, company branding with logo upload, phase management, vendor management, and improved settings. Premium users also get Fund Management.
+                    </div>
+                </div>
+                
+                <div class="faq-item">
+                    <div class="faq-question" onclick="toggleFaq(this)">
+                        <span>How does the Labour Calendar work?</span>
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                    <div class="faq-answer">
+                        The Labour Calendar lets you track daily work entries for each labourer. You can mark attendance (Present/Half-Day/Absent), record payments, and see which dates are paid vs unpaid. It uses a FIFO system to track payment status.
+                    </div>
+                </div>
+                
+                <div class="faq-item">
+                    <div class="faq-question" onclick="toggleFaq(this)">
+                        <span>How much does B&B cost?</span>
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                    <div class="faq-answer">
+                        Free users pay ₹5 per project creation. Premium users pay ₹199/month for unlimited projects and access to all premium features including Fund Management, Floor Plans, and Documents.
+                    </div>
+                </div>
+                
+                <div class="faq-item">
+                    <div class="faq-question" onclick="toggleFaq(this)">
+                        <span>Is my data secure?</span>
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                    <div class="faq-answer">
+                        Yes! B&B uses Firebase Authentication and Firestore for secure data storage. Your data is encrypted and stored in Google's secure cloud infrastructure.
+                    </div>
+                </div>
+                
+                <div class="faq-item">
+                    <div class="faq-question" onclick="toggleFaq(this)">
+                        <span>Can I upload my company logo?</span>
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                    <div class="faq-answer">
+                        Yes! Go to Settings > Account and upload your company logo. It will appear on the Hub, Dashboard, and Labour Calendar banners. Images are automatically compressed to ensure fast loading.
+                    </div>
+                </div>
+                
+                <div class="faq-item">
+                    <div class="faq-question" onclick="toggleFaq(this)">
+                        <span>Can I access B&B on mobile?</span>
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                    <div class="faq-answer">
+                        Yes! B&B is fully responsive and works on all devices - desktop, tablet, and mobile. Access your projects from anywhere, anytime.
+                    </div>
+                </div>
+                
+                <div class="faq-item">
+                    <div class="faq-question" onclick="toggleFaq(this)">
+                        <span>How do I upgrade to Premium?</span>
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                    <div class="faq-answer">
+                        Go to the Upgrade page from your dashboard, make the payment via UPI, and submit your payment details. Once verified by admin, your premium features will be activated.
+                    </div>
+                </div>
+                
+                <div class="faq-item">
+                    <div class="faq-question" onclick="toggleFaq(this)">
+                        <span>What features are included in Premium?</span>
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                    <div class="faq-answer">
+                        Premium includes: Unlimited projects, Fund Management, Floor Plans viewer, Document storage, Priority support, and all future premium features.
+                    </div>
+                </div>
+            </div>
+
+            <!-- About Section -->
+            <div class="help-section" id="about">
+                <h2><i class="fas fa-building"></i> About B&B</h2>
+                <p style="color: var(--gray); line-height: 1.7; margin-bottom: 1.5rem;">
+                    <strong style="color: var(--primary);">B&B (Bricks & Bits)</strong> is a comprehensive construction management platform designed for Indian businesses. We combine the solidity of <strong>Bricks</strong> (traditional construction values) with the innovation of <strong>Bits</strong> (modern technology) to create a seamless experience for construction professionals.
+                </p>
+                
+                <div class="app-info-grid">
+                    <div class="app-info-item">
+                        <div class="value">v2.1</div>
+                        <div class="label">Version</div>
+                    </div>
+                    <div class="app-info-item">
+                        <div class="value">2024</div>
+                        <div class="label">Launched</div>
+                    </div>
+                    <div class="app-info-item">
+                        <div class="value">India</div>
+                        <div class="label">Made In</div>
+                    </div>
+                    <div class="app-info-item">
+                        <div class="value">24/7</div>
+                        <div class="label">Access</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- New Features Section -->
+            <div class="help-section" id="features">
+                <h2><i class="fas fa-star"></i> What's New in v2.1</h2>
+                
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem;">
+                    <div style="background: var(--bg-light); padding: 1.25rem; border-radius: var(--radius-lg); border-left: 4px solid var(--primary);">
+                        <h4 style="font-weight: 700; color: var(--dark); margin-bottom: 0.5rem;">
+                            <i class="fas fa-calendar-alt" style="color: var(--primary); margin-right: 0.5rem;"></i>
+                            Labour Calendar
+                        </h4>
+                        <p style="font-size: 0.8125rem; color: var(--gray); line-height: 1.5;">
+                            Calendar-centric labour management with daily work tracking, attendance marking, and payment management. See paid/unpaid dates at a glance.
+                        </p>
+                    </div>
+                    
+                    <div style="background: var(--bg-light); padding: 1.25rem; border-radius: var(--radius-lg); border-left: 4px solid var(--success);">
+                        <h4 style="font-weight: 700; color: var(--dark); margin-bottom: 0.5rem;">
+                            <i class="fas fa-image" style="color: var(--success); margin-right: 0.5rem;"></i>
+                            Company Branding
+                        </h4>
+                        <p style="font-size: 0.8125rem; color: var(--gray); line-height: 1.5;">
+                            Upload your company logo and see it displayed across the app. Auto-compression ensures fast loading.
+                        </p>
+                    </div>
+                    
+                    <div style="background: var(--bg-light); padding: 1.25rem; border-radius: var(--radius-lg); border-left: 4px solid var(--accent);">
+                        <h4 style="font-weight: 700; color: var(--dark); margin-bottom: 0.5rem;">
+                            <i class="fas fa-tasks" style="color: var(--accent); margin-right: 0.5rem;"></i>
+                            Phase Management
+                        </h4>
+                        <p style="font-size: 0.8125rem; color: var(--gray); line-height: 1.5;">
+                            Break projects into phases with checklists and progress tracking. Monitor each phase independently.
+                        </p>
+                    </div>
+                    
+                    <div style="background: var(--bg-light); padding: 1.25rem; border-radius: var(--radius-lg); border-left: 4px solid #9333EA;">
+                        <h4 style="font-weight: 700; color: var(--dark); margin-bottom: 0.5rem;">
+                            <i class="fas fa-store" style="color: #9333EA; margin-right: 0.5rem;"></i>
+                            Vendor Management
+                        </h4>
+                        <p style="font-size: 0.8125rem; color: var(--gray); line-height: 1.5;">
+                            Track vendors providing services to your projects. Manage payments and contact information.
+                        </p>
+                    </div>
+                    
+                    <div style="background: var(--bg-light); padding: 1.25rem; border-radius: var(--radius-lg); border-left: 4px solid #F59E0B;">
+                        <h4 style="font-weight: 700; color: var(--dark); margin-bottom: 0.5rem;">
+                            <i class="fas fa-wallet" style="color: #F59E0B; margin-right: 0.5rem;"></i>
+                            Fund Management
+                        </h4>
+                        <p style="font-size: 0.8125rem; color: var(--gray); line-height: 1.5;">
+                            Centralized fund pool with multi-project allocation. Track fund sources and transfers. (Premium)
+                        </p>
+                    </div>
+                    
+                    <div style="background: var(--bg-light); padding: 1.25rem; border-radius: var(--radius-lg); border-left: 4px solid #EC4899;">
+                        <h4 style="font-weight: 700; color: var(--dark); margin-bottom: 0.5rem;">
+                            <i class="fas fa-cog" style="color: #EC4899; margin-right: 0.5rem;"></i>
+                            Settings & Preferences
+                        </h4>
+                        <p style="font-size: 0.8125rem; color: var(--gray); line-height: 1.5;">
+                            Comprehensive settings page with account management, notifications, and app preferences.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- All Features Section -->
+            <div class="help-section">
+                <h2><i class="fas fa-list"></i> All Features</h2>
+                
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 0.75rem;">
+                    <div style="display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem;">
+                        <i class="fas fa-check-circle" style="color: var(--success);"></i>
+                        <span style="font-size: 0.875rem; color: var(--dark);">Multi-Project Dashboard</span>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem;">
+                        <i class="fas fa-check-circle" style="color: var(--success);"></i>
+                        <span style="font-size: 0.875rem; color: var(--dark);">Material Tracking</span>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem;">
+                        <i class="fas fa-check-circle" style="color: var(--success);"></i>
+                        <span style="font-size: 0.875rem; color: var(--dark);">Labour Calendar</span>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem;">
+                        <i class="fas fa-check-circle" style="color: var(--success);"></i>
+                        <span style="font-size: 0.875rem; color: var(--dark);">Expense Management</span>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem;">
+                        <i class="fas fa-check-circle" style="color: var(--success);"></i>
+                        <span style="font-size: 0.875rem; color: var(--dark);">Client Payments</span>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem;">
+                        <i class="fas fa-check-circle" style="color: var(--success);"></i>
+                        <span style="font-size: 0.875rem; color: var(--dark);">Document Storage</span>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem;">
+                        <i class="fas fa-check-circle" style="color: var(--success);"></i>
+                        <span style="font-size: 0.875rem; color: var(--dark);">PDF Reports</span>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem;">
+                        <i class="fas fa-check-circle" style="color: var(--success);"></i>
+                        <span style="font-size: 0.875rem; color: var(--dark);">Invoice Generation</span>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem;">
+                        <i class="fas fa-check-circle" style="color: var(--success);"></i>
+                        <span style="font-size: 0.875rem; color: var(--dark);">Budget Alerts</span>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem;">
+                        <i class="fas fa-check-circle" style="color: var(--success);"></i>
+                        <span style="font-size: 0.875rem; color: var(--dark);">Daily Site Logs</span>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem;">
+                        <i class="fas fa-check-circle" style="color: var(--success);"></i>
+                        <span style="font-size: 0.875rem; color: var(--dark);">Phase Management</span>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem;">
+                        <i class="fas fa-check-circle" style="color: var(--success);"></i>
+                        <span style="font-size: 0.875rem; color: var(--dark);">Vendor Management</span>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem;">
+                        <i class="fas fa-check-circle" style="color: var(--success);"></i>
+                        <span style="font-size: 0.875rem; color: var(--dark);">Company Branding</span>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem;">
+                        <i class="fas fa-check-circle" style="color: var(--success);"></i>
+                        <span style="font-size: 0.875rem; color: var(--dark);">WhatsApp Sharing</span>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem;">
+                        <i class="fas fa-check-circle" style="color: var(--success);"></i>
+                        <span style="font-size: 0.875rem; color: var(--dark);">Project Comparison</span>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem;">
+                        <i class="fas fa-crown" style="color: #F59E0B;"></i>
+                        <span style="font-size: 0.875rem; color: var(--dark);">Fund Management</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Team Section -->
+            <div class="help-section" id="team">
+                <h2><i class="fas fa-users"></i> Meet Our Team</h2>
+                <div class="team-grid">
+                    <div class="team-card">
+                        <div class="team-avatar ceo">MS</div>
+                        <div class="team-name">Mohammed Saqlain</div>
+                        <div class="team-role">Founder & Managing Director</div>
+                        <p class="team-bio">
+                            A visionary leader with a BCA degree and MBA from Presidency University. His blend of technical knowledge and business expertise drives B&B's mission.
+                        </p>
+                    </div>
+                    <div class="team-card">
+                        <div class="team-avatar cto">S</div>
+                        <div class="team-name">Sulaimaan</div>
+                        <div class="team-role">Co-Founder & CTO</div>
+                        <p class="team-bio">
+                            The developer behind B&B. A self-taught tech enthusiast and Data Scientist who built this entire platform. Currently pursuing BCA.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Legal Section -->
+            <div class="help-section">
+                <h2><i class="fas fa-file-contract"></i> Legal</h2>
+                <div class="legal-links">
+                    <a href="#" onclick="showLegal('terms')"><i class="fas fa-file-alt"></i> Terms of Service</a>
+                    <a href="#" onclick="showLegal('privacy')"><i class="fas fa-shield-alt"></i> Privacy Policy</a>
+                    <a href="#" onclick="showLegal('refund')"><i class="fas fa-undo"></i> Refund Policy</a>
+                </div>
+            </div>
+
+            <!-- Footer -->
+            <div style="text-align: center; padding: 2rem 0; color: var(--gray); font-size: 0.8125rem;">
+                <p>&copy; 2024 B&B - Bricks & Bits. All rights reserved.</p>
+                <p style="margin-top: 0.5rem;">Made with <i class="fas fa-heart" style="color: var(--error);"></i> in India</p>
+            </div>
+        </main>
+    </div>
+
+    <!-- Legal Modal -->
+    <div id="legalModal" class="modal-overlay hidden">
+        <div class="modal-content" style="max-width: 600px;">
+            <div class="modal-header">
+                <h3 id="legalTitle">Terms of Service</h3>
+                <button onclick="closeLegalModal()" style="background: none; border: none; font-size: 1.25rem; cursor: pointer; color: var(--gray);">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body" id="legalContent" style="max-height: 60vh; overflow-y: auto;">
+                <!-- Content loaded dynamically -->
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { auth, onAuthStateChanged, signOut } from './js/firebase-config.js';
+        import { initSidebarDropdown, toggleDashboardDropdown } from './js/sidebar-dropdown.js';
+        
+        window.toggleDashboardDropdown = toggleDashboardDropdown;
+        initSidebarDropdown();
+        
+        // Hide loader
+        document.getElementById('pageLoader').classList.add('hidden');
+        
+        // Auth check
+        onAuthStateChanged(auth, (user) => {
+            if (!user) {
+                window.location.href = 'login.html';
+            }
+        });
+        
+        // Logout
+        document.getElementById('logoutBtn').addEventListener('click', async () => {
+            await signOut(auth);
+            window.location.href = 'login.html';
+        });
+    </script>
+    
+    <script>
+        function scrollToSection(id) {
+            document.getElementById(id).scrollIntoView({ behavior: 'smooth' });
+        }
+        
+        function toggleFaq(element) {
+            const item = element.parentElement;
+            item.classList.toggle('active');
+        }
+        
+        function showLegal(type) {
+            const modal = document.getElementById('legalModal');
+            const title = document.getElementById('legalTitle');
+            const content = document.getElementById('legalContent');
+            
+            const legalContent = {
+                terms: {
+                    title: 'Terms of Service',
+                    content: `
+                        <h4 style="font-weight: 700; margin-bottom: 0.5rem;">1. Acceptance of Terms</h4>
+                        <p style="margin-bottom: 1rem; color: var(--gray);">By accessing and using B&B, you accept and agree to be bound by these Terms of Service.</p>
+                        
+                        <h4 style="font-weight: 700; margin-bottom: 0.5rem;">2. Use of Service</h4>
+                        <p style="margin-bottom: 1rem; color: var(--gray);">You agree to use B&B only for lawful purposes and in accordance with these Terms.</p>
+                        
+                        <h4 style="font-weight: 700; margin-bottom: 0.5rem;">3. Account Responsibility</h4>
+                        <p style="margin-bottom: 1rem; color: var(--gray);">You are responsible for maintaining the confidentiality of your account credentials.</p>
+                        
+                        <h4 style="font-weight: 700; margin-bottom: 0.5rem;">4. Payment Terms</h4>
+                        <p style="margin-bottom: 1rem; color: var(--gray);">Premium subscriptions are billed monthly at ₹199. Free users pay ₹5 per project.</p>
+                        
+                        <h4 style="font-weight: 700; margin-bottom: 0.5rem;">5. Data Ownership</h4>
+                        <p style="color: var(--gray);">You retain ownership of all data you upload to B&B. We do not sell your data to third parties.</p>
+                    `
+                },
+                privacy: {
+                    title: 'Privacy Policy',
+                    content: `
+                        <h4 style="font-weight: 700; margin-bottom: 0.5rem;">1. Information We Collect</h4>
+                        <p style="margin-bottom: 1rem; color: var(--gray);">We collect email addresses for authentication and project data you choose to store.</p>
+                        
+                        <h4 style="font-weight: 700; margin-bottom: 0.5rem;">2. How We Use Your Data</h4>
+                        <p style="margin-bottom: 1rem; color: var(--gray);">Your data is used solely to provide the B&B service. We do not share your data with third parties.</p>
+                        
+                        <h4 style="font-weight: 700; margin-bottom: 0.5rem;">3. Data Security</h4>
+                        <p style="margin-bottom: 1rem; color: var(--gray);">We use Firebase's secure infrastructure to protect your data with encryption.</p>
+                        
+                        <h4 style="font-weight: 700; margin-bottom: 0.5rem;">4. Data Retention</h4>
+                        <p style="color: var(--gray);">Your data is retained as long as your account is active. You can request deletion at any time.</p>
+                    `
+                },
+                refund: {
+                    title: 'Refund Policy',
+                    content: `
+                        <h4 style="font-weight: 700; margin-bottom: 0.5rem;">1. Premium Subscriptions</h4>
+                        <p style="margin-bottom: 1rem; color: var(--gray);">Premium subscriptions can be cancelled anytime. Refunds are provided for unused months on a pro-rata basis.</p>
+                        
+                        <h4 style="font-weight: 700; margin-bottom: 0.5rem;">2. Project Credits</h4>
+                        <p style="margin-bottom: 1rem; color: var(--gray);">Project credits (₹5 per project) are non-refundable once used to create a project.</p>
+                        
+                        <h4 style="font-weight: 700; margin-bottom: 0.5rem;">3. How to Request Refund</h4>
+                        <p style="color: var(--gray);">Contact us at sulaimaansong6297@gmail.com with your account details and reason for refund.</p>
+                    `
+                }
+            };
+            
+            title.textContent = legalContent[type].title;
+            content.innerHTML = legalContent[type].content;
+            modal.classList.remove('hidden');
+        }
+        
+        function closeLegalModal() {
+            document.getElementById('legalModal').classList.add('hidden');
+        }
+    </script>
+</body>
+</html>

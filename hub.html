@@ -1,0 +1,1673 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>B&B - Workspace Hub | Bricks & Bits</title>
+    <script>
+        // Apply saved theme immediately to prevent flash
+        (function () {
+            const theme = localStorage.getItem('bb_theme') || 'light';
+            const accent = localStorage.getItem('bb_accent') || 'green';
+            if (theme === 'dark') document.documentElement.setAttribute('data-theme', 'dark');
+            else if (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                document.documentElement.setAttribute('data-theme', 'dark');
+            }
+            if (accent !== 'green') document.documentElement.setAttribute('data-accent', accent);
+        })();
+    </script>
+    <link rel="icon" type="image/png" href="B&B.png">
+    <link rel="icon" type="image/png" href="B&B.png">
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Nunito:wght@400;600;700;800;900&display=swap"
+        rel="stylesheet">
+    <link href="css/styles-professional.css" rel="stylesheet">
+    <style>
+        /* Variable aliases for backward compatibility */
+        :root {
+            --green-primary: var(--primary);
+            --green-light: var(--primary-light);
+            --green-dark: var(--primary-dark);
+            --green-muted: var(--primary-muted);
+            --light-gray: var(--border);
+            --dark-gray: var(--dark);
+            --off-white: var(--bg-light);
+            --bg: var(--bg-light);
+        }
+
+        /* Page-specific overrides */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg-light);
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* Sidebar - Always Open with Scroll */
+        .sidebar {
+            width: 200px;
+            background: var(--white);
+            padding: 1rem 0.5rem;
+            display: flex;
+            flex-direction: column;
+            position: fixed;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            box-shadow: 2px 0 8px rgba(0, 0, 0, 0.05);
+            z-index: 100;
+            overflow-y: auto;
+            overflow-x: hidden;
+        }
+
+        /* Scrollbar styling for sidebar */
+        .sidebar::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .sidebar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .sidebar::-webkit-scrollbar-thumb {
+            background: var(--border);
+            border-radius: 4px;
+        }
+
+        .sidebar::-webkit-scrollbar-thumb:hover {
+            background: var(--gray);
+        }
+
+        /* Text always visible (no hidden state) - override any conflicting CSS */
+        .sidebar .nav-text,
+        .sidebar .nav-label,
+        .sidebar .sidebar-header span,
+        .sidebar .logo-text,
+        .sidebar .logout-text {
+            opacity: 1 !important;
+            width: auto !important;
+            visibility: visible !important;
+            white-space: nowrap;
+        }
+
+        .sidebar-header {
+            padding: 1.25rem 1.5rem;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .sidebar-header img {
+            height: 36px;
+        }
+
+        .sidebar-header span {
+            font-weight: 800;
+            font-size: 1.125rem;
+            color: var(--black);
+        }
+
+        .nav-section {
+            padding: 1rem 0;
+        }
+
+        .nav-label {
+            padding: 0.5rem 1.5rem;
+            font-size: 0.6875rem;
+            font-weight: 700;
+            color: var(--gray-light);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem 1.5rem;
+            color: var(--gray);
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 0.875rem;
+            transition: all 0.15s;
+            border-left: 3px solid transparent;
+            margin: 0.125rem 0;
+        }
+
+        .nav-item:hover {
+            background: var(--bg-light);
+            color: var(--black);
+        }
+
+        .nav-item.active {
+            background: var(--primary);
+            color: white;
+            border-left-color: var(--primary);
+            font-weight: 600;
+        }
+
+        .nav-item i {
+            width: 20px;
+            text-align: center;
+            font-size: 1rem;
+        }
+
+        .nav-item.admin-only {
+            display: none;
+        }
+
+        .nav-bottom {
+            margin-top: auto;
+            border-top: 1px solid var(--border);
+            padding: 1rem 0;
+        }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            margin-left: 200px;
+        }
+
+        /* Top Header */
+        .top-header {
+            background: var(--white);
+            border-bottom: 1px solid var(--border);
+            padding: 1rem 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 50;
+        }
+
+        .header-left h1 {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--dark);
+        }
+
+        .header-left p {
+            font-size: 0.8125rem;
+            color: var(--gray);
+            margin-top: 0.125rem;
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .header-btn {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 0.8125rem;
+            cursor: pointer;
+            transition: all 0.15s;
+            border: none;
+            text-decoration: none;
+        }
+
+        .btn-premium {
+            background: linear-gradient(135deg, #FFD700, #FFA500);
+            color: #5D4E00;
+        }
+
+        .btn-premium:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(255, 165, 0, 0.3);
+        }
+
+        .btn-credits {
+            background: #E0F2FE;
+            color: #0369A1;
+        }
+
+        .btn-credits:hover {
+            background: #BAE6FD;
+        }
+
+        .btn-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--gray);
+            cursor: pointer;
+            position: relative;
+        }
+
+        .btn-icon:hover {
+            border-color: var(--green-primary);
+            color: var(--green-primary);
+        }
+
+        .notif-dot {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            width: 8px;
+            height: 8px;
+            background: var(--accent);
+            border-radius: 50%;
+            display: none;
+        }
+
+        .user-profile {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.5rem;
+            border-radius: 10px;
+            cursor: pointer;
+        }
+
+        .user-profile:hover {
+            background: var(--bg);
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            background: linear-gradient(135deg, var(--green-primary), var(--green-dark));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 700;
+            font-size: 0.9375rem;
+        }
+
+        .user-info {
+            text-align: right;
+        }
+
+        .user-name {
+            font-weight: 600;
+            font-size: 0.875rem;
+            color: var(--dark);
+        }
+
+        .user-role {
+            font-size: 0.75rem;
+            color: var(--gray);
+        }
+
+        /* Content Area */
+        .content {
+            padding: 1.5rem 2rem;
+            max-width: 1200px;
+        }
+
+        /* Resume Card */
+        .resume-card {
+            background: linear-gradient(135deg, var(--green-primary), var(--green-dark));
+            border-radius: 16px;
+            padding: 1.25rem 1.5rem;
+            color: white;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .resume-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(74, 124, 89, 0.3);
+        }
+
+        .resume-card.hidden {
+            display: none;
+        }
+
+        .resume-icon {
+            width: 48px;
+            height: 48px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+        }
+
+        .resume-text {
+            flex: 1;
+        }
+
+        .resume-title {
+            font-size: 1rem;
+            font-weight: 700;
+        }
+
+        .resume-subtitle {
+            font-size: 0.8125rem;
+            opacity: 0.9;
+        }
+
+        /* Section */
+        .section {
+            margin-bottom: 2rem;
+        }
+
+        .section-header {
+            display: flex;
+            align-items: center;
+            gap: 0.625rem;
+            margin-bottom: 1rem;
+        }
+
+        .section-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.875rem;
+            color: white;
+        }
+
+        .section-icon.orange {
+            background: var(--brown-light);
+        }
+
+        .section-icon.blue {
+            background: var(--green-primary);
+        }
+
+        .section-title {
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--dark);
+        }
+
+        /* Quick Actions */
+        .actions-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+            gap: 1rem;
+        }
+
+        .action-card {
+            background: var(--white);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1.25rem;
+            text-align: center;
+            text-decoration: none;
+            color: var(--dark);
+            transition: all 0.15s;
+        }
+
+        .action-card:hover {
+            border-color: var(--green-primary);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+        }
+
+        .action-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            margin: 0 auto 0.75rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+            color: white;
+        }
+
+        .action-icon.blue {
+            background: var(--green-primary);
+        }
+
+        .action-icon.orange {
+            background: var(--brown-light);
+        }
+
+        .action-icon.green {
+            background: var(--success);
+        }
+
+        .action-label {
+            font-size: 0.875rem;
+            font-weight: 600;
+        }
+
+        /* Modules Grid */
+        .modules-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1rem;
+        }
+
+        .module-tile {
+            background: var(--white);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1.25rem 1rem;
+            text-align: center;
+            text-decoration: none;
+            color: var(--dark);
+            transition: all 0.15s;
+        }
+
+        .module-tile:hover {
+            border-color: var(--green-primary);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+        }
+
+        .module-tile.premium {
+            background: linear-gradient(135deg, #FFFBEB, #FEF3C7);
+            border-color: #FCD34D;
+        }
+
+        .module-tile.admin {
+            background: var(--dark);
+            border-color: var(--dark);
+        }
+
+        .module-tile.admin .module-name {
+            color: white;
+        }
+
+        .module-tile.admin .module-icon {
+            color: var(--brown-light);
+        }
+
+        .module-icon {
+            font-size: 1.75rem;
+            margin-bottom: 0.5rem;
+            color: var(--green-primary);
+        }
+
+        .module-name {
+            font-size: 0.8125rem;
+            font-weight: 600;
+        }
+
+        /* Notifications Panel */
+        .notif-panel {
+            position: fixed;
+            top: 0;
+            right: -380px;
+            width: 380px;
+            height: 100vh;
+            background: var(--white);
+            box-shadow: -4px 0 24px rgba(0, 0, 0, 0.1);
+            z-index: 200;
+            transition: right 0.25s ease;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .notif-panel.open {
+            right: 0;
+        }
+
+        .notif-header {
+            padding: 1.25rem 1.5rem;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .notif-header h3 {
+            font-size: 1rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .notif-close {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            background: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--gray);
+        }
+
+        .notif-close:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        .notif-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 1rem;
+        }
+
+        .notif-item {
+            padding: 1rem;
+            border-radius: 10px;
+            margin-bottom: 0.75rem;
+            cursor: pointer;
+            transition: all 0.15s;
+            background: var(--bg);
+        }
+
+        .notif-item:hover {
+            background: var(--green-muted);
+        }
+
+        .notif-item.unread {
+            background: #E8F0EA;
+            border-left: 3px solid var(--green-primary);
+        }
+
+        .notif-item.warning {
+            border-left-color: var(--warning);
+        }
+
+        .notif-item.danger {
+            border-left-color: var(--accent);
+        }
+
+        .notif-title {
+            font-weight: 600;
+            font-size: 0.875rem;
+            margin-bottom: 0.25rem;
+            color: var(--dark);
+        }
+
+        .notif-text {
+            font-size: 0.8125rem;
+            color: var(--gray);
+        }
+
+        .notif-time {
+            font-size: 0.75rem;
+            color: var(--gray-light);
+            margin-top: 0.375rem;
+        }
+
+        .notif-empty {
+            text-align: center;
+            padding: 3rem 1rem;
+            color: var(--gray);
+        }
+
+        .notif-empty i {
+            font-size: 2.5rem;
+            margin-bottom: 0.75rem;
+            opacity: 0.4;
+        }
+
+        /* Overlay */
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.25);
+            z-index: 150;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.25s;
+        }
+
+        .overlay.open {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        /* Loading */
+        .loader {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: white;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .loader.hidden {
+            display: none;
+        }
+
+        .logo-loader .brick {
+            fill: #b7c8b8;
+            stroke: #1e1e1e;
+            stroke-width: 2;
+        }
+
+        .logo-loader .bit {
+            fill: #2f2f2f;
+            animation: bitPulse 1.6s infinite ease-in-out;
+            opacity: 0.25;
+        }
+
+        .logo-loader .bit.b1 {
+            animation-delay: 0s;
+        }
+
+        .logo-loader .bit.b2 {
+            animation-delay: 0.2s;
+        }
+
+        .logo-loader .bit.b3 {
+            animation-delay: 0.4s;
+        }
+
+        .logo-loader .bit.b4 {
+            animation-delay: 0.6s;
+        }
+
+        .logo-loader .bit.b5 {
+            animation-delay: 0.8s;
+        }
+
+        @keyframes bitPulse {
+            0% {
+                opacity: 0.25;
+            }
+
+            30% {
+                opacity: 1;
+            }
+
+            60%,
+            100% {
+                opacity: 0.25;
+            }
+        }
+
+        /* Real Logo SVG */
+        .logo-svg {
+            width: 32px;
+            height: 28px;
+        }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .sidebar {
+                width: 64px;
+            }
+
+            .sidebar-header span,
+            .nav-label,
+            .nav-item span {
+                display: none;
+            }
+
+            .sidebar-header {
+                justify-content: center;
+                padding: 1rem;
+            }
+
+            .nav-item {
+                justify-content: center;
+                padding: 0.875rem;
+            }
+
+            .main {
+                margin-left: 64px;
+            }
+
+            .modules-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                display: none;
+            }
+
+            .main {
+                margin-left: 0;
+            }
+
+            .top-header {
+                padding: 1rem;
+                flex-wrap: wrap;
+                gap: 1rem;
+            }
+
+            .header-left {
+                width: 100%;
+            }
+
+            .content {
+                padding: 1rem;
+            }
+
+            .actions-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .modules-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .notif-panel {
+                width: 100%;
+                right: -100%;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .mobile-toggle {
+                display: flex !important;
+            }
+
+            .sidebar {
+                display: flex;
+                transform: translateX(-100%);
+                transition: transform 0.3s ease;
+                width: 280px;
+                z-index: 1000;
+            }
+
+            .sidebar.open {
+                transform: translateX(0);
+                width: 280px;
+            }
+
+            .sidebar.open .nav-text,
+            .sidebar.open .nav-label,
+            .sidebar.open .sidebar-header span,
+            .sidebar.open .logo-text,
+            .sidebar.open .logout-text {
+                opacity: 1;
+                width: auto;
+            }
+
+            .main-content {
+                margin-left: 0 !important;
+            }
+
+            .sidebar-overlay {
+                display: none;
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: rgba(0, 0, 0, 0.5);
+                z-index: 999;
+            }
+
+            .sidebar-overlay.active {
+                display: block;
+            }
+        }
+
+        .mobile-toggle {
+            display: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            margin-right: 1rem;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="loader" id="loader">
+        <svg class="logo-loader" width="120" height="110" viewBox="0 0 200 160" xmlns="http://www.w3.org/2000/svg">
+            <rect class="brick bit b1" x="20" y="100" width="24" height="24" rx="3" />
+            <rect class="brick" x="48" y="100" width="24" height="24" rx="3" />
+            <rect class="brick bit b2" x="76" y="100" width="24" height="24" rx="3" />
+            <rect class="brick" x="104" y="100" width="24" height="24" rx="3" />
+            <rect class="brick bit b3" x="132" y="100" width="24" height="24" rx="3" />
+            <rect class="brick" x="48" y="72" width="24" height="24" rx="3" />
+            <rect class="brick bit b4" x="76" y="72" width="24" height="24" rx="3" />
+            <rect class="brick" x="104" y="72" width="24" height="24" rx="3" />
+            <rect class="brick bit b5" x="76" y="44" width="24" height="24" rx="3" />
+            <rect class="brick" x="104" y="44" width="24" height="24" rx="3" />
+        </svg>
+        <p style="margin-top: 1rem; color: #6B6B6B; font-size: 0.875rem; font-weight: 600;">Loading workspace...</p>
+    </div>
+
+    <!-- Sidebar Overlay for Mobile -->
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <svg class="logo-svg" viewBox="0 0 140 110" xmlns="http://www.w3.org/2000/svg">
+                <rect x="0" y="56" width="17" height="17" rx="2" fill="#2f2f2f" stroke="#000" stroke-width="1.5" />
+                <rect x="20" y="56" width="17" height="17" rx="2" fill="#b7c8b8" stroke="#000" stroke-width="1.5" />
+                <rect x="40" y="56" width="17" height="17" rx="2" fill="#2f2f2f" stroke="#000" stroke-width="1.5" />
+                <rect x="60" y="56" width="17" height="17" rx="2" fill="#b7c8b8" stroke="#000" stroke-width="1.5" />
+                <rect x="80" y="56" width="17" height="17" rx="2" fill="#2f2f2f" stroke="#000" stroke-width="1.5" />
+                <rect x="20" y="36" width="17" height="17" rx="2" fill="#b7c8b8" stroke="#000" stroke-width="1.5" />
+                <rect x="40" y="36" width="17" height="17" rx="2" fill="#2f2f2f" stroke="#000" stroke-width="1.5" />
+                <rect x="60" y="36" width="17" height="17" rx="2" fill="#b7c8b8" stroke="#000" stroke-width="1.5" />
+                <rect x="40" y="16" width="17" height="17" rx="2" fill="#b7c8b8" stroke="#000" stroke-width="1.5" />
+                <rect x="60" y="16" width="17" height="17" rx="2" fill="#b7c8b8" stroke="#000" stroke-width="1.5" />
+            </svg>
+            <span>B&B</span>
+        </div>
+
+        <div class="nav-section">
+            <a href="hub.html" class="nav-item active">
+                <i class="fas fa-th-large"></i>
+                <span class="nav-text">Dashboard</span>
+            </a>
+        </div>
+
+        <div class="nav-section">
+            <div class="nav-label">Finance</div>
+            <a href="funds.html" class="nav-item"><i class="fas fa-wallet"></i><span class="nav-text">Funds</span></a>
+            <a href="payments.html" class="nav-item"><i class="fas fa-credit-card"></i><span
+                    class="nav-text">Payments</span></a>
+        </div>
+
+        <div class="nav-section">
+            <div class="nav-label">Labour</div>
+            <a href="labour-calendar.html" class="nav-item"><i class="fas fa-calendar-alt"></i><span
+                    class="nav-text">Calendar</span></a>
+        </div>
+
+        <div class="nav-section">
+            <div class="nav-label">Projects</div>
+            <a href="index.html" class="nav-item"><i class="fas fa-building"></i><span class="nav-text">All
+                    Projects</span></a>
+            <a href="compare.html" class="nav-item"><i class="fas fa-chart-bar"></i><span
+                    class="nav-text">Compare</span></a>
+            <a href="#" class="nav-item" id="exportAllProjectsBtn"><i class="fas fa-file-export"></i><span
+                    class="nav-text">Export
+                    All</span></a>
+        </div>
+
+        <div class="nav-section">
+            <div class="nav-label">Modules</div>
+            <a href="materials.html" class="nav-item"><i class="fas fa-boxes"></i><span
+                    class="nav-text">Materials</span></a>
+        </div>
+
+        <div class="nav-bottom">
+            <a href="admin.html" class="nav-item admin-only" id="adminNavItem"><i class="fas fa-shield-alt"></i><span
+                    class="nav-text">Admin</span></a>
+            <a href="settings.html" class="nav-item"><i class="fas fa-cog"></i><span
+                    class="nav-text">Settings</span></a>
+            <a href="about.html" class="nav-item"><i class="fas fa-info-circle"></i><span
+                    class="nav-text">About</span></a>
+            <a href="#" class="nav-item" id="logoutBtn"><i class="fas fa-sign-out-alt"></i><span
+                    class="nav-text">Logout</span></a>
+        </div>
+    </aside>
+
+    <!-- Main -->
+    <main class="main-content">
+        <!-- Top Header -->
+        <header class="top-header">
+            <div class="header-left">
+                <button class="mobile-toggle" id="mobileSidebarToggle">
+                    <i class="fas fa-bars"></i>
+                </button>
+                <div>
+                    <h1>Welcome back, <span id="userName">Builder</span>!</h1>
+                    <p>Here's what's happening with your projects today.</p>
+                </div>
+            </div>
+            <div class="header-right">
+                <a href="upgrade.html" class="header-btn btn-premium" id="premiumBtn">
+                    <i class="fas fa-star"></i>
+                    <span id="premiumText">Go Premium</span>
+                </a>
+                <a href="project-fee.html" class="header-btn btn-credits" id="creditsBtn">
+                    <i class="fas fa-coins"></i>
+                    <span id="creditsText">0 Credits</span>
+                </a>
+                <button class="btn-icon" id="notifBtn">
+                    <i class="fas fa-bell"></i>
+                    <span class="notif-dot" id="notifDot"></span>
+                </button>
+                <div class="user-profile" id="userProfile">
+                    <div class="user-info">
+                        <div class="user-name" id="userDisplayName">Builder</div>
+                        <div class="user-role" id="userRole">Owner</div>
+                    </div>
+                    <div class="user-avatar" id="userAvatar">
+                        <span id="userAvatarInitial">B</span>
+                        <img id="userAvatarImg" src="" alt=""
+                            style="display: none; width: 100%; height: 100%; object-fit: cover; border-radius: 10px;">
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Content -->
+        <div class="content">
+            <!-- Resume Work -->
+            <div class="resume-card hidden" id="resumeCard">
+                <div class="resume-icon"><i class="fas fa-play-circle"></i></div>
+                <div class="resume-text">
+                    <div class="resume-title">Resume Work</div>
+                    <div class="resume-subtitle" id="resumeSubtitle">Continue where you left off</div>
+                </div>
+                <i class="fas fa-arrow-right"></i>
+            </div>
+
+            <!-- Company Banner -->
+            <div class="company-banner" id="companyBanner"
+                style="display: none; background: linear-gradient(135deg, var(--primary), var(--primary-dark, #1a5f4a)); border-radius: 16px; padding: 1.25rem 1.5rem; margin-bottom: 1.5rem; color: white; display: flex; align-items: center; gap: 1rem;">
+                <div class="company-banner-logo" id="companyBannerLogo"
+                    style="width: 56px; height: 56px; background: rgba(255,255,255,0.2); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; flex-shrink: 0;">
+                    <i class="fas fa-building"></i>
+                </div>
+                <div style="flex: 1;">
+                    <div class="company-banner-name" id="companyBannerName"
+                        style="font-size: 1.25rem; font-weight: 700;">Your Company</div>
+                    <div style="font-size: 0.8125rem; opacity: 0.9;">Construction Management Dashboard</div>
+                </div>
+                <a href="settings.html#account"
+                    style="background: rgba(255,255,255,0.2); padding: 0.5rem 1rem; border-radius: 8px; color: white; text-decoration: none; font-size: 0.8125rem; font-weight: 600; display: flex; align-items: center; gap: 0.5rem;">
+                    <i class="fas fa-cog"></i> Settings
+                </a>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="section">
+                <div class="section-header">
+                    <div class="section-icon orange"><i class="fas fa-bolt"></i></div>
+                    <div class="section-title">Quick Actions</div>
+                </div>
+                <div class="actions-grid">
+                    <a href="index.html" class="action-card">
+                        <div class="action-icon blue"><i class="fas fa-plus"></i></div>
+                        <div class="action-label">New Project</div>
+                    </a>
+                    <a href="payments.html" class="action-card">
+                        <div class="action-icon orange"><i class="fas fa-credit-card"></i></div>
+                        <div class="action-label">Add Payment</div>
+                    </a>
+                    <a href="materials.html" class="action-card">
+                        <div class="action-icon green"><i class="fas fa-boxes"></i></div>
+                        <div class="action-label">Track Stock</div>
+                    </a>
+                    <a href="economics.html" class="action-card">
+                        <div class="action-icon purple" style="background: #EDE9FE; color: #7C3AED;"><i
+                                class="fas fa-chart-line"></i></div>
+                        <div class="action-label">Economics</div>
+                    </a>
+                </div>
+            </div>
+
+            <!-- All Modules -->
+            <div class="section">
+                <div class="section-header">
+                    <div class="section-icon blue"><i class="fas fa-th-large"></i></div>
+                    <div class="section-title">All Modules</div>
+                </div>
+                <div class="modules-grid">
+                    <a href="index.html" class="module-tile">
+                        <div class="module-icon"><i class="fas fa-th-large"></i></div>
+                        <div class="module-name">Dashboard</div>
+                    </a>
+                    <a href="compare.html" class="module-tile">
+                        <div class="module-icon"><i class="fas fa-chart-bar"></i></div>
+                        <div class="module-name">Compare</div>
+                    </a>
+                    <a href="payments.html" class="module-tile">
+                        <div class="module-icon"><i class="fas fa-credit-card"></i></div>
+                        <div class="module-name">Payments</div>
+                    </a>
+                    <a href="materials.html" class="module-tile">
+                        <div class="module-icon"><i class="fas fa-boxes"></i></div>
+                        <div class="module-name">Stock</div>
+                    </a>
+                    <a href="funds.html" class="module-tile">
+                        <div class="module-icon"><i class="fas fa-wallet"></i></div>
+                        <div class="module-name">Funds</div>
+                    </a>
+                    <a href="labour-calendar.html" class="module-tile">
+                        <div class="module-icon"><i class="fas fa-calendar-alt"></i></div>
+                        <div class="module-name">Labour Calendar</div>
+                    </a>
+                    <a href="economics.html" class="module-tile">
+                        <div class="module-icon" style="color: #7C3AED;"><i class="fas fa-chart-line"></i></div>
+                        <div class="module-name">Economics</div>
+                    </a>
+                    <a href="settings.html" class="module-tile">
+                        <div class="module-icon"><i class="fas fa-cog"></i></div>
+                        <div class="module-name">Settings</div>
+                    </a>
+                    <a href="upgrade.html" class="module-tile premium">
+                        <div class="module-icon" style="color: #B45309;"><i class="fas fa-star"></i></div>
+                        <div class="module-name" style="color: #B45309;">Premium</div>
+                    </a>
+                    <a href="admin.html" class="module-tile admin" id="adminTile" style="display: none;">
+                        <div class="module-icon" style="color: #FFD700;"><i class="fas fa-shield-alt"></i></div>
+                        <div class="module-name" style="color: #FFD700;">Admin</div>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Profile Edit Modal -->
+    <div id="profileModal" class="modal-overlay hidden">
+        <div class="modal-content" style="max-width: 450px; background: white; border-radius: 16px; overflow: hidden;">
+            <div class="modal-header"
+                style="padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center;">
+                <h3 style="font-size: 1.125rem; font-weight: 700; color: var(--dark);"><i class="fas fa-user-edit"
+                        style="margin-right: 0.5rem; color: var(--green-primary);"></i>Edit Profile</h3>
+                <button onclick="window.closeProfileModal()"
+                    style="width: 32px; height: 32px; border-radius: 8px; border: 1px solid var(--border); background: none; cursor: pointer; display: flex; align-items: center; justify-content: center; color: var(--gray);"><i
+                        class="fas fa-times"></i></button>
+            </div>
+            <form id="profileForm" style="padding: 1.5rem;">
+                <div style="margin-bottom: 1.5rem; text-align: center;">
+                    <div id="profilePicturePreview"
+                        style="width: 80px; height: 80px; border-radius: 50%; background: linear-gradient(135deg, var(--green-primary), var(--green-dark)); display: flex; align-items: center; justify-content: center; margin: 0 auto 0.75rem; overflow: hidden; position: relative;">
+                        <span id="profilePictureInitial"
+                            style="color: white; font-size: 2rem; font-weight: 700;">B</span>
+                        <img id="profilePictureImg" src="" alt=""
+                            style="display: none; width: 100%; height: 100%; object-fit: cover; position: absolute; top: 0; left: 0;">
+                    </div>
+                    <label
+                        style="display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.5rem 1rem; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; cursor: pointer; font-size: 0.8125rem; font-weight: 600; color: var(--gray);">
+                        <i class="fas fa-camera"></i> Change Photo
+                        <input type="file" id="profilePictureInput" accept="image/*" style="display: none;">
+                    </label>
+                </div>
+                <div style="margin-bottom: 1rem;">
+                    <label
+                        style="display: block; font-size: 0.8125rem; font-weight: 600; color: var(--dark); margin-bottom: 0.375rem;">Display
+                        Name</label>
+                    <input type="text" id="profileDisplayName" placeholder="Your name"
+                        style="width: 100%; padding: 0.625rem 0.875rem; border: 1px solid var(--border); border-radius: 8px; font-size: 0.875rem;">
+                </div>
+                <div style="margin-bottom: 1rem;">
+                    <label
+                        style="display: block; font-size: 0.8125rem; font-weight: 600; color: var(--dark); margin-bottom: 0.375rem;">Company
+                        Name</label>
+                    <input type="text" id="profileCompanyName" placeholder="Your company"
+                        style="width: 100%; padding: 0.625rem 0.875rem; border: 1px solid var(--border); border-radius: 8px; font-size: 0.875rem;">
+                </div>
+                <div style="margin-bottom: 1rem;">
+                    <label
+                        style="display: block; font-size: 0.8125rem; font-weight: 600; color: var(--dark); margin-bottom: 0.375rem;">Role</label>
+                    <select id="profileRole"
+                        style="width: 100%; padding: 0.625rem 0.875rem; border: 1px solid var(--border); border-radius: 8px; font-size: 0.875rem;">
+                        <option value="owner">Owner</option>
+                        <option value="engineer">Engineer</option>
+                        <option value="accountant">Accountant</option>
+                        <option value="supervisor">Supervisor</option>
+                    </select>
+                </div>
+                <div
+                    style="display: flex; justify-content: flex-end; gap: 0.75rem; padding-top: 1rem; border-top: 1px solid var(--border); margin-top: 1rem;">
+                    <button type="button" onclick="window.closeProfileModal()"
+                        style="padding: 0.625rem 1.25rem; border-radius: 8px; font-weight: 600; font-size: 0.875rem; cursor: pointer; background: var(--bg); color: var(--gray); border: 1px solid var(--border);">Cancel</button>
+                    <button type="submit"
+                        style="padding: 0.625rem 1.25rem; border-radius: 8px; font-weight: 600; font-size: 0.875rem; cursor: pointer; background: var(--green-primary); color: white; border: none;">Save
+                        Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    <style>
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            padding: 1rem;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .modal-overlay.hidden {
+            display: none !important;
+        }
+    </style>
+
+    <!-- Notifications Panel -->
+    <div class="overlay" id="overlay"></div>
+    <div class="notif-panel" id="notifPanel">
+        <div class="notif-header">
+            <h3><i class="fas fa-bell"></i> Notifications</h3>
+            <button class="notif-close" id="notifClose"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="notif-list" id="notifList">
+            <div class="notif-empty">
+                <i class="fas fa-bell-slash"></i>
+                <p>No notifications yet</p>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { auth, db, onAuthStateChanged, signOut, doc, getDoc, setDoc, collection, getDocs } from './js/firebase-config.js';
+
+        let currentUser = null;
+        let notifications = [];
+
+        function hideLoader() { document.getElementById('loader').classList.add('hidden'); }
+
+        async function initHub(user) {
+            currentUser = user;
+
+            // Ensure user document exists in Firestore
+            try {
+                const userDocRef = doc(db, 'users', user.uid);
+                const userDocSnap = await getDoc(userDocRef);
+                if (!userDocSnap.exists()) {
+                    await setDoc(userDocRef, {
+                        email: user.email,
+                        premiumStatus: 'FREE',
+                        projectCredits: 0,
+                        projectCount: 0,
+                        createdAt: new Date(),
+                        lastLoginAt: new Date()
+                    });
+                } else {
+                    await setDoc(userDocRef, { lastLoginAt: new Date() }, { merge: true });
+                }
+            } catch (e) { console.log('User sync:', e.message); }
+
+            // Get user preferences
+            let userPrefs = {};
+            try {
+                const prefsDoc = await getDoc(doc(db, 'user_preferences', user.uid));
+                if (prefsDoc.exists()) userPrefs = prefsDoc.data();
+            } catch (e) { }
+
+            // Get user data
+            let userData = {};
+            try {
+                const userDoc = await getDoc(doc(db, 'users', user.uid));
+                if (userDoc.exists()) userData = userDoc.data();
+            } catch (e) { }
+
+            // Set user info
+            const emailName = user.email?.split('@')[0] || 'Builder';
+            const displayName = userPrefs.displayName || emailName.charAt(0).toUpperCase() + emailName.slice(1);
+            document.getElementById('userName').textContent = displayName;
+            document.getElementById('userDisplayName').textContent = displayName;
+            document.getElementById('userAvatarInitial').textContent = displayName.charAt(0).toUpperCase();
+
+            // Set profile picture if available
+            if (userPrefs.profilePicture) {
+                document.getElementById('userAvatarImg').src = userPrefs.profilePicture;
+                document.getElementById('userAvatarImg').style.display = 'block';
+                document.getElementById('userAvatarInitial').style.display = 'none';
+            } else if (user.photoURL) {
+                document.getElementById('userAvatarImg').src = user.photoURL;
+                document.getElementById('userAvatarImg').style.display = 'block';
+                document.getElementById('userAvatarInitial').style.display = 'none';
+            }
+
+            // Set company banner
+            const companyBanner = document.getElementById('companyBanner');
+            const companyName = userPrefs.companyName;
+            const companyLogo = userPrefs.companyLogo;
+
+            if (companyName || companyLogo) {
+                companyBanner.style.display = 'flex';
+
+                if (companyName) {
+                    document.getElementById('companyBannerName').textContent = companyName;
+                }
+
+                if (companyLogo) {
+                    document.getElementById('companyBannerLogo').innerHTML = `<img src="${companyLogo}" alt="Logo" style="width: 100%; height: 100%; object-fit: cover; border-radius: 12px;">`;
+                }
+            } else {
+                companyBanner.style.display = 'none';
+            }
+
+            const roleNames = { owner: 'Owner', engineer: 'Engineer', accountant: 'Accountant', supervisor: 'Supervisor' };
+            document.getElementById('userRole').textContent = roleNames[userPrefs.role] || 'Owner';
+
+            // Premium status
+            const isPremium = userData.premiumStatus === 'PREMIUM' || user.email === 'sulaimaansong6297@gmail.com';
+            if (isPremium) {
+                document.getElementById('premiumBtn').innerHTML = '<i class="fas fa-crown"></i><span>Premium</span>';
+                document.getElementById('premiumBtn').style.background = 'linear-gradient(135deg, #10B981, #059669)';
+                document.getElementById('premiumBtn').style.color = 'white';
+            }
+
+            // Credits
+            if (!isPremium || user.email === 'saqlainmohammed1122@gmail.com') {
+                const credits = userData.projectCredits || 0;
+                document.getElementById('creditsText').textContent = `${credits} Credits`;
+            } else {
+                document.getElementById('creditsBtn').style.display = 'none';
+            }
+
+            // Admin access
+            if (user.email === 'sulaimaansong6297@gmail.com') {
+                document.getElementById('adminTile').style.display = 'block';
+                document.getElementById('adminNavItem').style.display = 'flex';
+            }
+
+            // Load notifications
+            await loadNotifications();
+
+            // Check resume work
+            await checkResumeWork(userPrefs);
+
+            hideLoader();
+        }
+
+        async function loadNotifications() {
+            try {
+                notifications = [];
+
+                // Get project notifications
+                const projectsRef = collection(db, 'users', currentUser.uid, 'projects');
+                const projectsSnap = await getDocs(projectsRef);
+
+                projectsSnap.forEach(docSnap => {
+                    const p = docSnap.data();
+                    if (p.status === 'Completed') return;
+
+                    const endDate = new Date(p.endDate);
+                    const today = new Date();
+                    today.setHours(0, 0, 0, 0);
+                    endDate.setHours(0, 0, 0, 0);
+                    const daysLeft = Math.ceil((endDate - today) / (1000 * 60 * 60 * 24));
+
+                    if (daysLeft < 0) {
+                        notifications.push({
+                            type: 'danger',
+                            title: 'Project Overdue',
+                            text: `${p.name} is ${Math.abs(daysLeft)} days overdue`,
+                            time: 'Now',
+                            projectId: docSnap.id
+                        });
+                    } else if (daysLeft <= 3) {
+                        notifications.push({
+                            type: 'warning',
+                            title: 'Deadline Approaching',
+                            text: `${p.name} is due in ${daysLeft} days`,
+                            time: 'Now',
+                            projectId: docSnap.id
+                        });
+                    }
+                });
+
+                // Get user notifications from admin
+                try {
+                    const userNotifsRef = collection(db, 'users', currentUser.uid, 'notifications');
+                    const notifsSnap = await getDocs(userNotifsRef);
+                    notifsSnap.forEach(docSnap => {
+                        const n = docSnap.data();
+                        notifications.push({
+                            type: n.type || 'info',
+                            title: n.title,
+                            text: n.message,
+                            time: n.createdAt?.toDate?.().toLocaleDateString('en-IN') || 'Recently',
+                            read: n.read
+                        });
+                    });
+                } catch (e) { }
+
+                // Update UI
+                if (notifications.length > 0) {
+                    document.getElementById('notifDot').style.display = 'block';
+                }
+                renderNotifications();
+            } catch (e) {
+                console.error('Error loading notifications:', e);
+            }
+        }
+
+        function renderNotifications() {
+            const list = document.getElementById('notifList');
+            if (notifications.length === 0) {
+                list.innerHTML = '<div class="notif-empty"><i class="fas fa-bell-slash"></i><p>No notifications yet</p></div>';
+                return;
+            }
+            list.innerHTML = notifications.map(n => `
+                <div class="notif-item ${n.read ? '' : 'unread'} ${n.type}" ${n.projectId ? `onclick="window.location.href='project.html?id=${n.projectId}'"` : ''}>
+                    <div class="notif-title">${n.title}</div>
+                    <div class="notif-text">${n.text}</div>
+                    <div class="notif-time">${n.time}</div>
+                </div>
+            `).join('');
+        }
+
+        async function checkResumeWork(userPrefs) {
+            try {
+                const lastProject = userPrefs.lastProjectId;
+                if (!lastProject) return;
+
+                const projectRef = doc(db, 'users', currentUser.uid, 'projects', lastProject);
+                const projectSnap = await getDoc(projectRef);
+
+                if (projectSnap.exists()) {
+                    const p = projectSnap.data();
+                    document.getElementById('resumeCard').classList.remove('hidden');
+                    document.getElementById('resumeSubtitle').textContent = `Continue working on ${p.name}`;
+                    document.getElementById('resumeCard').onclick = () => {
+                        window.location.href = `project.html?id=${lastProject}`;
+                    };
+                }
+            } catch (e) { }
+        }
+
+        // Notification panel toggle
+        document.getElementById('notifBtn').addEventListener('click', () => {
+            document.getElementById('notifPanel').classList.add('open');
+            document.getElementById('overlay').classList.add('open');
+        });
+
+        document.getElementById('notifClose').addEventListener('click', () => {
+            document.getElementById('notifPanel').classList.remove('open');
+            document.getElementById('overlay').classList.remove('open');
+        });
+
+        document.getElementById('overlay').addEventListener('click', () => {
+            document.getElementById('notifPanel').classList.remove('open');
+            document.getElementById('overlay').classList.remove('open');
+        });
+
+        // Logout
+        document.getElementById('logoutBtn').addEventListener('click', async (e) => {
+            e.preventDefault();
+            await signOut(auth);
+            window.location.href = 'login.html';
+        });
+
+        // Profile modal functions
+        let selectedProfilePicture = null;
+
+        window.openProfileModal = async function () {
+            console.log('[Hub] Opening profile modal');
+            const modal = document.getElementById('profileModal');
+
+            try {
+                const prefs = await getDoc(doc(db, 'user_preferences', currentUser.uid));
+                const userData = prefs.exists() ? prefs.data() : {};
+
+                document.getElementById('profileDisplayName').value = userData.displayName || currentUser.email?.split('@')[0] || '';
+                document.getElementById('profileCompanyName').value = userData.companyName || '';
+                document.getElementById('profileRole').value = userData.role || 'owner';
+
+                // Set profile picture preview
+                const initial = (userData.displayName || currentUser.email?.split('@')[0] || 'B').charAt(0).toUpperCase();
+                document.getElementById('profilePictureInitial').textContent = initial;
+
+                if (userData.profilePicture) {
+                    document.getElementById('profilePictureImg').src = userData.profilePicture;
+                    document.getElementById('profilePictureImg').style.display = 'block';
+                    document.getElementById('profilePictureInitial').style.display = 'none';
+                } else {
+                    document.getElementById('profilePictureImg').style.display = 'none';
+                    document.getElementById('profilePictureInitial').style.display = 'block';
+                }
+
+                selectedProfilePicture = null;
+            } catch (e) {
+                console.error('Error loading profile data:', e);
+            }
+
+            modal.classList.remove('hidden');
+            modal.offsetHeight; // Force reflow
+            modal.classList.add('active');
+        };
+
+        window.closeProfileModal = function () {
+            const modal = document.getElementById('profileModal');
+            modal.classList.remove('active');
+            modal.classList.add('hidden');
+            selectedProfilePicture = null;
+        };
+
+        // Handle profile picture selection
+        document.getElementById('profilePictureInput').addEventListener('change', async (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            // Validate file size (max 500KB for base64 storage)
+            if (file.size > 500 * 1024) {
+                alert('Image too large. Please select an image under 500KB.');
+                return;
+            }
+
+            // Convert to base64
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                selectedProfilePicture = event.target.result;
+                document.getElementById('profilePictureImg').src = selectedProfilePicture;
+                document.getElementById('profilePictureImg').style.display = 'block';
+                document.getElementById('profilePictureInitial').style.display = 'none';
+            };
+            reader.readAsDataURL(file);
+        });
+
+        document.getElementById('profileForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const displayName = document.getElementById('profileDisplayName').value.trim();
+            const companyName = document.getElementById('profileCompanyName').value.trim();
+            const role = document.getElementById('profileRole').value;
+
+            try {
+                console.log('[Hub] Saving profile:', { displayName, companyName, role, hasProfilePicture: !!selectedProfilePicture });
+
+                const updateData = {
+                    displayName,
+                    companyName,
+                    role,
+                    userId: currentUser.uid,
+                    updatedAt: new Date()
+                };
+
+                // Add profile picture if selected
+                if (selectedProfilePicture) {
+                    updateData.profilePicture = selectedProfilePicture;
+                }
+
+                await setDoc(doc(db, 'user_preferences', currentUser.uid), updateData, { merge: true });
+
+                // Update UI
+                document.getElementById('userName').textContent = displayName || currentUser.email?.split('@')[0];
+                document.getElementById('userDisplayName').textContent = displayName || currentUser.email?.split('@')[0];
+                document.getElementById('userAvatarInitial').textContent = (displayName || currentUser.email?.split('@')[0]).charAt(0).toUpperCase();
+
+                // Update avatar image
+                if (selectedProfilePicture) {
+                    document.getElementById('userAvatarImg').src = selectedProfilePicture;
+                    document.getElementById('userAvatarImg').style.display = 'block';
+                    document.getElementById('userAvatarInitial').style.display = 'none';
+                }
+
+                const roleNames = { owner: 'Owner', engineer: 'Engineer', accountant: 'Accountant', supervisor: 'Supervisor' };
+                document.getElementById('userRole').textContent = roleNames[role] || 'Owner';
+
+                window.closeProfileModal();
+
+                // Show success toast
+                const toast = document.createElement('div');
+                toast.style.cssText = 'position: fixed; bottom: 1rem; right: 1rem; background: #10B981; color: white; padding: 0.75rem 1.25rem; border-radius: 8px; font-weight: 600; z-index: 2000; animation: slideIn 0.3s ease;';
+                toast.innerHTML = '<i class="fas fa-check-circle" style="margin-right: 0.5rem;"></i>Profile updated successfully!';
+                document.body.appendChild(toast);
+                setTimeout(() => toast.remove(), 3000);
+
+                console.log('[Hub] Profile saved successfully');
+            } catch (error) {
+                console.error('[Hub] Error saving profile:', error);
+                alert('Error saving profile: ' + error.message);
+            }
+        });
+
+        // Make user profile clickable
+        document.getElementById('userProfile').addEventListener('click', () => {
+            openProfileModal();
+        });
+
+        // Export All Projects functionality
+        document.getElementById('exportAllProjectsBtn')?.addEventListener('click', async (e) => {
+            e.preventDefault();
+            await exportAllProjects();
+        });
+
+        async function exportAllProjects() {
+            try {
+                // Show loading
+                const btn = document.getElementById('exportAllProjectsBtn');
+                const originalHTML = btn.innerHTML;
+                btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i><span>Exporting...</span>';
+                btn.style.pointerEvents = 'none';
+
+                // Get all projects
+                const projectsRef = collection(db, 'users', currentUser.uid, 'projects');
+                const projectsSnap = await getDocs(projectsRef);
+
+                if (projectsSnap.empty) {
+                    alert('No projects to export');
+                    btn.innerHTML = originalHTML;
+                    btn.style.pointerEvents = 'auto';
+                    return;
+                }
+
+                const projects = [];
+                projectsSnap.forEach(docSnap => {
+                    const p = docSnap.data();
+                    projects.push({
+                        id: docSnap.id,
+                        name: p.name || '',
+                        clientName: p.clientName || '',
+                        location: p.location || '',
+                        status: p.status || '',
+                        budget: p.budget || 0,
+                        startDate: p.startDate || '',
+                        endDate: p.endDate || '',
+                        progress: p.progress || 0,
+                        description: p.description || '',
+                        createdAt: p.createdAt || ''
+                    });
+                });
+
+                // Generate CSV
+                const headers = ['ID', 'Name', 'Client', 'Location', 'Status', 'Budget', 'Start Date', 'End Date', 'Progress', 'Description', 'Created At'];
+                const csvRows = [headers.join(',')];
+
+                projects.forEach(p => {
+                    const row = [
+                        p.id,
+                        `"${(p.name || '').replace(/"/g, '""')}"`,
+                        `"${(p.clientName || '').replace(/"/g, '""')}"`,
+                        `"${(p.location || '').replace(/"/g, '""')}"`,
+                        p.status,
+                        p.budget,
+                        p.startDate,
+                        p.endDate,
+                        p.progress,
+                        `"${(p.description || '').replace(/"/g, '""')}"`,
+                        p.createdAt
+                    ];
+                    csvRows.push(row.join(','));
+                });
+
+                const csvContent = csvRows.join('\n');
+                const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+                const url = URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = `all-projects-${new Date().toISOString().split('T')[0]}.csv`;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                URL.revokeObjectURL(url);
+
+                // Reset button
+                btn.innerHTML = originalHTML;
+                btn.style.pointerEvents = 'auto';
+
+                alert(`Successfully exported ${projects.length} projects!`);
+            } catch (error) {
+                console.error('Error exporting projects:', error);
+                alert('Error exporting projects. Please try again.');
+                const btn = document.getElementById('exportAllProjectsBtn');
+                btn.innerHTML = '<i class="fas fa-file-export"></i><span>Export All</span>';
+                btn.style.pointerEvents = 'auto';
+            }
+        }
+
+        // Mobile Toggle Logic
+        document.getElementById('mobileSidebarToggle')?.addEventListener('click', () => {
+            document.querySelector('.sidebar').classList.add('open');
+            document.getElementById('sidebarOverlay').classList.add('active');
+        });
+
+        document.getElementById('sidebarOverlay')?.addEventListener('click', () => {
+            document.querySelector('.sidebar').classList.remove('open');
+            document.getElementById('sidebarOverlay').classList.remove('active');
+        });
+
+        // Close sidebar on link click (for mobile)
+        document.querySelectorAll('.sidebar .nav-item').forEach(link => {
+            link.addEventListener('click', () => {
+                if (window.innerWidth <= 768) {
+                    document.querySelector('.sidebar').classList.remove('open');
+                    document.getElementById('sidebarOverlay').classList.remove('active');
+                }
+            });
+        });
+
+        // Auth state
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                initHub(user);
+            } else {
+                window.location.href = 'login.html';
+            }
+        });
+    </script>
+</body>
+
+</html>

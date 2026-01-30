@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>B&B Admin Dashboard</title>
+    <link rel="icon" type="image/png" href="B&B.png">
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root { --primary: #5B9BD5; --primary-dark: #3A7BC8; --accent: #FF8C61; --success: #4CAF50; --warning: #FFB84D; --error: #EF4444; --dark: #1E293B; --gray: #64748B; --gray-light: #94A3B8; --border: #E2E8F0; --bg: #F8FAFC; --white: #FFFFFF; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', sans-serif; background: var(--bg); display: flex; min-height: 100vh; }
+        .sidebar { width: 220px; background: var(--white); border-right: 1px solid var(--border); display: flex; flex-direction: column; position: fixed; height: 100vh; z-index: 100; }
+        .sidebar-header { padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 0.75rem; }
+        .sidebar-header img { height: 32px; }
+        .sidebar-header span { font-weight: 700; font-size: 1rem; color: var(--dark); }
+        .nav-section { padding: 0.5rem 0; }
+        .nav-item { display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1.5rem; color: var(--gray); text-decoration: none; font-weight: 500; font-size: 0.875rem; transition: all 0.15s; border-left: 3px solid transparent; cursor: pointer; }
+        .nav-item:hover { background: #F1F5F9; color: var(--dark); }
+        .nav-item.active { background: linear-gradient(90deg, rgba(91,155,213,0.1), transparent); color: var(--primary); border-left-color: var(--primary); font-weight: 600; }
+        .nav-item i { width: 20px; text-align: center; font-size: 0.9375rem; }
+        .nav-bottom { margin-top: auto; border-top: 1px solid var(--border); padding: 0.5rem 0; }
+        .main { flex: 1; margin-left: 220px; }
+        .top-header { background: var(--white); border-bottom: 1px solid var(--border); padding: 0.875rem 1.5rem; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 50; }
+        .search-box { display: flex; align-items: center; gap: 0.5rem; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 0.5rem 1rem; width: 300px; }
+        .search-box input { border: none; background: none; outline: none; font-size: 0.875rem; color: var(--dark); width: 100%; }
+        .search-box i { color: var(--gray-light); }
+        .header-right { display: flex; align-items: center; gap: 0.75rem; }
+        .header-btn { width: 40px; height: 40px; border-radius: 10px; background: var(--bg); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; color: var(--gray); cursor: pointer; position: relative; }
+        .header-btn:hover { border-color: var(--primary); color: var(--primary); }
+        .notif-dot { position: absolute; top: 8px; right: 8px; width: 8px; height: 8px; background: var(--accent); border-radius: 50%; }
+        .user-avatar { width: 40px; height: 40px; border-radius: 10px; background: linear-gradient(135deg, var(--primary), var(--primary-dark)); display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; font-size: 0.875rem; cursor: pointer; }
+        .content { padding: 1.5rem; }
+        .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; margin-bottom: 1.5rem; }
+        .stat-card { border-radius: 12px; padding: 1.25rem; display: flex; justify-content: space-between; align-items: flex-start; }
+        .stat-card.green { background: linear-gradient(135deg, #D1FAE5, #A7F3D0); }
+        .stat-card.yellow { background: linear-gradient(135deg, #FEF3C7, #FDE68A); }
+        .stat-card.blue { background: linear-gradient(135deg, #DBEAFE, #BFDBFE); }
+        .stat-card.orange { background: linear-gradient(135deg, #FFEDD5, #FED7AA); }
+        .stat-card.white { background: var(--white); border: 1px solid var(--border); }
+        .stat-value { font-size: 1.75rem; font-weight: 800; color: var(--dark); }
+        .stat-label { font-size: 0.6875rem; font-weight: 600; color: var(--gray); text-transform: uppercase; letter-spacing: 0.5px; margin-top: 0.25rem; }
+        .stat-icon { width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1rem; }
+        .stat-card.green .stat-icon { background: rgba(16,185,129,0.2); color: #059669; }
+        .stat-card.yellow .stat-icon { background: rgba(245,158,11,0.2); color: #D97706; }
+        .stat-card.blue .stat-icon { background: rgba(59,130,246,0.2); color: #2563EB; }
+        .stat-card.orange .stat-icon { background: rgba(249,115,22,0.2); color: #EA580C; }
+        .stat-card.white .stat-icon { background: var(--bg); color: var(--gray); }
+        .quick-actions { display: flex; gap: 0.75rem; margin-bottom: 1.5rem; flex-wrap: wrap; }
+        .action-btn { display: flex; align-items: center; gap: 0.5rem; padding: 0.625rem 1rem; border-radius: 8px; font-weight: 600; font-size: 0.8125rem; cursor: pointer; border: 1px solid var(--border); background: var(--white); color: var(--dark); transition: all 0.15s; }
+        .action-btn:hover { border-color: var(--primary); color: var(--primary); }
+        .action-btn.primary { background: var(--success); color: white; border-color: var(--success); }
+        .action-btn.primary:hover { background: #3D9140; }
+        .cards-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1.5rem; margin-bottom: 1.5rem; }
+        .card { background: var(--white); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+        .card-header { padding: 1rem 1.25rem; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+        .card-header h3 { font-size: 0.9375rem; font-weight: 700; color: var(--dark); display: flex; align-items: center; gap: 0.5rem; }
+        .card-header h3 i { color: var(--primary); }
+        .card-body { padding: 0; max-height: 400px; overflow-y: auto; }
+        .activity-item { padding: 1rem 1.25rem; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+        .activity-item:last-child { border-bottom: none; }
+        .activity-item:hover { background: var(--bg); }
+        .activity-info h4 { font-size: 0.875rem; font-weight: 600; color: var(--dark); }
+        .activity-info p { font-size: 0.8125rem; color: var(--gray); margin-top: 0.125rem; }
+        .activity-info span { font-size: 0.75rem; color: var(--gray-light); }
+        .badge { padding: 0.25rem 0.625rem; border-radius: 6px; font-size: 0.6875rem; font-weight: 600; text-transform: uppercase; }
+        .badge.success { background: #D1FAE5; color: #059669; }
+        .badge.warning { background: #FEF3C7; color: #D97706; }
+        .badge.error { background: #FEE2E2; color: #DC2626; }
+        .badge.info { background: #DBEAFE; color: #2563EB; }
+        .badge.default { background: var(--bg); color: var(--gray); }
+        .user-card { padding: 1rem 1.25rem; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 0.75rem; }
+        .user-card:last-child { border-bottom: none; }
+        .user-card:hover { background: var(--bg); }
+        .user-card-avatar { width: 40px; height: 40px; border-radius: 10px; background: var(--primary); color: white; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.875rem; }
+        .user-card-info { flex: 1; }
+        .user-card-info h4 { font-size: 0.875rem; font-weight: 600; color: var(--dark); }
+        .user-card-info p { font-size: 0.75rem; color: var(--gray); }
+        .empty-state { padding: 3rem 1rem; text-align: center; color: var(--gray); }
+        .empty-state i { font-size: 3rem; margin-bottom: 1rem; opacity: 0.3; }
+        .empty-state p { font-size: 0.875rem; }
+        .table-container { overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; }
+        th { padding: 0.75rem 1rem; text-align: left; font-weight: 600; color: var(--gray); font-size: 0.6875rem; text-transform: uppercase; letter-spacing: 0.5px; background: var(--bg); border-bottom: 1px solid var(--border); }
+        td { padding: 0.875rem 1rem; font-size: 0.8125rem; color: var(--dark); border-bottom: 1px solid var(--border); }
+        tr:hover td { background: var(--bg); }
+        .icon-btn { width: 32px; height: 32px; border-radius: 6px; border: 1px solid var(--border); background: var(--white); color: var(--gray); cursor: pointer; display: inline-flex; align-items: center; justify-content: center; font-size: 0.75rem; margin-right: 0.25rem; }
+        .icon-btn:hover { border-color: var(--primary); color: var(--primary); }
+        .icon-btn.success:hover { border-color: var(--success); color: var(--success); }
+        .icon-btn.error:hover { border-color: var(--error); color: var(--error); }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); display: flex; align-items: center; justify-content: center; z-index: 1000; opacity: 0; visibility: hidden; transition: all 0.2s; }
+        .modal.active { opacity: 1; visibility: visible; }
+        .modal-content { background: var(--white); border-radius: 12px; width: 100%; max-width: 500px; max-height: 90vh; overflow-y: auto; }
+        .modal-header { padding: 1rem 1.25rem; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+        .modal-header h3 { font-size: 1rem; font-weight: 700; }
+        .modal-close { width: 32px; height: 32px; border-radius: 8px; border: 1px solid var(--border); background: none; cursor: pointer; color: var(--gray); }
+        .modal-close:hover { border-color: var(--error); color: var(--error); }
+        .modal-body { padding: 1.25rem; }
+        .modal-footer { padding: 1rem 1.25rem; border-top: 1px solid var(--border); display: flex; justify-content: flex-end; gap: 0.5rem; }
+        .form-group { margin-bottom: 1rem; }
+        .form-label { display: block; font-size: 0.75rem; font-weight: 600; color: var(--gray); margin-bottom: 0.375rem; text-transform: uppercase; }
+        .form-input { width: 100%; padding: 0.625rem 0.875rem; border: 1px solid var(--border); border-radius: 8px; font-size: 0.875rem; color: var(--dark); }
+        .form-input:focus { outline: none; border-color: var(--primary); }
+        .btn { padding: 0.625rem 1rem; border-radius: 8px; font-weight: 600; font-size: 0.8125rem; cursor: pointer; border: none; transition: all 0.15s; }
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-primary:hover { background: var(--primary-dark); }
+        .btn-secondary { background: var(--bg); color: var(--dark); border: 1px solid var(--border); }
+        .btn-secondary:hover { border-color: var(--gray); }
+        .loader { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: white; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 2000; }
+        .loader.hidden { display: none; }
+        .spinner { width: 40px; height: 40px; border: 3px solid var(--border); border-top-color: var(--primary); border-radius: 50%; animation: spin 0.8s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .access-denied { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; text-align: center; padding: 2rem; }
+        .access-denied i { font-size: 4rem; color: var(--error); margin-bottom: 1rem; }
+        .access-denied h2 { font-size: 1.5rem; font-weight: 700; color: var(--error); margin-bottom: 0.5rem; }
+        .access-denied p { color: var(--gray); margin-bottom: 1.5rem; }
+        @media (max-width: 1200px) { .stats-grid { grid-template-columns: repeat(2, 1fr); } }
+        @media (max-width: 1024px) { .sidebar { width: 64px; } .sidebar-header span, .nav-item span { display: none; } .sidebar-header { justify-content: center; padding: 1rem; } .nav-item { justify-content: center; padding: 0.875rem; } .main { margin-left: 64px; } .cards-grid { grid-template-columns: 1fr; } }
+        @media (max-width: 768px) { .sidebar { display: none; } .main { margin-left: 0; } .top-header { padding: 1rem; } .search-box { width: 100%; order: 3; } .content { padding: 1rem; } .stats-grid { grid-template-columns: 1fr 1fr; } .quick-actions { flex-wrap: wrap; } }
+    </style>
+</head>
+<body>
+    <div class="loader" id="loader"><div class="spinner"></div><p style="margin-top: 1rem; color: var(--gray); font-size: 0.875rem;">Loading admin...</p></div>
+    <div id="accessDenied" class="access-denied" style="display: none;"><i class="fas fa-lock"></i><h2>Access Denied</h2><p>You don't have admin privileges.</p><a href="hub.html" class="btn btn-primary">Go to Dashboard</a></div>
+    <div id="adminApp" style="display: none; width: 100%;">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+            <svg viewBox="0 0 140 110" xmlns="http://www.w3.org/2000/svg" style="height:32px;width:32px;">
+                <rect x="0" y="56" width="17" height="17" rx="2" fill="#2f2f2f" stroke="#000" stroke-width="1.5"/>
+                <rect x="20" y="56" width="17" height="17" rx="2" fill="#b7c8b8" stroke="#000" stroke-width="1.5"/>
+                <rect x="40" y="56" width="17" height="17" rx="2" fill="#2f2f2f" stroke="#000" stroke-width="1.5"/>
+                <rect x="60" y="56" width="17" height="17" rx="2" fill="#b7c8b8" stroke="#000" stroke-width="1.5"/>
+                <rect x="80" y="56" width="17" height="17" rx="2" fill="#2f2f2f" stroke="#000" stroke-width="1.5"/>
+                <rect x="20" y="36" width="17" height="17" rx="2" fill="#b7c8b8" stroke="#000" stroke-width="1.5"/>
+                <rect x="40" y="36" width="17" height="17" rx="2" fill="#2f2f2f" stroke="#000" stroke-width="1.5"/>
+                <rect x="60" y="36" width="17" height="17" rx="2" fill="#b7c8b8" stroke="#000" stroke-width="1.5"/>
+                <rect x="40" y="16" width="17" height="17" rx="2" fill="#b7c8b8" stroke="#000" stroke-width="1.5"/>
+                <rect x="60" y="16" width="17" height="17" rx="2" fill="#b7c8b8" stroke="#000" stroke-width="1.5"/>
+            </svg>
+            <span>Admin Dashboard</span>
+        </div>
+            <nav class="nav-section">
+                <a class="nav-item active" data-tab="overview"><i class="fas fa-chart-pie"></i><span>Overview</span></a>
+                <a class="nav-item" data-tab="users"><i class="fas fa-users"></i><span>Users</span></a>
+                <a class="nav-item" data-tab="payments"><i class="fas fa-credit-card"></i><span>Payments</span></a>
+                <a class="nav-item" data-tab="projects"><i class="fas fa-building"></i><span>Projects</span></a>
+                <a class="nav-item" data-tab="settings"><i class="fas fa-cog"></i><span>Settings</span></a>
+            </nav>
+            <div class="nav-bottom"><a href="hub.html" class="nav-item"><i class="fas fa-arrow-left"></i><span>Back to Hub</span></a></div>
+        </aside>
+        <main class="main">
+            <header class="top-header">
+                <div class="search-box"><i class="fas fa-search"></i><input type="text" placeholder="Search" id="globalSearch"></div>
+                <div class="header-right"><button class="header-btn" id="notifBtn"><i class="fas fa-bell"></i><span class="notif-dot" id="notifDot" style="display: none;"></span></button><div class="user-avatar" id="adminAvatar">A</div></div>
+            </header>
+            <div class="content">
+                <div id="overviewTab" class="tab-content active">
+                    <div class="stats-grid">
+                        <div class="stat-card green"><div><div class="stat-value" id="totalUsers">0</div><div class="stat-label">Total Users</div></div><div class="stat-icon"><i class="fas fa-users"></i></div></div>
+                        <div class="stat-card yellow"><div><div class="stat-value" id="premiumUsers">0</div><div class="stat-label">Premium Users</div></div><div class="stat-icon"><i class="fas fa-crown"></i></div></div>
+                        <div class="stat-card blue"><div><div class="stat-value" id="totalProjects">0</div><div class="stat-label">Total Projects</div></div><div class="stat-icon"><i class="fas fa-folder"></i></div></div>
+                        <div class="stat-card orange"><div><div class="stat-value" id="totalRevenue">₹0</div><div class="stat-label">Total Revenue</div></div><div class="stat-icon"><i class="fas fa-rupee-sign"></i></div></div>
+                    </div>
+                    <div class="stats-grid">
+                        <div class="stat-card white"><div><div class="stat-value" id="pendingPayments">0</div><div class="stat-label">Pending Payments</div></div><div class="stat-icon"><i class="fas fa-clock"></i></div></div>
+                        <div class="stat-card white"><div><div class="stat-value" id="totalCredits">0</div><div class="stat-label">Available Credits</div></div><div class="stat-icon"><i class="fas fa-coins"></i></div></div>
+                        <div class="stat-card white"><div><div class="stat-value" id="completedProjects">0</div><div class="stat-label">Completed</div></div><div class="stat-icon"><i class="fas fa-check-circle"></i></div></div>
+                        <div class="stat-card white"><div><div class="stat-value" id="inProgressProjects">0</div><div class="stat-label">In Progress</div></div><div class="stat-icon"><i class="fas fa-spinner"></i></div></div>
+                    </div>
+                    <div class="quick-actions">
+                        <button class="action-btn primary" onclick="openBroadcastModal()"><i class="fas fa-bullhorn"></i> Broadcast Message</button>
+                        <button class="action-btn" onclick="exportAllData()"><i class="fas fa-download"></i> Export Data</button>
+                        <button class="action-btn" onclick="refreshDashboard()"><i class="fas fa-sync-alt"></i> Refresh</button>
+                        <button class="action-btn" onclick="viewSystemLogs()"><i class="fas fa-clipboard-list"></i> System Logs</button>
+                    </div>
+                    <div class="cards-grid">
+                        <div class="card"><div class="card-header"><h3><i class="fas fa-clock"></i> Recent Activity</h3><button class="icon-btn" onclick="refreshDashboard()"><i class="fas fa-sync-alt"></i></button></div><div class="card-body" id="recentActivity"></div></div>
+                        <div class="card"><div class="card-header"><h3><i class="fas fa-user-plus"></i> New Users (Last 7 Days)</h3></div><div class="card-body" id="newUsers"></div></div>
+                    </div>
+                </div>
+                <div id="usersTab" class="tab-content">
+                    <div class="quick-actions">
+                        <button class="action-btn" onclick="filterUsers('all')"><i class="fas fa-users"></i> All Users</button>
+                        <button class="action-btn" onclick="filterUsers('premium')"><i class="fas fa-crown"></i> Premium</button>
+                        <button class="action-btn" onclick="filterUsers('free')"><i class="fas fa-user"></i> Free</button>
+                        <button class="action-btn" onclick="exportUsers()"><i class="fas fa-download"></i> Export</button>
+                    </div>
+                    <div class="card"><div class="card-header"><h3><i class="fas fa-users"></i> User Management</h3><input type="text" class="form-input" style="width: 200px;" placeholder="Search users..." id="userSearch" oninput="renderUsers()"></div>
+                        <div class="table-container"><table><thead><tr><th>User</th><th>Status</th><th>Credits</th><th>Projects</th><th>Premium End</th><th>Joined</th><th>Actions</th></tr></thead><tbody id="usersTable"></tbody></table></div>
+                    </div>
+                </div>
+                <div id="paymentsTab" class="tab-content">
+                    <div class="quick-actions">
+                        <button class="action-btn" onclick="filterPayments('pending')"><i class="fas fa-clock"></i> Pending</button>
+                        <button class="action-btn" onclick="filterPayments('approved')"><i class="fas fa-check"></i> Approved</button>
+                        <button class="action-btn" onclick="filterPayments('rejected')"><i class="fas fa-times"></i> Rejected</button>
+                        <button class="action-btn" onclick="exportPayments()"><i class="fas fa-download"></i> Export</button>
+                    </div>
+                    <div class="card"><div class="card-header"><h3><i class="fas fa-credit-card"></i> Payment Management</h3><select class="form-input" style="width: 150px;" id="paymentFilter" onchange="renderPayments()"><option value="all">All</option><option value="pending">Pending</option><option value="approved">Approved</option><option value="rejected">Rejected</option></select></div>
+                        <div class="table-container"><table><thead><tr><th>User</th><th>Type</th><th>Amount</th><th>UTR</th><th>Date</th><th>Status</th><th>Actions</th></tr></thead><tbody id="paymentsTable"></tbody></table></div>
+                    </div>
+                </div>
+                <div id="projectsTab" class="tab-content">
+                    <div class="quick-actions">
+                        <button class="action-btn" onclick="filterProjects('all')"><i class="fas fa-building"></i> All</button>
+                        <button class="action-btn" onclick="filterProjects('In Progress')"><i class="fas fa-spinner"></i> In Progress</button>
+                        <button class="action-btn" onclick="filterProjects('Completed')"><i class="fas fa-check-circle"></i> Completed</button>
+                        <button class="action-btn" onclick="exportProjects()"><i class="fas fa-download"></i> Export</button>
+                    </div>
+                    <div class="card"><div class="card-header"><h3><i class="fas fa-building"></i> All Projects</h3><input type="text" class="form-input" style="width: 200px;" placeholder="Search projects..." id="projectSearch" oninput="renderProjects()"></div>
+                        <div class="table-container"><table><thead><tr><th>Project</th><th>Owner</th><th>Status</th><th>Budget</th><th>Created</th><th>Actions</th></tr></thead><tbody id="projectsTable"></tbody></table></div>
+                    </div>
+                </div>
+                <div id="settingsTab" class="tab-content"><div class="card"><div class="card-header"><h3><i class="fas fa-cog"></i> Settings</h3></div><div class="card-body"><div class="empty-state"><i class="fas fa-cog"></i><p>Settings coming soon</p></div></div></div></div>
+            </div>
+        </main>
+    </div>
+    <div class="modal" id="broadcastModal"><div class="modal-content"><div class="modal-header"><h3><i class="fas fa-bullhorn"></i> Send Message</h3><button class="modal-close" onclick="closeModal('broadcastModal')"><i class="fas fa-times"></i></button></div><div class="modal-body"><div class="form-group"><label class="form-label">Target Audience</label><select id="broadcastTarget" class="form-input" onchange="toggleUserSelect()"><option value="all">All Users</option><option value="premium">Premium Users Only</option><option value="free">Free Users Only</option><option value="single">Specific User</option></select></div><div id="singleUserSelect" class="form-group" style="display:none;"><label class="form-label">Select User</label><select id="targetUserId" class="form-input"><option value="">-- Select User --</option></select></div><div class="form-group"><label class="form-label">Title</label><input type="text" id="broadcastTitle" class="form-input" placeholder="Notification title"></div><div class="form-group"><label class="form-label">Message</label><textarea id="broadcastMessage" class="form-input" rows="4" placeholder="Your message..."></textarea></div></div><div class="modal-footer"><button class="btn btn-secondary" onclick="closeModal('broadcastModal')">Cancel</button><button class="btn btn-primary" onclick="sendBroadcast()"><i class="fas fa-paper-plane"></i> Send</button></div></div></div>
+    <div class="modal" id="creditsModal"><div class="modal-content"><div class="modal-header"><h3><i class="fas fa-coins"></i> Manage Credits</h3><button class="modal-close" onclick="closeModal('creditsModal')"><i class="fas fa-times"></i></button></div><div class="modal-body"><p id="creditsUserEmail" style="font-weight: 600; margin-bottom: 1rem;"></p><p style="font-size: 0.875rem; color: var(--gray); margin-bottom: 1rem;">Current Credits: <strong id="currentCredits">0</strong></p><div class="form-group"><label class="form-label">Credits to Add/Remove</label><input type="number" id="creditsAmount" class="form-input" placeholder="Enter amount (negative to remove)"></div><div class="form-group"><label class="form-label">Reason</label><input type="text" id="creditsReason" class="form-input" placeholder="Reason for adjustment"></div></div><div class="modal-footer"><button class="btn btn-secondary" onclick="closeModal('creditsModal')">Cancel</button><button class="btn btn-primary" onclick="updateCredits()"><i class="fas fa-check"></i> Update</button></div></div></div>
+    <div class="modal" id="userModal"><div class="modal-content" style="max-width: 600px;"><div class="modal-header"><h3><i class="fas fa-user"></i> User Details</h3><button class="modal-close" onclick="closeModal('userModal')"><i class="fas fa-times"></i></button></div><div class="modal-body" id="userModalContent"></div><div class="modal-footer" id="userModalFooter"></div></div></div>
+    <script type="module">
+        import { auth, db } from './js/firebase-config.js';
+        import { onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+        import { collection, getDocs, doc, updateDoc, addDoc, serverTimestamp, increment } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+        const ADMIN_EMAIL = 'sulaimaansong6297@gmail.com';
+        let allUsers = [], allPayments = [], allProjects = [], selectedUserId = null, currentUserFilter = 'all', currentProjectFilter = 'all';
+        function hideLoader() { document.getElementById('loader').classList.add('hidden'); }
+        onAuthStateChanged(auth, async (user) => {
+            if (!user) { window.location.href = 'login.html'; return; }
+            if (user.email !== ADMIN_EMAIL) { hideLoader(); document.getElementById('accessDenied').style.display = 'flex'; return; }
+            document.getElementById('adminApp').style.display = 'flex';
+            document.getElementById('adminAvatar').textContent = user.email[0].toUpperCase();
+            await loadDashboard();
+            hideLoader();
+        });
+        async function loadDashboard() {
+            await Promise.all([loadUsers(), loadPayments()]);
+            await loadProjects();
+            updateStats(); renderRecentActivity(); renderNewUsers();
+        }
+        window.refreshDashboard = loadDashboard;
+        async function loadUsers() {
+            try { const snapshot = await getDocs(collection(db, 'users')); allUsers = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })); renderUsers(); } catch (e) { console.error('Error loading users:', e); }
+        }
+        async function loadPayments() {
+            try {
+                const premiumSnap = await getDocs(collection(db, 'premiumPayments'));
+                const projectSnap = await getDocs(collection(db, 'projectFeePayments'));
+                allPayments = [...premiumSnap.docs.map(doc => ({ id: doc.id, type: 'premium', ...doc.data() })), ...projectSnap.docs.map(doc => ({ id: doc.id, type: 'project', ...doc.data() }))];
+                allPayments.sort((a, b) => (b.submittedAt?.toDate?.() || 0) - (a.submittedAt?.toDate?.() || 0));
+                renderPayments();
+            } catch (e) { console.error('Error loading payments:', e); }
+        }
+        async function loadProjects() {
+            try {
+                allProjects = [];
+                // Projects are stored in a flat 'projects' collection with userId field
+                const projectsSnap = await getDocs(collection(db, 'projects'));
+                projectsSnap.docs.forEach(docSnap => { 
+                    const data = docSnap.data();
+                    // Find the user email for this project
+                    const user = allUsers.find(u => u.id === data.userId);
+                    allProjects.push({ 
+                        id: docSnap.id, 
+                        userId: data.userId, 
+                        userEmail: user?.email || 'Unknown', 
+                        ...data 
+                    }); 
+                });
+                renderProjects();
+            } catch (e) { console.error('Error loading projects:', e); }
+        }
+        function updateStats() {
+            document.getElementById('totalUsers').textContent = allUsers.length;
+            document.getElementById('premiumUsers').textContent = allUsers.filter(u => u.premiumStatus === 'PREMIUM').length;
+            document.getElementById('totalProjects').textContent = allProjects.length;
+            document.getElementById('completedProjects').textContent = allProjects.filter(p => p.status === 'Completed').length;
+            document.getElementById('inProgressProjects').textContent = allProjects.filter(p => p.status === 'In Progress').length;
+            document.getElementById('totalCredits').textContent = allUsers.reduce((sum, u) => sum + (u.projectCredits || 0), 0);
+            document.getElementById('pendingPayments').textContent = allPayments.filter(p => p.status === 'PENDING').length;
+            const approvedPremium = allPayments.filter(p => p.type === 'premium' && p.status === 'APPROVED').length * 199;
+            const approvedProject = allPayments.filter(p => p.type === 'project' && p.status === 'APPROVED').length * 5;
+            document.getElementById('totalRevenue').textContent = `₹${(approvedPremium + approvedProject).toLocaleString('en-IN')}`;
+            document.getElementById('notifDot').style.display = allPayments.filter(p => p.status === 'PENDING').length > 0 ? 'block' : 'none';
+        }
+        function renderRecentActivity() {
+            const container = document.getElementById('recentActivity');
+            const recent = allPayments.slice(0, 10);
+            if (!recent.length) { container.innerHTML = '<div class="empty-state"><i class="fas fa-inbox"></i><p>No recent activity</p></div>'; return; }
+            container.innerHTML = recent.map(p => `<div class="activity-item"><div class="activity-info"><h4>${p.userEmail || 'Unknown'}</h4><p>${p.type === 'premium' ? 'Premium subscription' : 'Project fee'} - ₹${p.amount || 0}</p><span>${p.paymentDate || 'N/A'}</span></div><span class="badge ${p.status === 'APPROVED' ? 'success' : p.status === 'REJECTED' ? 'error' : 'warning'}">${p.status || 'PENDING'}</span></div>`).join('');
+        }
+        function renderNewUsers() {
+            const container = document.getElementById('newUsers');
+            const weekAgo = new Date(); weekAgo.setDate(weekAgo.getDate() - 7);
+            const newUsers = allUsers.filter(u => { const created = u.createdAt?.toDate?.(); return created && created > weekAgo; }).sort((a, b) => (b.createdAt?.toDate?.() || 0) - (a.createdAt?.toDate?.() || 0));
+            if (!newUsers.length) { container.innerHTML = '<div class="empty-state"><i class="fas fa-user-plus"></i><p>No new users this week</p></div>'; return; }
+            container.innerHTML = newUsers.map(user => `<div class="user-card"><div class="user-card-avatar">${(user.email || 'U')[0].toUpperCase()}</div><div class="user-card-info"><h4>${user.email}</h4><p>Joined ${user.createdAt?.toDate?.().toLocaleDateString('en-IN') || 'N/A'}</p></div><span class="badge ${user.premiumStatus === 'PREMIUM' ? 'success' : 'default'}">${user.premiumStatus || 'FREE'}</span></div>`).join('');
+        }
+        function renderUsers() {
+            const tbody = document.getElementById('usersTable');
+            const search = document.getElementById('userSearch')?.value?.toLowerCase() || '';
+            let filtered = allUsers;
+            if (currentUserFilter === 'premium') filtered = filtered.filter(u => u.premiumStatus === 'PREMIUM');
+            if (currentUserFilter === 'free') filtered = filtered.filter(u => u.premiumStatus !== 'PREMIUM');
+            if (search) filtered = filtered.filter(u => u.email?.toLowerCase().includes(search));
+            if (!filtered.length) { tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; color: var(--gray); padding: 2rem;">No users found</td></tr>'; return; }
+            tbody.innerHTML = filtered.map(user => {
+                const premiumEnd = user.premiumEnd?.toDate?.();
+                const isExpired = premiumEnd && premiumEnd < new Date();
+                return `<tr><td><strong>${user.email || 'N/A'}</strong></td><td><span class="badge ${user.premiumStatus === 'PREMIUM' ? (isExpired ? 'warning' : 'success') : 'default'}">${user.premiumStatus === 'PREMIUM' ? (isExpired ? 'EXPIRED' : 'PREMIUM') : 'FREE'}</span></td><td><strong style="color: var(--primary);">${user.projectCredits || 0}</strong></td><td>${user.projectCount || 0}</td><td>${premiumEnd ? premiumEnd.toLocaleDateString('en-IN') : '-'}</td><td>${user.createdAt?.toDate?.().toLocaleDateString('en-IN') || 'N/A'}</td><td><button class="icon-btn" onclick="viewUser('${user.id}')" title="View"><i class="fas fa-eye"></i></button><button class="icon-btn" onclick="openCreditsModal('${user.id}')" title="Credits"><i class="fas fa-coins"></i></button><button class="icon-btn success" onclick="grantPremium('${user.id}')" title="Grant Premium"><i class="fas fa-crown"></i></button></td></tr>`;
+            }).join('');
+        }
+        window.renderUsers = renderUsers;
+        function renderPayments() {
+            const tbody = document.getElementById('paymentsTable');
+            const filter = document.getElementById('paymentFilter')?.value || 'all';
+            let filtered = allPayments;
+            if (filter === 'pending') filtered = filtered.filter(p => p.status === 'PENDING');
+            if (filter === 'approved') filtered = filtered.filter(p => p.status === 'APPROVED');
+            if (filter === 'rejected') filtered = filtered.filter(p => p.status === 'REJECTED');
+            if (!filtered.length) { tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; color: var(--gray); padding: 2rem;">No payments found</td></tr>'; return; }
+            tbody.innerHTML = filtered.map(p => `<tr><td><strong>${p.userEmail || 'N/A'}</strong></td><td><span class="badge ${p.type === 'premium' ? 'warning' : 'info'}">${p.type === 'premium' ? 'Premium ₹199' : 'Project ₹5'}</span></td><td><strong>₹${p.amount || 0}</strong></td><td style="font-family: monospace; font-size: 0.75rem;">${p.utr || 'N/A'}</td><td>${p.paymentDate || 'N/A'}</td><td><span class="badge ${p.status === 'APPROVED' ? 'success' : p.status === 'REJECTED' ? 'error' : 'warning'}">${p.status || 'PENDING'}</span></td><td>${p.status === 'PENDING' ? `<button class="icon-btn success" onclick="approvePayment('${p.id}', '${p.type}', '${p.userId}')" title="Approve"><i class="fas fa-check"></i></button><button class="icon-btn error" onclick="rejectPayment('${p.id}', '${p.type}')" title="Reject"><i class="fas fa-times"></i></button>` : `<span style="color: var(--gray-light); font-size: 0.75rem;">${p.verifiedAt?.toDate?.().toLocaleDateString('en-IN') || '-'}</span>`}</td></tr>`).join('');
+        }
+        window.renderPayments = renderPayments;
+        function renderProjects() {
+            const tbody = document.getElementById('projectsTable');
+            const search = document.getElementById('projectSearch')?.value?.toLowerCase() || '';
+            let filtered = allProjects;
+            if (currentProjectFilter !== 'all') filtered = filtered.filter(p => p.status === currentProjectFilter);
+            if (search) filtered = filtered.filter(p => p.name?.toLowerCase().includes(search) || p.userEmail?.toLowerCase().includes(search));
+            if (!filtered.length) { tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: var(--gray); padding: 2rem;">No projects found</td></tr>'; return; }
+            tbody.innerHTML = filtered.slice(0, 50).map(p => `<tr><td><strong>${p.name || 'Unnamed'}</strong></td><td>${p.userEmail || 'N/A'}</td><td><span class="badge ${p.status === 'Completed' ? 'success' : p.status === 'In Progress' ? 'info' : 'default'}">${p.status || 'Planning'}</span></td><td>₹${(p.budget || 0).toLocaleString('en-IN')}</td><td>${p.createdAt?.toDate?.().toLocaleDateString('en-IN') || 'N/A'}</td><td><button class="icon-btn" onclick="window.open('project.html?id=${p.id}', '_blank')" title="View"><i class="fas fa-external-link-alt"></i></button></td></tr>`).join('');
+        }
+        window.renderProjects = renderProjects;
+        window.approvePayment = async function(paymentId, type, userId) {
+            if (!confirm('Approve this payment?')) return;
+            try {
+                const collectionName = type === 'premium' ? 'premiumPayments' : 'projectFeePayments';
+                await updateDoc(doc(db, collectionName, paymentId), { status: 'APPROVED', verifiedAt: serverTimestamp(), verifiedBy: ADMIN_EMAIL });
+                if (type === 'premium') {
+                    const endDate = new Date(); endDate.setDate(endDate.getDate() + 30);
+                    await updateDoc(doc(db, 'users', userId), { premiumStatus: 'PREMIUM', premiumEnd: endDate });
+                } else {
+                    await updateDoc(doc(db, 'users', userId), { projectCredits: increment(1) });
+                }
+                alert('Payment approved!'); await loadDashboard();
+            } catch (e) { alert('Error: ' + e.message); }
+        };
+        window.rejectPayment = async function(paymentId, type) {
+            const reason = prompt('Rejection reason (optional):');
+            if (reason === null) return;
+            try {
+                const collectionName = type === 'premium' ? 'premiumPayments' : 'projectFeePayments';
+                await updateDoc(doc(db, collectionName, paymentId), { status: 'REJECTED', verifiedAt: serverTimestamp(), verifiedBy: ADMIN_EMAIL, rejectionReason: reason });
+                alert('Payment rejected.'); await loadDashboard();
+            } catch (e) { alert('Error: ' + e.message); }
+        };
+        window.viewUser = function(userId) {
+            const user = allUsers.find(u => u.id === userId);
+            if (!user) return;
+            selectedUserId = userId;
+            const userProjects = allProjects.filter(p => p.userId === userId);
+            const premiumEnd = user.premiumEnd?.toDate?.();
+            document.getElementById('userModalContent').innerHTML = `<div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; margin-bottom: 1.5rem;"><div><p style="font-size: 0.6875rem; color: var(--gray); text-transform: uppercase;">Email</p><p style="font-weight: 600;">${user.email}</p></div><div><p style="font-size: 0.6875rem; color: var(--gray); text-transform: uppercase;">Status</p><span class="badge ${user.premiumStatus === 'PREMIUM' ? 'success' : 'default'}">${user.premiumStatus || 'FREE'}</span></div><div><p style="font-size: 0.6875rem; color: var(--gray); text-transform: uppercase;">Credits</p><p style="font-weight: 700; font-size: 1.25rem; color: var(--primary);">${user.projectCredits || 0}</p></div><div><p style="font-size: 0.6875rem; color: var(--gray); text-transform: uppercase;">Premium Ends</p><p style="font-weight: 600;">${premiumEnd ? premiumEnd.toLocaleDateString('en-IN') : 'N/A'}</p></div><div><p style="font-size: 0.6875rem; color: var(--gray); text-transform: uppercase;">Projects</p><p style="font-weight: 600;">${userProjects.length}</p></div><div><p style="font-size: 0.6875rem; color: var(--gray); text-transform: uppercase;">Joined</p><p style="font-weight: 600;">${user.createdAt?.toDate?.().toLocaleDateString('en-IN') || 'N/A'}</p></div></div>`;
+            document.getElementById('userModalFooter').innerHTML = `<button class="btn btn-secondary" onclick="closeModal('userModal')">Close</button><button class="btn btn-primary" onclick="openCreditsModal('${userId}')"><i class="fas fa-coins"></i> Manage Credits</button><button class="btn btn-primary" onclick="grantPremium('${userId}')"><i class="fas fa-crown"></i> Grant Premium</button>`;
+            openModal('userModal');
+        };
+        window.openCreditsModal = function(userId) {
+            const user = allUsers.find(u => u.id === userId);
+            if (!user) return;
+            selectedUserId = userId;
+            document.getElementById('creditsUserEmail').textContent = user.email;
+            document.getElementById('currentCredits').textContent = user.projectCredits || 0;
+            document.getElementById('creditsAmount').value = '';
+            document.getElementById('creditsReason').value = '';
+            closeModal('userModal');
+            openModal('creditsModal');
+        };
+        window.updateCredits = async function() {
+            const amount = parseInt(document.getElementById('creditsAmount').value);
+            if (!amount || isNaN(amount)) { alert('Please enter a valid amount'); return; }
+            try {
+                await updateDoc(doc(db, 'users', selectedUserId), { projectCredits: increment(amount) });
+                alert(`Credits updated! ${amount > 0 ? '+' : ''}${amount}`);
+                closeModal('creditsModal'); await loadDashboard();
+            } catch (e) { alert('Error: ' + e.message); }
+        };
+        window.grantPremium = async function(userId) {
+            const days = prompt('Grant premium for how many days?', '30');
+            if (!days || isNaN(parseInt(days))) return;
+            try {
+                const endDate = new Date(); endDate.setDate(endDate.getDate() + parseInt(days));
+                await updateDoc(doc(db, 'users', userId), { premiumStatus: 'PREMIUM', premiumEnd: endDate });
+                alert(`Premium granted for ${days} days!`);
+                closeModal('userModal'); await loadDashboard();
+            } catch (e) { alert('Error: ' + e.message); }
+        };
+        window.openBroadcastModal = function() { 
+            document.getElementById('broadcastTitle').value = ''; 
+            document.getElementById('broadcastMessage').value = ''; 
+            document.getElementById('broadcastTarget').value = 'all'; 
+            document.getElementById('singleUserSelect').style.display = 'none';
+            // Populate user select dropdown
+            const userSelect = document.getElementById('targetUserId');
+            userSelect.innerHTML = '<option value="">-- Select User --</option>' + 
+                allUsers.map(u => `<option value="${u.id}">${u.email}</option>`).join('');
+            openModal('broadcastModal'); 
+        };
+        window.toggleUserSelect = function() {
+            const target = document.getElementById('broadcastTarget').value;
+            document.getElementById('singleUserSelect').style.display = target === 'single' ? 'block' : 'none';
+        };
+        window.sendBroadcast = async function() {
+            const target = document.getElementById('broadcastTarget').value;
+            const title = document.getElementById('broadcastTitle').value.trim();
+            const message = document.getElementById('broadcastMessage').value.trim();
+            if (!title || !message) { alert('Please enter title and message'); return; }
+            
+            let targetUsers = [];
+            
+            if (target === 'single') {
+                const targetUserId = document.getElementById('targetUserId').value;
+                if (!targetUserId) { alert('Please select a user'); return; }
+                const selectedUser = allUsers.find(u => u.id === targetUserId);
+                if (!selectedUser) { alert('User not found'); return; }
+                targetUsers = [selectedUser];
+            } else if (target === 'premium') {
+                targetUsers = allUsers.filter(u => u.premiumStatus === 'PREMIUM');
+            } else if (target === 'free') {
+                targetUsers = allUsers.filter(u => u.premiumStatus !== 'PREMIUM');
+            } else {
+                targetUsers = allUsers;
+            }
+            
+            const confirmMsg = target === 'single' 
+                ? `Send message to ${targetUsers[0].email}?` 
+                : `Send to ${targetUsers.length} users?`;
+            if (!confirm(confirmMsg)) return;
+            
+            try {
+                for (const user of targetUsers) { await addDoc(collection(db, 'users', user.id, 'notifications'), { title, message, type: 'info', read: false, createdAt: serverTimestamp(), fromAdmin: true }); }
+                const successMsg = target === 'single' 
+                    ? `Message sent to ${targetUsers[0].email}!` 
+                    : `Broadcast sent to ${targetUsers.length} users!`;
+                alert(successMsg); closeModal('broadcastModal');
+            } catch (e) { alert('Error: ' + e.message); }
+        };
+        window.filterUsers = function(type) { currentUserFilter = type; renderUsers(); switchTab('users'); };
+        window.filterPayments = function(type) { document.getElementById('paymentFilter').value = type; renderPayments(); switchTab('payments'); };
+        window.filterProjects = function(type) { currentProjectFilter = type; renderProjects(); switchTab('projects'); };
+        window.exportUsers = function() { const csv = 'Email,Status,Credits,Projects,Joined\n' + allUsers.map(u => `${u.email},${u.premiumStatus || 'FREE'},${u.projectCredits || 0},${u.projectCount || 0},${u.createdAt?.toDate?.().toLocaleDateString('en-IN') || 'N/A'}`).join('\n'); downloadCSV(csv, 'users.csv'); };
+        window.exportPayments = function() { const csv = 'Email,Type,Amount,UTR,Date,Status\n' + allPayments.map(p => `${p.userEmail},${p.type},${p.amount},${p.utr || 'N/A'},${p.paymentDate || 'N/A'},${p.status}`).join('\n'); downloadCSV(csv, 'payments.csv'); };
+        window.exportProjects = function() { const csv = 'Name,Owner,Status,Budget,Created\n' + allProjects.map(p => `${p.name},${p.userEmail},${p.status || 'Planning'},${p.budget || 0},${p.createdAt?.toDate?.().toLocaleDateString('en-IN') || 'N/A'}`).join('\n'); downloadCSV(csv, 'projects.csv'); };
+        window.exportAllData = function() { exportUsers(); setTimeout(() => exportPayments(), 500); setTimeout(() => exportProjects(), 1000); };
+        function downloadCSV(csv, filename) { const blob = new Blob([csv], { type: 'text/csv' }); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = filename; a.click(); URL.revokeObjectURL(url); }
+        window.viewSystemLogs = function() { alert('System logs coming soon!'); };
+        function openModal(id) { document.getElementById(id).classList.add('active'); }
+        window.openModal = openModal;
+        function closeModal(id) { document.getElementById(id).classList.remove('active'); }
+        window.closeModal = closeModal;
+        function switchTab(tabName) { document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active')); document.querySelector(`[data-tab="${tabName}"]`)?.classList.add('active'); document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active')); document.getElementById(tabName + 'Tab')?.classList.add('active'); }
+        document.querySelectorAll('.nav-item[data-tab]').forEach(item => { item.addEventListener('click', () => switchTab(item.dataset.tab)); });
+        
+        // Notification button - show pending payments
+        document.getElementById('notifBtn').addEventListener('click', () => {
+            const pendingPayments = allPayments.filter(p => p.status === 'PENDING');
+            if (pendingPayments.length === 0) {
+                alert('No pending payments to review.');
+            } else {
+                switchTab('payments');
+                document.getElementById('paymentFilter').value = 'PENDING';
+                renderPayments();
+            }
+        });
+    </script>
+</body>
+</html>

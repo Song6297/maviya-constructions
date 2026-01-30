@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>B&B Premium - Upgrade Your Experience</title>
+    <link rel="icon" type="image/png" href="B&B.png">
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="css/styles-professional.css" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%); min-height: 100vh; }
+        
+        .container { max-width: 900px; margin: 0 auto; padding: 2rem; }
+        
+        .header { text-align: center; padding: 2rem 0; color: white; }
+        .header h1 { font-size: 2rem; font-weight: 800; margin-bottom: 0.5rem; display: flex; align-items: center; justify-content: center; gap: 0.75rem; }
+        .header p { font-size: 1rem; opacity: 0.9; }
+        
+        .premium-card {
+            background: var(--white);
+            border-radius: var(--radius-xl);
+            padding: 2.5rem;
+            box-shadow: var(--shadow-lg);
+            position: relative;
+            overflow: hidden;
+        }
+        .premium-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #FFD700, #FFA500, var(--accent));
+        }
+        
+        .premium-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: linear-gradient(135deg, #FFD700, #FFA500);
+            color: #5D4E00;
+            padding: 0.5rem 1.25rem;
+            border-radius: var(--radius-sm);
+            font-weight: 700;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 1.5rem;
+        }
+        
+        .price-section { text-align: center; margin-bottom: 2rem; }
+        .price { font-size: 3.5rem; font-weight: 800; color: var(--dark); line-height: 1; }
+        .price span { font-size: 1.25rem; color: var(--gray); }
+        .price-note { color: var(--gray); margin-top: 0.5rem; font-size: 0.875rem; }
+        
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 0.75rem;
+            margin: 2rem 0;
+        }
+        .feature-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem;
+            background: var(--bg-light);
+            border-radius: var(--radius-md);
+        }
+        .feature-icon {
+            width: 32px;
+            height: 32px;
+            background: var(--primary);
+            border-radius: var(--radius-sm);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 0.875rem;
+        }
+        .feature-text { font-weight: 600; color: var(--dark); font-size: 0.8125rem; }
+        
+        .qr-section {
+            background: var(--bg-light);
+            border-radius: var(--radius-lg);
+            padding: 1.5rem;
+            text-align: center;
+            margin: 2rem 0;
+            border: 1px solid var(--border);
+        }
+        .qr-title { font-size: 1rem; font-weight: 700; color: var(--dark); margin-bottom: 1rem; display: flex; align-items: center; justify-content: center; gap: 0.5rem; }
+        .qr-code {
+            width: 180px;
+            height: 180px;
+            background: white;
+            border-radius: var(--radius-lg);
+            margin: 0 auto 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid var(--border);
+            overflow: hidden;
+        }
+        .qr-code img { width: 100%; height: 100%; object-fit: contain; padding: 8px; }
+        
+        .upi-id {
+            background: white;
+            padding: 0.625rem 1.25rem;
+            border-radius: var(--radius-md);
+            font-family: monospace;
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--primary);
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 0.75rem;
+            border: 1px solid var(--border);
+        }
+        
+        .steps { margin: 2rem 0; }
+        .steps-title { font-size: 1rem; font-weight: 700; color: var(--dark); margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem; }
+        .step {
+            display: flex;
+            align-items: flex-start;
+            gap: 1rem;
+            padding: 1rem;
+            background: var(--bg-light);
+            border-radius: var(--radius-lg);
+            margin-bottom: 0.75rem;
+        }
+        .step-number {
+            width: 28px;
+            height: 28px;
+            background: var(--primary);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 0.8125rem;
+            flex-shrink: 0;
+        }
+        .step-content h4 { font-weight: 700; color: var(--dark); font-size: 0.9375rem; margin-bottom: 0.25rem; }
+        .step-content p { color: var(--gray); font-size: 0.8125rem; }
+        
+        .cta-button {
+            display: block;
+            width: 100%;
+            padding: 1rem;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: var(--radius-md);
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            text-decoration: none;
+            text-align: center;
+            transition: all var(--transition-base);
+        }
+        .cta-button:hover { background: var(--primary-dark); }
+        
+        .warning-box {
+            background: var(--warning-light);
+            border: 1px solid var(--warning);
+            border-radius: var(--radius-md);
+            padding: 1rem;
+            margin-top: 1.5rem;
+            display: flex;
+            align-items: flex-start;
+            gap: 0.75rem;
+        }
+        .warning-box i { color: var(--warning); font-size: 1rem; margin-top: 0.125rem; }
+        .warning-box p { color: var(--warning); font-size: 0.8125rem; font-weight: 500; }
+        
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: white;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.875rem;
+            margin-bottom: 1rem;
+            opacity: 0.9;
+            transition: opacity var(--transition-base);
+        }
+        .back-link:hover { opacity: 1; }
+        
+        .already-premium {
+            background: var(--success-light);
+            border: 1px solid var(--success);
+            border-radius: var(--radius-lg);
+            padding: 1.5rem;
+            text-align: center;
+            margin-bottom: 1.5rem;
+        }
+        .already-premium i { font-size: 2.5rem; color: var(--success); margin-bottom: 0.75rem; }
+        .already-premium h3 { font-size: 1.25rem; font-weight: 700; color: var(--success); margin-bottom: 0.25rem; }
+        .already-premium p { color: var(--success); font-size: 0.875rem; }
+        
+        @media (max-width: 768px) {
+            .container { padding: 1rem; }
+            .premium-card { padding: 1.5rem; }
+            .price { font-size: 2.5rem; }
+            .header h1 { font-size: 1.5rem; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="hub.html" class="back-link"><i class="fas fa-arrow-left"></i> Back to Dashboard</a>
+        
+        <div class="header">
+            <h1><i class="fas fa-star"></i> Upgrade to B&B Premium</h1>
+            <p>Unlock the full power of construction management</p>
+        </div>
+        
+        <div id="alreadyPremium" class="already-premium" style="display: none;">
+            <i class="fas fa-crown"></i>
+            <h3>You're Already Premium!</h3>
+            <p>Your premium subscription is active until <span id="premiumEndDate">-</span></p>
+        </div>
+        
+        <div class="premium-card" id="upgradeCard">
+            <div style="text-align: center;">
+                <span class="premium-badge"><i class="fas fa-crown"></i> PREMIUM</span>
+            </div>
+            
+            <div class="price-section">
+                <div class="price">₹199<span>/month</span></div>
+                <p class="price-note">One-time monthly payment • No auto-renewal</p>
+            </div>
+            
+            <div class="features-grid">
+                <div class="feature-item">
+                    <div class="feature-icon"><i class="fas fa-infinity"></i></div>
+                    <span class="feature-text">Unlimited Projects</span>
+                </div>
+                <div class="feature-item">
+                    <div class="feature-icon"><i class="fas fa-wallet"></i></div>
+                    <span class="feature-text">Fund Management</span>
+                </div>
+                <div class="feature-item">
+                    <div class="feature-icon"><i class="fas fa-drafting-compass"></i></div>
+                    <span class="feature-text">Floor Plans</span>
+                </div>
+                <div class="feature-item">
+                    <div class="feature-icon"><i class="fas fa-file-alt"></i></div>
+                    <span class="feature-text">Document Storage</span>
+                </div>
+                <div class="feature-item">
+                    <div class="feature-icon"><i class="fas fa-chart-line"></i></div>
+                    <span class="feature-text">Advanced Analytics</span>
+                </div>
+                <div class="feature-item">
+                    <div class="feature-icon"><i class="fas fa-headset"></i></div>
+                    <span class="feature-text">Priority Support</span>
+                </div>
+            </div>
+            
+            <div class="qr-section">
+                <h3 class="qr-title"><i class="fas fa-qrcode"></i> Scan to Pay via UPI</h3>
+                <div class="qr-code">
+                    <img id="qrImage" src="upi_qr.svg" alt="UPI QR Code" onerror="this.src='upi_qr.png'; this.onerror=function(){this.parentElement.innerHTML='<div style=\'text-align:center;color:var(--gray);padding:1rem;\'><i class=\'fas fa-qrcode\' style=\'font-size:2.5rem;margin-bottom:0.5rem;display:block;\'></i>QR not found</div>';}">
+                </div>
+                <div class="upi-id"><i class="fas fa-at"></i> 6364630740@slc</div>
+                <p style="color: var(--gray); font-size: 0.8125rem;">Pay using any UPI app: Google Pay, PhonePe, Paytm, etc.</p>
+            </div>
+            
+            <div class="steps">
+                <h3 class="steps-title"><i class="fas fa-list-ol"></i> How to Upgrade</h3>
+                <div class="step">
+                    <div class="step-number">1</div>
+                    <div class="step-content">
+                        <h4>Scan QR or Copy UPI ID</h4>
+                        <p>Open any UPI app and scan the QR code or enter the UPI ID manually</p>
+                    </div>
+                </div>
+                <div class="step">
+                    <div class="step-number">2</div>
+                    <div class="step-content">
+                        <h4>Pay ₹199</h4>
+                        <p>Complete the payment of exactly ₹199 (no more, no less)</p>
+                    </div>
+                </div>
+                <div class="step">
+                    <div class="step-number">3</div>
+                    <div class="step-content">
+                        <h4>Save Transaction ID (UTR)</h4>
+                        <p>After payment, note down the 12-digit UTR/Transaction ID from your UPI app</p>
+                    </div>
+                </div>
+                <div class="step">
+                    <div class="step-number">4</div>
+                    <div class="step-content">
+                        <h4>Submit Confirmation</h4>
+                        <p>Click the button below and fill in your payment details</p>
+                    </div>
+                </div>
+            </div>
+            
+            <a href="payment-confirm.html" class="cta-button">
+                <i class="fas fa-check-circle"></i> I've Paid - Submit Confirmation
+            </a>
+            
+            <div class="warning-box">
+                <i class="fas fa-exclamation-triangle"></i>
+                <p><strong>Important:</strong> Premium will be activated within 24 hours after we verify your payment. No refunds once activated. One payment = 30 days access.</p>
+            </div>
+        </div>
+    </div>
+    
+    <script type="module">
+        import { auth, db } from './js/firebase-config.js';
+        import { onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+        import { doc, getDoc } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+        
+        onAuthStateChanged(auth, async (user) => {
+            if (!user) {
+                window.location.href = 'login.html';
+                return;
+            }
+            
+            try {
+                const userDoc = await getDoc(doc(db, 'users', user.uid));
+                if (userDoc.exists()) {
+                    const userData = userDoc.data();
+                    if (userData.premiumStatus === 'PREMIUM' && userData.premiumEnd) {
+                        const endDate = userData.premiumEnd.toDate ? userData.premiumEnd.toDate() : new Date(userData.premiumEnd);
+                        if (endDate > new Date()) {
+                            document.getElementById('alreadyPremium').style.display = 'block';
+                            document.getElementById('premiumEndDate').textContent = endDate.toLocaleDateString('en-IN', { 
+                                day: 'numeric', month: 'long', year: 'numeric' 
+                            });
+                            document.getElementById('upgradeCard').style.opacity = '0.6';
+                        }
+                    }
+                }
+            } catch (error) {
+                console.error('Error checking premium status:', error);
+            }
+        });
+    </script>
+</body>
+</html>

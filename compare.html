@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>B&B - Compare | Bricks & Bits</title>
+    <script>
+        // Apply saved theme immediately to prevent flash
+        (function() {
+            const theme = localStorage.getItem('bb_theme') || 'light';
+            const accent = localStorage.getItem('bb_accent') || 'green';
+            if (theme === 'dark') document.documentElement.setAttribute('data-theme', 'dark');
+            else if (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                document.documentElement.setAttribute('data-theme', 'dark');
+            }
+            if (accent !== 'green') document.documentElement.setAttribute('data-accent', accent);
+        })();
+    </script>
+    <link rel="icon" type="image/png" href="B&B.png">
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="css/styles-professional.css" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .app-wrapper { display: flex; min-height: 100vh; }
+        
+        /* Professional Sidebar */
+        .sidebar {
+            width: 64px;
+            background: var(--white);
+            padding: 1rem 0.5rem;
+            display: flex;
+            flex-direction: column;
+            position: fixed;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            border-right: 1px solid var(--border);
+            z-index: 100;
+            transition: width 0.3s ease;
+            overflow: hidden;
+        }
+        .sidebar:hover { width: 200px; }
+        .sidebar:hover .nav-text, .sidebar:hover .logo-text, .sidebar:hover .logout-text { opacity: 1; width: auto; }
+        .nav-text, .logo-text, .logout-text { opacity: 0; width: 0; overflow: hidden; white-space: nowrap; transition: opacity 0.2s ease; }
+        
+        .logo-section { text-align: center; padding: 0.5rem 0 1rem; border-bottom: 1px solid var(--border); margin-bottom: 1rem; }
+        .logo-link { text-decoration: none; display: flex; flex-direction: column; align-items: center; gap: 0.25rem; }
+        .logo-img { width: 32px; height: 32px; }
+        .logo-text { font-size: 0.875rem; font-weight: 700; color: var(--primary); }
+        
+        .nav-menu { display: flex; flex-direction: column; gap: 0.25rem; flex: 1; }
+        .nav-item { display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem; border-radius: 8px; text-decoration: none; color: var(--gray); font-weight: 600; font-size: 0.8125rem; transition: all 0.2s; }
+        .nav-item:hover { background: var(--primary-muted); color: var(--primary); }
+        .nav-item.active { background: var(--primary); color: white; }
+        .nav-icon { font-size: 1rem; width: 20px; text-align: center; flex-shrink: 0; }
+        .nav-divider { height: 1px; background: var(--border); margin: 0.5rem 0.75rem; }
+        
+        .sidebar-footer { padding-top: 0.75rem; border-top: 1px solid var(--border); }
+        .logout-btn { width: 100%; padding: 0.75rem; background: none; border: none; border-radius: 6px; font-weight: 600; color: var(--gray); cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 0.75rem; font-size: 0.8125rem; }
+        .logout-btn:hover { background: var(--error-light); color: var(--error); }
+        
+        .main-content { flex: 1; margin-left: 64px; padding: 1.5rem 2rem; transition: margin-left 0.3s ease; }
+        .sidebar:hover ~ .main-content { margin-left: 200px; }
+        
+        /* Page Header */
+        .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
+        .page-title { font-size: 1.5rem; font-weight: 700; color: var(--dark); }
+        
+        /* Section Cards */
+        .section-card { background: var(--white); border: 1px solid var(--border); border-radius: var(--radius-xl); padding: 1.5rem; margin-bottom: 1.5rem; }
+        .section-title { font-size: 1rem; font-weight: 700; color: var(--dark); margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem; }
+        .section-title i { color: var(--primary); }
+        
+        /* Data Tables */
+        .data-table { width: 100%; border-collapse: collapse; }
+        .data-table th { padding: 0.75rem 1rem; text-align: left; font-weight: 700; color: var(--gray); font-size: 0.6875rem; text-transform: uppercase; letter-spacing: 0.5px; background: var(--bg-light); border-bottom: 1px solid var(--border); }
+        .data-table td { padding: 0.875rem 1rem; font-size: 0.8125rem; color: var(--dark); border-bottom: 1px solid var(--border); }
+        .data-table tr:hover td { background: var(--bg-card); }
+        
+        .chart-container { position: relative; height: 280px; margin-top: 1rem; }
+        .overflow-x-auto { overflow-x: auto; }
+        
+        .sub-title { font-size: 0.75rem; font-weight: 700; color: var(--gray); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 0.75rem; }
+        
+        @media (max-width: 768px) {
+            .sidebar { display: none; }
+            .main-content { margin-left: 0; padding: 1rem; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Loading Overlay -->
+    <link href="css/logo-loader.css" rel="stylesheet">
+    <div id="pageLoader" class="loading-overlay">
+        <svg class="logo-loader" width="120" height="110" viewBox="0 0 200 160" xmlns="http://www.w3.org/2000/svg">
+            <rect class="brick bit b1" x="20" y="100" width="24" height="24" rx="3"/>
+            <rect class="brick" x="48" y="100" width="24" height="24" rx="3"/>
+            <rect class="brick bit b2" x="76" y="100" width="24" height="24" rx="3"/>
+            <rect class="brick" x="104" y="100" width="24" height="24" rx="3"/>
+            <rect class="brick bit b3" x="132" y="100" width="24" height="24" rx="3"/>
+            <rect class="brick" x="48" y="72" width="24" height="24" rx="3"/>
+            <rect class="brick bit b4" x="76" y="72" width="24" height="24" rx="3"/>
+            <rect class="brick" x="104" y="72" width="24" height="24" rx="3"/>
+            <rect class="brick bit b5" x="76" y="44" width="24" height="24" rx="3"/>
+            <rect class="brick" x="104" y="44" width="24" height="24" rx="3"/>
+        </svg>
+        <p class="loading-text">Loading comparison...</p>
+    </div>
+
+    <div class="app-wrapper">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="logo-section">
+                <a href="hub.html" class="logo-link">
+                    <svg class="logo-img" viewBox="0 0 140 110" xmlns="http://www.w3.org/2000/svg" style="width:32px;height:32px;">
+                        <rect x="0" y="56" width="17" height="17" rx="2" fill="#2f2f2f" stroke="#000" stroke-width="1.5"/>
+                        <rect x="20" y="56" width="17" height="17" rx="2" fill="#b7c8b8" stroke="#000" stroke-width="1.5"/>
+                        <rect x="40" y="56" width="17" height="17" rx="2" fill="#2f2f2f" stroke="#000" stroke-width="1.5"/>
+                        <rect x="60" y="56" width="17" height="17" rx="2" fill="#b7c8b8" stroke="#000" stroke-width="1.5"/>
+                        <rect x="80" y="56" width="17" height="17" rx="2" fill="#2f2f2f" stroke="#000" stroke-width="1.5"/>
+                        <rect x="20" y="36" width="17" height="17" rx="2" fill="#b7c8b8" stroke="#000" stroke-width="1.5"/>
+                        <rect x="40" y="36" width="17" height="17" rx="2" fill="#2f2f2f" stroke="#000" stroke-width="1.5"/>
+                        <rect x="60" y="36" width="17" height="17" rx="2" fill="#b7c8b8" stroke="#000" stroke-width="1.5"/>
+                        <rect x="40" y="16" width="17" height="17" rx="2" fill="#b7c8b8" stroke="#000" stroke-width="1.5"/>
+                        <rect x="60" y="16" width="17" height="17" rx="2" fill="#b7c8b8" stroke="#000" stroke-width="1.5"/>
+                    </svg>
+                    <span class="logo-text">B&B</span>
+                </a>
+            </div>
+            <nav class="nav-menu">
+                <div class="nav-item-expandable" id="dashboardDropdown">
+                    <div class="nav-item" title="Dashboard" onclick="toggleDashboardDropdown(event)">
+                        <i class="fas fa-th-large nav-icon"></i>
+                        <span class="nav-text">Dashboard</span>
+                        <i class="fas fa-chevron-down nav-caret"></i>
+                    </div>
+                    <div class="nav-dropdown">
+                        <a href="index.html" class="nav-dropdown-item">
+                            <i class="fas fa-tachometer-alt"></i>
+                            <span>Go to Dashboard</span>
+                        </a>
+                        <div class="nav-dropdown-divider"></div>
+                        <div id="sidebarProjectsList">
+                            <div class="nav-dropdown-item" style="color: #95a5a6; font-style: italic;">
+                                <i class="fas fa-spinner fa-spin"></i>
+                                <span>Loading projects...</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <a href="compare.html" class="nav-item active" title="Compare"><i class="fas fa-chart-bar nav-icon"></i><span class="nav-text">Compare</span></a>
+                <a href="payments.html" class="nav-item" title="Payments"><i class="fas fa-credit-card nav-icon"></i><span class="nav-text">Payments</span></a>
+                <a href="funds.html" class="nav-item" title="Funds"><i class="fas fa-wallet nav-icon"></i><span class="nav-text">Funds</span></a>
+                <a href="materials.html" class="nav-item" title="Materials"><i class="fas fa-boxes nav-icon"></i><span class="nav-text">Materials</span></a>
+                <div class="nav-divider"></div>
+                <a href="hub.html" class="nav-item" title="Hub"><i class="fas fa-home nav-icon"></i><span class="nav-text">Hub</span></a>
+                <div class="nav-divider"></div>
+                <a href="about.html" class="nav-item" title="Help"><i class="fas fa-life-ring nav-icon"></i><span class="nav-text">Help</span></a>
+                <a href="settings.html" class="nav-item" title="Settings"><i class="fas fa-cog nav-icon"></i><span class="nav-text">Settings</span></a>
+            </nav>
+            <div class="sidebar-footer">
+                <button id="logoutBtn" class="logout-btn" title="Logout"><i class="fas fa-sign-out-alt"></i><span class="logout-text">Logout</span></button>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <div class="page-header">
+                <h1 class="page-title">Multi-Project Comparison</h1>
+                <button id="exportBtn" class="btn btn-primary"><i class="fas fa-download"></i> Export CSV</button>
+            </div>
+
+            <!-- Profitability Comparison -->
+            <div class="section-card">
+                <h2 class="section-title"><i class="fas fa-coins"></i> Profitability Comparison</h2>
+                <div class="overflow-x-auto">
+                    <table class="data-table">
+                        <thead>
+                            <tr><th>Project</th><th>Budget</th><th>Spent</th><th>Remaining</th><th>% Used</th><th>Status</th></tr>
+                        </thead>
+                        <tbody id="profitTable"></tbody>
+                    </table>
+                </div>
+                <div class="chart-container"><canvas id="profitChart"></canvas></div>
+            </div>
+
+            <!-- Delay Comparison -->
+            <div class="section-card">
+                <h2 class="section-title"><i class="fas fa-clock"></i> Timeline & Delay Analysis</h2>
+                <div class="overflow-x-auto">
+                    <table class="data-table">
+                        <thead>
+                            <tr><th>Project</th><th>Start</th><th>End</th><th>Duration</th><th>Days Left/Overdue</th><th>Progress</th><th>Status</th></tr>
+                        </thead>
+                        <tbody id="delayTable"></tbody>
+                    </table>
+                </div>
+                <div class="chart-container"><canvas id="delayChart"></canvas></div>
+            </div>
+
+            <!-- Resource Allocation -->
+            <div class="section-card">
+                <h2 class="section-title"><i class="fas fa-users"></i> Resource Allocation</h2>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 1.5rem;">
+                    <div>
+                        <h3 class="sub-title">Material Cost Distribution</h3>
+                        <div class="chart-container"><canvas id="materialChart"></canvas></div>
+                    </div>
+                    <div>
+                        <h3 class="sub-title">Labour Cost Distribution</h3>
+                        <div class="chart-container"><canvas id="labourChart"></canvas></div>
+                    </div>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="data-table">
+                        <thead>
+                            <tr><th>Project</th><th>Materials</th><th>Labour</th><th>Expenses</th><th>Total</th><th>Workers</th></tr>
+                        </thead>
+                        <tbody id="resourceTable"></tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script type="module">
+        import { auth, onAuthStateChanged, signOut } from './js/firebase-config.js';
+        import Storage from './js/firebase-storage.js';
+        import { CompareApp } from './js/compare.js?v=2';
+        import { initSidebarDropdown, toggleDashboardDropdown } from './js/sidebar-dropdown.js';
+        
+        window.Storage = Storage;
+        window.CompareApp = CompareApp;
+        window.toggleDashboardDropdown = toggleDashboardDropdown;
+        
+        initSidebarDropdown();
+        
+        onAuthStateChanged(auth, async (user) => {
+            if (!user) { window.location.href = 'login.html'; return; }
+            try {
+                await CompareApp.init();
+                document.getElementById('pageLoader').classList.add('hidden');
+            } catch (error) {
+                console.error('Error initializing compare:', error);
+                document.getElementById('pageLoader').classList.add('hidden');
+            }
+        });
+        
+        document.getElementById('logoutBtn').addEventListener('click', async () => {
+            await signOut(auth);
+            window.location.href = 'login.html';
+        });
+    </script>
+</body>
+</html>

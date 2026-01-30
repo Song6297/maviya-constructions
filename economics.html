@@ -1,0 +1,1839 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>B&B - Economics & Valuation | Bricks & Bits</title>
+    <script>
+        (function () {
+            const savedTheme = localStorage.getItem('bb-theme') || 'light';
+            document.documentElement.setAttribute('data-theme', savedTheme);
+        })();
+    </script>
+    <link rel="icon" type="image/png" href="B&B.png">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Nunito:wght@400;600;700;800;900&display=swap"
+        rel="stylesheet">
+    <link href="css/styles-professional.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --green-primary: var(--primary);
+            --green-light: var(--primary-light);
+            --green-dark: var(--primary-dark);
+            --green-muted: var(--primary-muted);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg-light);
+            min-height: 100vh;
+        }
+
+        /* App Layout */
+        .app-wrapper {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* Sidebar Styles */
+        .sidebar {
+            width: 64px;
+            background: var(--white);
+            border-right: 1px solid var(--border);
+            padding: 1rem 0.5rem;
+            display: flex;
+            flex-direction: column;
+            position: fixed;
+            height: 100vh;
+            z-index: 100;
+            transition: width 0.3s ease;
+            overflow: hidden;
+        }
+
+        .sidebar:hover {
+            width: 200px;
+        }
+
+        .sidebar:hover .nav-text,
+        .sidebar:hover .logo-text,
+        .sidebar:hover .logout-text {
+            opacity: 1;
+            width: auto;
+        }
+
+        .logo-section {
+            text-align: center;
+            padding: 0.5rem 0 1rem;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 1rem;
+        }
+
+        .logo-link {
+            text-decoration: none;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.25rem;
+        }
+
+        .logo-svg {
+            width: 32px;
+            height: 28px;
+        }
+
+        .logo-text {
+            font-size: 0.875rem;
+            font-weight: 700;
+            color: var(--green-primary);
+            opacity: 0;
+            width: 0;
+            overflow: hidden;
+            transition: opacity 0.2s ease, width 0.2s ease;
+        }
+
+        .nav-menu {
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+            flex: 1;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem;
+            border-radius: 8px;
+            text-decoration: none;
+            color: var(--gray);
+            font-weight: 600;
+            font-size: 0.8125rem;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+
+        .nav-item:hover {
+            background: var(--green-muted);
+            color: var(--green-primary);
+        }
+
+        .nav-item.active {
+            background: var(--green-primary);
+            color: white;
+        }
+
+        .nav-icon {
+            font-size: 1rem;
+            width: 20px;
+            text-align: center;
+            flex-shrink: 0;
+        }
+
+        .nav-text {
+            opacity: 0;
+            width: 0;
+            overflow: hidden;
+            transition: opacity 0.2s ease, width 0.2s ease;
+        }
+
+        .nav-divider {
+            height: 1px;
+            background: var(--border);
+            margin: 0.5rem 0.75rem;
+        }
+
+        .sidebar-footer {
+            padding-top: 0.75rem;
+            border-top: 1px solid var(--border);
+        }
+
+        .logout-btn {
+            width: 100%;
+            padding: 0.75rem;
+            background: none;
+            border: none;
+            border-radius: 6px;
+            font-weight: 600;
+            color: var(--gray);
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-size: 0.8125rem;
+        }
+
+        .logout-btn:hover {
+            background: #FFEBEE;
+            color: #C62828;
+        }
+
+        .logout-text {
+            opacity: 0;
+            width: 0;
+            overflow: hidden;
+            transition: opacity 0.2s ease, width 0.2s ease;
+        }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            margin-left: 64px;
+            padding: 1.5rem 2rem;
+            /* No transition - content stays fixed, sidebar overlays */
+        }
+
+        /* Sidebar now expands OVER content, not pushing it */
+
+        /* Page Header */
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .page-title {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .page-title h1 {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: var(--dark);
+        }
+
+        .page-title i {
+            font-size: 1.5rem;
+            color: var(--green-primary);
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 0.75rem;
+        }
+
+        .btn-refresh {
+            padding: 0.625rem 1rem;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            background: var(--white);
+            color: var(--gray);
+            font-weight: 600;
+            font-size: 0.8125rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.2s;
+        }
+
+        .btn-refresh:hover {
+            border-color: var(--green-primary);
+            color: var(--green-primary);
+        }
+
+        /* Hero Section */
+        .economics-hero {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            border-radius: 16px;
+            padding: 2rem;
+            margin-bottom: 1.5rem;
+            color: white;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .economics-hero::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -20%;
+            width: 60%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(74, 124, 89, 0.3) 0%, transparent 60%);
+            pointer-events: none;
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 1;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 2rem;
+        }
+
+        .hero-left {
+            flex: 1;
+            min-width: 280px;
+        }
+
+        .hero-label {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: rgba(255, 255, 255, 0.7);
+            margin-bottom: 0.5rem;
+        }
+
+        .hero-valuation {
+            font-size: 2.5rem;
+            font-weight: 800;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: baseline;
+            gap: 0.5rem;
+        }
+
+        .hero-valuation .currency {
+            font-size: 1.5rem;
+            opacity: 0.8;
+        }
+
+        .hero-range {
+            font-size: 0.875rem;
+            color: rgba(255, 255, 255, 0.7);
+            margin-bottom: 1rem;
+        }
+
+        .hero-health {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .health-score {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: conic-gradient(var(--green-primary) var(--score-percent, 75%), rgba(255, 255, 255, 0.1) 0);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        .health-score::before {
+            content: '';
+            position: absolute;
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: #1a1a2e;
+        }
+
+        .health-score span {
+            position: relative;
+            z-index: 1;
+            font-size: 1rem;
+            font-weight: 700;
+        }
+
+        .health-label {
+            font-size: 0.8125rem;
+        }
+
+        .health-label strong {
+            display: block;
+            color: white;
+            font-weight: 600;
+        }
+
+        .health-label span {
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 0.75rem;
+        }
+
+        .hero-right {
+            display: flex;
+            gap: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        .hero-stat {
+            text-align: center;
+            padding: 1rem 1.5rem;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            backdrop-filter: blur(10px);
+            min-width: 120px;
+        }
+
+        .hero-stat-value {
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin-bottom: 0.25rem;
+        }
+
+        .hero-stat-value.positive {
+            color: #10B981;
+        }
+
+        .hero-stat-value.negative {
+            color: #EF4444;
+        }
+
+        .hero-stat-label {
+            font-size: 0.6875rem;
+            color: rgba(255, 255, 255, 0.6);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* Tab Navigation */
+        .tab-nav {
+            display: flex;
+            gap: 0.25rem;
+            background: var(--white);
+            border-radius: 12px;
+            padding: 0.375rem;
+            margin-bottom: 1.5rem;
+            border: 1px solid var(--border);
+            overflow-x: auto;
+        }
+
+        .tab-btn {
+            padding: 0.75rem 1.25rem;
+            border-radius: 8px;
+            border: none;
+            background: none;
+            font-weight: 600;
+            font-size: 0.8125rem;
+            color: var(--gray);
+            cursor: pointer;
+            transition: all 0.2s;
+            white-space: nowrap;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .tab-btn:hover {
+            background: var(--bg-light);
+            color: var(--dark);
+        }
+
+        .tab-btn.active {
+            background: var(--green-primary);
+            color: white;
+        }
+
+        .tab-btn i {
+            font-size: 0.875rem;
+        }
+
+        /* Tab Panels */
+        .tab-panel {
+            display: none;
+        }
+
+        .tab-panel.active {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Metric Cards Grid */
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .metric-card {
+            background: var(--white);
+            border-radius: 12px;
+            padding: 1.25rem;
+            border: 1px solid var(--border);
+            transition: all 0.2s;
+        }
+
+        .metric-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        }
+
+        .metric-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.75rem;
+        }
+
+        .metric-card-title {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--gray);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .metric-card-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.875rem;
+        }
+
+        .metric-card-icon.green {
+            background: var(--green-muted);
+            color: var(--green-primary);
+        }
+
+        .metric-card-icon.blue {
+            background: #E0F2FE;
+            color: #0284C7;
+        }
+
+        .metric-card-icon.amber {
+            background: #FEF3C7;
+            color: #D97706;
+        }
+
+        .metric-card-icon.red {
+            background: #FEE2E2;
+            color: #DC2626;
+        }
+
+        .metric-card-value {
+            font-size: 1.75rem;
+            font-weight: 800;
+            color: var(--dark);
+            margin-bottom: 0.5rem;
+        }
+
+        .metric-card-change {
+            font-size: 0.6875rem;
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+
+        .metric-card-change.positive {
+            color: #10B981;
+        }
+
+        .metric-card-change.negative {
+            color: #EF4444;
+        }
+
+        .metric-card-change.neutral {
+            color: var(--gray);
+        }
+
+        /* Tooltip Styles */
+        .info-btn {
+            background: none;
+            border: none;
+            color: var(--gray);
+            cursor: pointer;
+            padding: 0.25rem;
+            font-size: 0.75rem;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: color 0.2s;
+        }
+
+        .info-btn:hover {
+            color: var(--green-primary);
+        }
+
+        .info-btn .tooltip {
+            visibility: hidden;
+            width: 180px;
+            background-color: #333;
+            color: #fff;
+            text-align: center;
+            border-radius: 6px;
+            padding: 0.5rem;
+            position: absolute;
+            z-index: 10;
+            bottom: 125%;
+            left: 50%;
+            margin-left: -90px;
+            opacity: 0;
+            transition: opacity 0.3s;
+            font-size: 0.6875rem;
+            font-weight: 500;
+            line-height: 1.4;
+            pointer-events: none;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        .info-btn .tooltip::after {
+            content: "";
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            margin-left: -5px;
+            border-width: 5px;
+            border-style: solid;
+            border-color: #333 transparent transparent transparent;
+        }
+
+        .info-btn:hover .tooltip {
+            visibility: visible;
+            opacity: 1;
+        }
+
+        /* Section Cards */
+        .section-card {
+            background: var(--white);
+            border-radius: 12px;
+            padding: 1.5rem;
+            border: 1px solid var(--border);
+            margin-bottom: 1.5rem;
+        }
+
+        .section-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .section-card-title {
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--dark);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .section-card-title i {
+            color: var(--green-primary);
+        }
+
+        /* Charts */
+        .chart-container {
+            position: relative;
+            height: 300px;
+        }
+
+        /* Data Tables */
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .data-table th,
+        .data-table td {
+            padding: 0.875rem 1rem;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .data-table th {
+            font-size: 0.6875rem;
+            font-weight: 600;
+            color: var(--gray);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            background: var(--bg-light);
+        }
+
+        .data-table td {
+            font-size: 0.875rem;
+            color: var(--dark);
+        }
+
+        .data-table tr:hover td {
+            background: var(--bg-light);
+        }
+
+        .efficiency-badge {
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.6875rem;
+            font-weight: 600;
+        }
+
+        .efficiency-badge.high {
+            background: #D1FAE5;
+            color: #059669;
+        }
+
+        .efficiency-badge.medium {
+            background: #FEF3C7;
+            color: #D97706;
+        }
+
+        .efficiency-badge.low {
+            background: #FEE2E2;
+            color: #DC2626;
+        }
+
+        /* Insight Cards */
+        .insights-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1rem;
+        }
+
+        .insight-card {
+            background: var(--white);
+            border-radius: 12px;
+            padding: 1.25rem;
+            border: 1px solid var(--border);
+            border-left: 4px solid var(--green-primary);
+        }
+
+        .insight-card.high-priority {
+            border-left-color: #EF4444;
+        }
+
+        .insight-card.medium-priority {
+            border-left-color: #F59E0B;
+        }
+
+        .insight-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 0.75rem;
+        }
+
+        .insight-card-title {
+            font-size: 0.9375rem;
+            font-weight: 700;
+            color: var(--dark);
+        }
+
+        .insight-card-impact {
+            font-size: 0.6875rem;
+            font-weight: 600;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            background: var(--green-muted);
+            color: var(--green-primary);
+        }
+
+        .insight-card-desc {
+            font-size: 0.8125rem;
+            color: var(--gray);
+            line-height: 1.5;
+        }
+
+        /* Scenario Sliders */
+        .scenario-controls {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .scenario-slider {
+            background: var(--bg-light);
+            border-radius: 12px;
+            padding: 1.25rem;
+        }
+
+        .scenario-slider-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .scenario-slider-title {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--dark);
+        }
+
+        .scenario-slider-value {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--green-primary);
+        }
+
+        .scenario-slider input[type="range"] {
+            width: 100%;
+            height: 8px;
+            border-radius: 4px;
+            background: var(--border);
+            outline: none;
+            appearance: none;
+            -webkit-appearance: none;
+        }
+
+        .scenario-slider input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: var(--green-primary);
+            cursor: pointer;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+        }
+
+        /* Scenario Results */
+        .scenario-results {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1rem;
+        }
+
+        .scenario-result {
+            text-align: center;
+            padding: 1rem;
+            background: var(--white);
+            border-radius: 8px;
+            border: 1px solid var(--border);
+        }
+
+        .scenario-result-label {
+            font-size: 0.6875rem;
+            color: var(--gray);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 0.5rem;
+        }
+
+        .scenario-result-value {
+            font-size: 1.125rem;
+            font-weight: 700;
+            color: var(--dark);
+        }
+
+        .scenario-result-change {
+            font-size: 0.75rem;
+            margin-top: 0.25rem;
+        }
+
+        .scenario-result-change.positive {
+            color: #10B981;
+        }
+
+        .scenario-result-change.negative {
+            color: #EF4444;
+        }
+
+        /* Valuation Cards */
+        .valuation-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .valuation-card {
+            background: var(--white);
+            border-radius: 12px;
+            padding: 1.5rem;
+            border: 1px solid var(--border);
+            text-align: center;
+            transition: all 0.2s;
+        }
+
+        .valuation-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        }
+
+        .valuation-card.base {
+            border-color: var(--green-primary);
+            background: linear-gradient(135deg, var(--green-muted), var(--white));
+        }
+
+        .valuation-card-label {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--gray);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 0.75rem;
+        }
+
+        .valuation-card-value {
+            font-size: 1.75rem;
+            font-weight: 800;
+            color: var(--dark);
+            margin-bottom: 0.5rem;
+        }
+
+        .valuation-card.base .valuation-card-value {
+            color: var(--green-primary);
+        }
+
+        .valuation-card-method {
+            font-size: 0.6875rem;
+            color: var(--gray);
+        }
+
+        /* Loader */
+        .loader-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: var(--white);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+        }
+
+        .loader-overlay.hidden {
+            display: none;
+        }
+
+        .loader-text {
+            margin-top: 1rem;
+            color: var(--gray);
+            font-weight: 600;
+            font-size: 0.875rem;
+        }
+
+        /* Data Warning Banner */
+        .data-warning {
+            background: linear-gradient(135deg, #FEF3C7, #FDE68A);
+            border: 1px solid #F59E0B;
+            border-radius: 10px;
+            padding: 0.875rem 1.25rem;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-size: 0.8125rem;
+            color: #92400E;
+        }
+
+        .data-warning i {
+            font-size: 1rem;
+            color: #F59E0B;
+        }
+
+        .data-warning span {
+            flex: 1;
+        }
+
+        .data-warning .dismiss-btn {
+            background: none;
+            border: none;
+            color: #92400E;
+            cursor: pointer;
+            padding: 0.25rem;
+            opacity: 0.7;
+            transition: opacity 0.2s;
+        }
+
+        .data-warning .dismiss-btn:hover {
+            opacity: 1;
+        }
+
+        /* Info Tooltip Button */
+        .info-btn {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            border: none;
+            background: var(--bg-light);
+            color: var(--gray);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.6875rem;
+            transition: all 0.2s;
+            position: relative;
+        }
+
+        .info-btn:hover {
+            background: var(--green-muted);
+            color: var(--green-primary);
+        }
+
+        .info-btn .tooltip {
+            position: absolute;
+            bottom: 130%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #1F2937;
+            color: white;
+            padding: 0.5rem 0.75rem;
+            border-radius: 6px;
+            font-size: 0.6875rem;
+            font-weight: 500;
+            white-space: nowrap;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.2s;
+            z-index: 100;
+            max-width: 200px;
+            white-space: normal;
+            text-align: center;
+        }
+
+        .info-btn .tooltip::after {
+            content: '';
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            border: 5px solid transparent;
+            border-top-color: #1F2937;
+        }
+
+        .info-btn:hover .tooltip {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .hero-valuation {
+                font-size: 2rem;
+            }
+
+            .valuation-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .scenario-results {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                display: none;
+            }
+
+            .main-content {
+                margin-left: 0;
+                padding: 1rem;
+            }
+
+            .hero-content {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .hero-right {
+                justify-content: center;
+            }
+
+            .tab-nav {
+                flex-wrap: wrap;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Loader -->
+    <div id="pageLoader" class="loader-overlay">
+        <svg class="logo-loader" width="120" height="110" viewBox="0 0 200 160" xmlns="http://www.w3.org/2000/svg">
+            <style>
+                .brick {
+                    fill: #b7c8b8;
+                    stroke: #1e1e1e;
+                    stroke-width: 2;
+                }
+
+                .bit {
+                    fill: #2f2f2f;
+                    animation: bitPulse 1.6s infinite ease-in-out;
+                    opacity: 0.25;
+                }
+
+                @keyframes bitPulse {
+                    0% {
+                        opacity: 0.25;
+                    }
+
+                    30% {
+                        opacity: 1;
+                    }
+
+                    60%,
+                    100% {
+                        opacity: 0.25;
+                    }
+                }
+            </style>
+            <rect class="brick bit" x="20" y="100" width="24" height="24" rx="3" style="animation-delay: 0s;" />
+            <rect class="brick" x="48" y="100" width="24" height="24" rx="3" />
+            <rect class="brick bit" x="76" y="100" width="24" height="24" rx="3" style="animation-delay: 0.2s;" />
+            <rect class="brick" x="104" y="100" width="24" height="24" rx="3" />
+            <rect class="brick bit" x="132" y="100" width="24" height="24" rx="3" style="animation-delay: 0.4s;" />
+            <rect class="brick" x="48" y="72" width="24" height="24" rx="3" />
+            <rect class="brick bit" x="76" y="72" width="24" height="24" rx="3" style="animation-delay: 0.6s;" />
+            <rect class="brick" x="104" y="72" width="24" height="24" rx="3" />
+            <rect class="brick bit" x="76" y="44" width="24" height="24" rx="3" style="animation-delay: 0.8s;" />
+            <rect class="brick" x="104" y="44" width="24" height="24" rx="3" />
+        </svg>
+        <p class="loader-text">Loading economics...</p>
+    </div>
+
+    <div class="app-wrapper">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="logo-section">
+                <a href="hub.html" class="logo-link">
+                    <svg class="logo-svg" viewBox="0 0 140 110" xmlns="http://www.w3.org/2000/svg">
+                        <rect x="0" y="56" width="17" height="17" rx="2" fill="#2f2f2f" stroke="#000"
+                            stroke-width="1.5" />
+                        <rect x="20" y="56" width="17" height="17" rx="2" fill="#b7c8b8" stroke="#000"
+                            stroke-width="1.5" />
+                        <rect x="40" y="56" width="17" height="17" rx="2" fill="#2f2f2f" stroke="#000"
+                            stroke-width="1.5" />
+                        <rect x="60" y="56" width="17" height="17" rx="2" fill="#b7c8b8" stroke="#000"
+                            stroke-width="1.5" />
+                        <rect x="80" y="56" width="17" height="17" rx="2" fill="#2f2f2f" stroke="#000"
+                            stroke-width="1.5" />
+                        <rect x="20" y="36" width="17" height="17" rx="2" fill="#b7c8b8" stroke="#000"
+                            stroke-width="1.5" />
+                        <rect x="40" y="36" width="17" height="17" rx="2" fill="#2f2f2f" stroke="#000"
+                            stroke-width="1.5" />
+                        <rect x="60" y="36" width="17" height="17" rx="2" fill="#b7c8b8" stroke="#000"
+                            stroke-width="1.5" />
+                        <rect x="40" y="16" width="17" height="17" rx="2" fill="#b7c8b8" stroke="#000"
+                            stroke-width="1.5" />
+                        <rect x="60" y="16" width="17" height="17" rx="2" fill="#b7c8b8" stroke="#000"
+                            stroke-width="1.5" />
+                    </svg>
+                    <span class="logo-text">B&B</span>
+                </a>
+            </div>
+
+            <nav class="nav-menu">
+                <a href="index.html" class="nav-item" title="Dashboard">
+                    <i class="fas fa-th-large nav-icon"></i>
+                    <span class="nav-text">Dashboard</span>
+                </a>
+                <a href="compare.html" class="nav-item" title="Compare">
+                    <i class="fas fa-chart-bar nav-icon"></i>
+                    <span class="nav-text">Compare</span>
+                </a>
+                <a href="payments.html" class="nav-item" title="Payments">
+                    <i class="fas fa-credit-card nav-icon"></i>
+                    <span class="nav-text">Payments</span>
+                </a>
+                <a href="funds.html" class="nav-item" title="Funds">
+                    <i class="fas fa-wallet nav-icon"></i>
+                    <span class="nav-text">Funds</span>
+                </a>
+                <a href="economics.html" class="nav-item active" title="Economics">
+                    <i class="fas fa-chart-line nav-icon"></i>
+                    <span class="nav-text">Economics</span>
+                </a>
+                <a href="labour-calendar.html" class="nav-item" title="Labour Calendar">
+                    <i class="fas fa-calendar-alt nav-icon"></i>
+                    <span class="nav-text">Calendar</span>
+                </a>
+                <a href="materials.html" class="nav-item" title="Materials">
+                    <i class="fas fa-boxes nav-icon"></i>
+                    <span class="nav-text">Materials</span>
+                </a>
+
+                <div class="nav-divider"></div>
+
+                <a href="hub.html" class="nav-item" title="Hub">
+                    <i class="fas fa-home nav-icon"></i>
+                    <span class="nav-text">Hub</span>
+                </a>
+
+                <div class="nav-divider"></div>
+
+                <a href="about.html" class="nav-item" title="Help & Support">
+                    <i class="fas fa-life-ring nav-icon"></i>
+                    <span class="nav-text">Help</span>
+                </a>
+                <a href="settings.html" class="nav-item" title="Settings">
+                    <i class="fas fa-cog nav-icon"></i>
+                    <span class="nav-text">Settings</span>
+                </a>
+            </nav>
+
+            <div class="sidebar-footer">
+                <button id="logoutBtn" class="logout-btn" title="Logout">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span class="logout-text">Logout</span>
+                </button>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Page Header -->
+            <div class="page-header">
+                <div class="page-title">
+                    <i class="fas fa-chart-line"></i>
+                    <h1>Economics & Valuation</h1>
+                </div>
+                <div class="header-actions">
+                    <button class="btn-refresh" id="startEconomicsTourBtn"
+                        style="background: var(--green-primary); color: white; border: none;">
+                        <i class="fas fa-play-circle"></i>
+                        <span>Economics Guide</span>
+                    </button>
+                    <button class="btn-refresh" id="refreshBtn">
+                        <i class="fas fa-sync-alt"></i>
+                        <span>Refresh</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Hero Section -->
+            <div class="economics-hero">
+                <div class="hero-content">
+                    <div class="hero-left">
+                        <div class="hero-label">Estimated Business Value</div>
+                        <div class="hero-valuation">
+                            <span class="currency">₹</span>
+                            <span id="heroValuation">0</span>
+                        </div>
+                        <div class="hero-range" id="heroRange">Loading valuation range...</div>
+                        <div class="hero-health">
+                            <div class="health-score" id="healthScore" style="--score-percent: 75%;">
+                                <span id="healthScoreValue">75</span>
+                            </div>
+                            <div class="health-label">
+                                <strong>Business Health Score</strong>
+                                <span id="healthScoreDesc">Based on margins, runway & efficiency</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="hero-right">
+                        <div class="hero-stat">
+                            <div class="hero-stat-value" id="heroRevenue">₹0</div>
+                            <div class="hero-stat-label">Total Revenue</div>
+                        </div>
+                        <div class="hero-stat">
+                            <div class="hero-stat-value" id="heroMargin">0%</div>
+                            <div class="hero-stat-label">Gross Margin</div>
+                        </div>
+                        <div class="hero-stat">
+                            <div class="hero-stat-value" id="heroRunway">0</div>
+                            <div class="hero-stat-label">Months Runway</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Data Warning Banner -->
+            <div class="data-warning" id="dataWarning">
+                <i class="fas fa-exclamation-triangle"></i>
+                <span><strong>Data Note:</strong> Accuracy depends on complete project data (expenses, payments, labour
+                    records). Incomplete data may skew analytics.</span>
+                <button class="dismiss-btn" onclick="document.getElementById('dataWarning').style.display='none'"><i
+                        class="fas fa-times"></i></button>
+            </div>
+
+            <!-- Tab Navigation -->
+            <div class="tab-nav">
+                <button class="tab-btn active" data-tab="overview">
+                    <i class="fas fa-tachometer-alt"></i>
+                    <span>Overview</span>
+                </button>
+                <button class="tab-btn" data-tab="unit-economics">
+                    <i class="fas fa-cubes"></i>
+                    <span>Unit Economics</span>
+                </button>
+                <button class="tab-btn" data-tab="phases">
+                    <i class="fas fa-layer-group"></i>
+                    <span>Phase Analysis</span>
+                </button>
+                <button class="tab-btn" data-tab="valuation">
+                    <i class="fas fa-gem"></i>
+                    <span>Valuation</span>
+                </button>
+                <button class="tab-btn" data-tab="trends">
+                    <i class="fas fa-chart-area"></i>
+                    <span>Trends</span>
+                </button>
+                <button class="tab-btn" data-tab="insights">
+                    <i class="fas fa-lightbulb"></i>
+                    <span>Insights</span>
+                </button>
+                <button class="tab-btn" data-tab="scenarios">
+                    <i class="fas fa-flask"></i>
+                    <span>Scenarios</span>
+                </button>
+            </div>
+
+            <!-- Tab Panels -->
+            <!-- Overview Tab -->
+            <div class="tab-panel active" id="panel-overview">
+                <div class="metrics-grid" id="overviewMetrics"></div>
+                <div class="section-card">
+                    <div class="section-card-header">
+                        <div class="section-card-title"><i class="fas fa-chart-pie"></i> Revenue vs Costs
+                            <button class="info-btn"><i class="fas fa-info-circle"></i><span class="tooltip">Comparison
+                                    of money coming in vs money spent. Profit is the remaining slice.</span></button>
+                        </div>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="revenueVsCostsChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Unit Economics Tab -->
+            <div class="tab-panel" id="panel-unit-economics">
+                <div class="metrics-grid" id="unitMetrics"></div>
+                <div class="section-card">
+                    <div class="section-card-header">
+                        <div class="section-card-title"><i class="fas fa-building"></i> Project Profitability
+                            <button class="info-btn"><i class="fas fa-info-circle"></i><span class="tooltip">Detailed
+                                    breakdown of revenue and costs for each individual project.</span></button>
+                        </div>
+                    </div>
+                    <div style="overflow-x: auto;">
+                        <table class="data-table" id="projectProfitTable">
+                            <thead>
+                                <tr>
+                                    <th>Project</th>
+                                    <th>Revenue</th>
+                                    <th>Costs</th>
+                                    <th>Profit</th>
+                                    <th>Margin</th>
+                                    <th>Efficiency</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Phase Analysis Tab -->
+            <div class="tab-panel" id="panel-phases">
+                <div class="section-card">
+                    <div class="section-card-header">
+                        <div class="section-card-title"><i class="fas fa-layer-group"></i> Phase-wise Cost Distribution
+                            <button class="info-btn"><i class="fas fa-info-circle"></i><span class="tooltip">Aggregated
+                                    costs by phase (Structure, Finishing, etc.) across all projects.</span></button>
+                        </div>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="phaseCostChart"></canvas>
+                    </div>
+                </div>
+                <div class="section-card">
+                    <div class="section-card-header">
+                        <div class="section-card-title"><i class="fas fa-exclamation-triangle"></i> Efficiency Alerts
+                        </div>
+                    </div>
+                    <div class="insights-grid" id="phaseAlerts"></div>
+                </div>
+            </div>
+
+            <!-- Valuation Tab -->
+            <div class="tab-panel" id="panel-valuation">
+                <div class="valuation-grid" id="valuationCards"></div>
+                <div class="section-card">
+                    <div class="section-card-header">
+                        <div class="section-card-title"><i class="fas fa-info-circle"></i> Valuation Methodology</div>
+                    </div>
+                    <p id="valuationMethodology" style="font-size: 0.875rem; color: var(--gray); line-height: 1.6;"></p>
+                </div>
+            </div>
+
+            <!-- Trends Tab -->
+            <div class="tab-panel" id="panel-trends">
+                <div class="section-card">
+                    <div class="section-card-header">
+                        <div class="section-card-title"><i class="fas fa-chart-line"></i> Revenue Trend</div>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="revenueTrendChart"></canvas>
+                    </div>
+                </div>
+                <div class="section-card">
+                    <div class="section-card-header">
+                        <div class="section-card-title"><i class="fas fa-percentage"></i> Margin Trend</div>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="marginTrendChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Insights Tab -->
+            <div class="tab-panel" id="panel-insights">
+                <div class="insights-grid" id="optimizationInsights"></div>
+            </div>
+
+            <!-- Scenarios Tab -->
+            <div class="tab-panel" id="panel-scenarios">
+                <div class="scenario-controls">
+                    <div class="scenario-slider">
+                        <div class="scenario-slider-header">
+                            <span class="scenario-slider-title">Cost Reduction</span>
+                            <span class="scenario-slider-value" id="costReductionValue">10%</span>
+                        </div>
+                        <input type="range" id="costReductionSlider" min="0" max="30" value="10" step="5">
+                    </div>
+                    <div class="scenario-slider">
+                        <div class="scenario-slider-header">
+                            <span class="scenario-slider-title">Revenue Growth</span>
+                            <span class="scenario-slider-value" id="revenueGrowthValue">20%</span>
+                        </div>
+                        <input type="range" id="revenueGrowthSlider" min="0" max="50" value="20" step="10">
+                    </div>
+                </div>
+                <div class="section-card">
+                    <div class="section-card-header">
+                        <div class="section-card-title"><i class="fas fa-calculator"></i> Scenario Impact</div>
+                    </div>
+                    <div class="scenario-results" id="scenarioResults"></div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script type="module">
+        import { auth, onAuthStateChanged, signOut } from './js/firebase-config.js';
+        import EconomicsAnalytics from './js/economics-analytics.js';
+
+        let charts = {};
+
+        function hideLoader() {
+            document.getElementById('pageLoader').classList.add('hidden');
+        }
+
+        function formatCurrency(amount) {
+            if (amount === null || amount === undefined || isNaN(amount)) return '₹0';
+            if (amount >= 10000000) return '₹' + (amount / 10000000).toFixed(2) + ' Cr';
+            if (amount >= 100000) return '₹' + (amount / 100000).toFixed(2) + ' L';
+            return '₹' + new Intl.NumberFormat('en-IN').format(Math.round(amount));
+        }
+
+        function formatNumber(num) {
+            if (num === null || num === undefined || isNaN(num)) return '0';
+            return new Intl.NumberFormat('en-IN').format(Math.round(num));
+        }
+
+        // Tab switching
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+                btn.classList.add('active');
+                document.getElementById('panel-' + btn.dataset.tab).classList.add('active');
+            });
+        });
+
+        // Main initialization
+        async function initEconomics() {
+            try {
+                const summary = await EconomicsAnalytics.getComprehensiveSummary();
+                const valuation = summary.valuation;
+
+                // Update hero section
+                document.getElementById('heroValuation').textContent = formatNumber(valuation.blended.base);
+                document.getElementById('heroRange').textContent = `Range: ${formatCurrency(valuation.blended.conservative)} - ${formatCurrency(valuation.blended.aggressive)}`;
+                document.getElementById('heroRevenue').textContent = formatCurrency(summary.overview.totalRevenue);
+                document.getElementById('heroMargin').textContent = Math.round(summary.overview.grossMargin) + '%';
+                document.getElementById('heroMargin').className = 'hero-stat-value ' + (summary.overview.grossMargin >= 20 ? 'positive' : summary.overview.grossMargin >= 0 ? '' : 'negative');
+                document.getElementById('heroRunway').textContent = summary.overview.cashRunway + ' mo';
+
+                // Health score
+                document.getElementById('healthScoreValue').textContent = summary.healthScore;
+                document.getElementById('healthScore').style.setProperty('--score-percent', summary.healthScore + '%');
+
+                // Overview metrics
+                renderOverviewMetrics(summary.overview);
+
+                // Unit economics
+                renderUnitEconomics(summary.unitEconomics);
+
+                // Valuation cards
+                renderValuationCards(valuation);
+
+                // Load charts and other data
+                await Promise.all([
+                    renderRevenueVsCostsChart(summary.overview),
+                    renderProjectProfitTable(),
+                    renderPhaseCostChart(),
+                    renderPhaseAlerts(),
+                    renderTrendCharts(),
+                    renderOptimizationInsights(summary.optimizations),
+                    updateScenarioResults()
+                ]);
+
+                // Economics Tour
+                document.getElementById('startEconomicsTourBtn').addEventListener('click', () => {
+                    import('./js/guided-tour.js').then(module => {
+                        module.default.startEconomicsTour();
+                    });
+                });
+
+            } catch (error) {
+                console.error('Error loading economics:', error);
+            }
+        }
+
+        function renderOverviewMetrics(overview) {
+            const html = `
+                <div class="metric-card">
+                    <div class="metric-card-header">
+                        <span class="metric-card-title">Total Revenue</span>
+                        <button class="info-btn"><i class="fas fa-info-circle"></i><span class="tooltip">Sum of all client payments received across all projects</span></button>
+                    </div>
+                    <div class="metric-card-value">${formatCurrency(overview.totalRevenue)}</div>
+                    <div class="metric-card-change positive"><i class="fas fa-arrow-up"></i> From ${overview.projectCount} projects</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-card-header">
+                        <span class="metric-card-title">Operating Costs</span>
+                        <button class="info-btn"><i class="fas fa-info-circle"></i><span class="tooltip">All expenses + labour payments. Money spent to run your projects</span></button>
+                    </div>
+                    <div class="metric-card-value">${formatCurrency(overview.operatingCosts)}</div>
+                    <div class="metric-card-change neutral"><i class="fas fa-minus"></i> Expenses + Labour</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-card-header">
+                        <span class="metric-card-title">Gross Profit</span>
+                        <button class="info-btn"><i class="fas fa-info-circle"></i><span class="tooltip">Revenue minus costs. What you keep after paying direct expenses</span></button>
+                    </div>
+                    <div class="metric-card-value">${formatCurrency(overview.grossProfit)}</div>
+                    <div class="metric-card-change ${overview.grossMargin >= 20 ? 'positive' : overview.grossMargin >= 0 ? 'neutral' : 'negative'}"><i class="fas fa-percentage"></i> ${Math.round(overview.grossMargin)}% margin</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-card-header">
+                        <span class="metric-card-title">Monthly Burn Rate</span>
+                        <button class="info-btn"><i class="fas fa-info-circle"></i><span class="tooltip">Average monthly spending. How much you burn per month</span></button>
+                    </div>
+                    <div class="metric-card-value">${formatCurrency(overview.burnRate)}</div>
+                    <div class="metric-card-change neutral"><i class="fas fa-calendar"></i> Per month average</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-card-header">
+                        <span class="metric-card-title">Cash Runway</span>
+                        <button class="info-btn"><i class="fas fa-info-circle"></i><span class="tooltip">Months until funds run out at current burn rate. Higher is better</span></button>
+                    </div>
+                    <div class="metric-card-value">${overview.cashRunway} months</div>
+                    <div class="metric-card-change ${overview.cashRunway >= 12 ? 'positive' : overview.cashRunway >= 6 ? 'neutral' : 'negative'}"><i class="fas fa-clock"></i> Before funds run out</div>
+                </div>
+            `;
+            document.getElementById('overviewMetrics').innerHTML = html;
+        }
+
+        function renderUnitEconomics(unit) {
+            const html = `
+                <div class="metric-card">
+                    <div class="metric-card-header">
+                        <span class="metric-card-title">Cost per Project</span>
+                        <button class="info-btn"><i class="fas fa-info-circle"></i><span class="tooltip">Average total cost (expenses + labour) per project</span></button>
+                    </div>
+                    <div class="metric-card-value">${formatCurrency(unit.costPerProject)}</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-card-header">
+                        <span class="metric-card-title">Revenue per Project</span>
+                        <button class="info-btn"><i class="fas fa-info-circle"></i><span class="tooltip">Average total payments received per project</span></button>
+                    </div>
+                    <div class="metric-card-value">${formatCurrency(unit.revenuePerProject)}</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-card-header">
+                        <span class="metric-card-title">Profit per Project</span>
+                        <button class="info-btn"><i class="fas fa-info-circle"></i><span class="tooltip">Average net profit earned from a single project</span></button>
+                    </div>
+                    <div class="metric-card-value">${formatCurrency(unit.profitPerProject)}</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-card-header">
+                        <span class="metric-card-title">Cost per Labour Hour</span>
+                        <button class="info-btn"><i class="fas fa-info-circle"></i><span class="tooltip">Average hourly wage cost across all workers</span></button>
+                    </div>
+                    <div class="metric-card-value">${formatCurrency(unit.costPerLabourHour)}</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-card-header">
+                        <span class="metric-card-title">Revenue per Labour Hour</span>
+                        <button class="info-btn"><i class="fas fa-info-circle"></i><span class="tooltip">Efficiency metric: How much revenue each hour of work generates</span></button>
+                    </div>
+                    <div class="metric-card-value">${formatCurrency(unit.revenuePerLabourHour)}</div>
+                </div>
+            `;
+            document.getElementById('unitMetrics').innerHTML = html;
+        }
+
+        function renderValuationCards(valuation) {
+            const html = `
+                <div class="valuation-card">
+                    <div class="metric-card-header" style="justify-content: flex-end; margin-bottom: 0;">
+                        <button class="info-btn"><i class="fas fa-info-circle"></i><span class="tooltip">Valuation = Annual Revenue × 2.5. Safe, low-risk estimate.</span></button>
+                    </div>
+                    <div class="valuation-card-label">Conservative</div>
+                    <div class="valuation-card-value">${formatCurrency(valuation.blended.conservative)}</div>
+                    <div class="valuation-card-method">Low growth assumption</div>
+                </div>
+                <div class="valuation-card base">
+                    <div class="metric-card-header" style="justify-content: flex-end; margin-bottom: 0;">
+                        <button class="info-btn" style="color: white;"><i class="fas fa-info-circle"></i><span class="tooltip">Valuation = Annual Revenue × 3.25. Realistic market value.</span></button>
+                    </div>
+                    <div class="valuation-card-label">Base Estimate</div>
+                    <div class="valuation-card-value">${formatCurrency(valuation.blended.base)}</div>
+                    <div class="valuation-card-method">Current trajectory</div>
+                </div>
+                <div class="valuation-card">
+                    <div class="metric-card-header" style="justify-content: flex-end; margin-bottom: 0;">
+                        <button class="info-btn"><i class="fas fa-info-circle"></i><span class="tooltip">Valuation = Annual Revenue × 4.0. High-growth exit value.</span></button>
+                    </div>
+                    <div class="valuation-card-label">Aggressive</div>
+                    <div class="valuation-card-value">${formatCurrency(valuation.blended.aggressive)}</div>
+                    <div class="valuation-card-method">High growth assumption</div>
+                </div>
+            `;
+            document.getElementById('valuationCards').innerHTML = html;
+            document.getElementById('valuationMethodology').textContent = valuation.methodology + ` Your revenue growth rate is ${Math.round(valuation.growthRate)}%, which ${valuation.growthRate >= 0 ? 'adds a premium to' : 'discounts'} the valuation.`;
+        }
+
+        async function renderRevenueVsCostsChart(overview) {
+            const ctx = document.getElementById('revenueVsCostsChart').getContext('2d');
+            if (charts.revenueVsCosts) charts.revenueVsCosts.destroy();
+
+            charts.revenueVsCosts = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Revenue', 'Operating Costs', 'Profit'],
+                    datasets: [{
+                        data: [overview.totalRevenue, overview.operatingCosts, Math.max(0, overview.grossProfit)],
+                        backgroundColor: ['#10B981', '#3B82F6', '#8B5CF6'],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'right' }
+                    }
+                }
+            });
+        }
+
+        async function renderProjectProfitTable() {
+            const profitability = await EconomicsAnalytics.getPhaseWiseProfitability();
+            const tbody = document.querySelector('#projectProfitTable tbody');
+
+            tbody.innerHTML = profitability.map(p => `
+                <tr>
+                    <td><strong>${p.projectName}</strong></td>
+                    <td>${formatCurrency(p.revenue)}</td>
+                    <td>${formatCurrency(p.costs)}</td>
+                    <td style="color: ${p.profit >= 0 ? '#10B981' : '#EF4444'}">${formatCurrency(p.profit)}</td>
+                    <td>${Math.round(p.margin)}%</td>
+                    <td><span class="efficiency-badge ${p.margin >= 20 ? 'high' : p.margin >= 10 ? 'medium' : 'low'}">${p.margin >= 20 ? 'High' : p.margin >= 10 ? 'Medium' : 'Low'}</span></td>
+                </tr>
+            `).join('');
+        }
+
+        async function renderPhaseCostChart() {
+            const distribution = await EconomicsAnalytics.getPhaseWiseCostDistribution();
+            const ctx = document.getElementById('phaseCostChart').getContext('2d');
+            if (charts.phaseCost) charts.phaseCost.destroy();
+
+            charts.phaseCost = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: distribution.map(d => d.phase),
+                    datasets: [{
+                        label: 'Cost',
+                        data: distribution.map(d => d.cost),
+                        backgroundColor: '#4A7C59',
+                        borderRadius: 8
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: { y: { beginAtZero: true } }
+                }
+            });
+        }
+
+        async function renderPhaseAlerts() {
+            const alerts = await EconomicsAnalytics.highlightInefficientPhases();
+            const container = document.getElementById('phaseAlerts');
+
+            if (alerts.length === 0) {
+                container.innerHTML = '<div class="insight-card"><p style="color: var(--gray);">All phases are operating within normal cost ranges. Great job!</p></div>';
+                return;
+            }
+
+            container.innerHTML = alerts.map(a => `
+                <div class="insight-card high-priority">
+                    <div class="insight-card-header">
+                        <span class="insight-card-title">${a.phase} Phase Alert</span>
+                        <span class="insight-card-impact">${Math.round(a.percentage)}% of costs</span>
+                    </div>
+                    <p class="insight-card-desc">${a.recommendation}</p>
+                </div>
+            `).join('');
+        }
+
+        async function renderTrendCharts() {
+            const marginTrend = await EconomicsAnalytics.getMarginTrend();
+
+            // Revenue trend
+            const revenueCtx = document.getElementById('revenueTrendChart').getContext('2d');
+            if (charts.revenueTrend) charts.revenueTrend.destroy();
+
+            charts.revenueTrend = new Chart(revenueCtx, {
+                type: 'line',
+                data: {
+                    labels: marginTrend.map(m => m.month),
+                    datasets: [
+                        { label: 'Revenue', data: marginTrend.map(m => m.revenue), borderColor: '#10B981', backgroundColor: 'rgba(16, 185, 129, 0.1)', fill: true, tension: 0.4 },
+                        { label: 'Costs', data: marginTrend.map(m => m.cost), borderColor: '#3B82F6', backgroundColor: 'rgba(59, 130, 246, 0.1)', fill: true, tension: 0.4 }
+                    ]
+                },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'top' } } }
+            });
+
+            // Margin trend
+            const marginCtx = document.getElementById('marginTrendChart').getContext('2d');
+            if (charts.marginTrend) charts.marginTrend.destroy();
+
+            charts.marginTrend = new Chart(marginCtx, {
+                type: 'line',
+                data: {
+                    labels: marginTrend.map(m => m.month),
+                    datasets: [{ label: 'Margin %', data: marginTrend.map(m => m.margin), borderColor: '#8B5CF6', backgroundColor: 'rgba(139, 92, 246, 0.1)', fill: true, tension: 0.4 }]
+                },
+                options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, max: 100 } } }
+            });
+        }
+
+        function renderOptimizationInsights(optimizations) {
+            const container = document.getElementById('optimizationInsights');
+
+            if (optimizations.length === 0) {
+                container.innerHTML = '<div class="insight-card"><p style="color: var(--gray);">No optimization opportunities identified. Your business is operating efficiently!</p></div>';
+                return;
+            }
+
+            container.innerHTML = optimizations.map(o => `
+                <div class="insight-card ${o.priority}-priority">
+                    <div class="insight-card-header">
+                        <span class="insight-card-title">${o.title}</span>
+                        <span class="insight-card-impact">₹${formatNumber(o.impact)} impact</span>
+                    </div>
+                    <p class="insight-card-desc">${o.description}</p>
+                </div>
+            `).join('');
+        }
+
+        // Scenario sliders
+        document.getElementById('costReductionSlider').addEventListener('input', (e) => {
+            document.getElementById('costReductionValue').textContent = e.target.value + '%';
+            updateScenarioResults();
+        });
+
+        document.getElementById('revenueGrowthSlider').addEventListener('input', (e) => {
+            document.getElementById('revenueGrowthValue').textContent = e.target.value + '%';
+            updateScenarioResults();
+        });
+
+        async function updateScenarioResults() {
+            const costReduction = parseInt(document.getElementById('costReductionSlider').value);
+            const revenueGrowth = parseInt(document.getElementById('revenueGrowthSlider').value);
+
+            const [costScenario, revenueScenario] = await Promise.all([
+                EconomicsAnalytics.simulateCostReduction(costReduction),
+                EconomicsAnalytics.simulateRevenueGrowth(revenueGrowth)
+            ]);
+
+            // Combined impact
+            const combinedProfitIncrease = costScenario.profitIncrease + revenueScenario.profitIncrease;
+            const combinedValuationIncrease = costScenario.valuationIncrease + revenueScenario.valuationIncrease;
+            const newMargin = Math.min(100, costScenario.newMargin + (revenueScenario.newMargin - costScenario.currentMargin));
+
+            document.getElementById('scenarioResults').innerHTML = `
+                <div class="scenario-result">
+                    <div class="scenario-result-label">Cost Savings</div>
+                    <div class="scenario-result-value">${formatCurrency(costScenario.savings)}</div>
+                    <div class="scenario-result-change positive">-${costReduction}%</div>
+                </div>
+                <div class="scenario-result">
+                    <div class="scenario-result-label">Revenue Increase</div>
+                    <div class="scenario-result-value">${formatCurrency(revenueScenario.revenueIncrease)}</div>
+                    <div class="scenario-result-change positive">+${revenueGrowth}%</div>
+                </div>
+                <div class="scenario-result">
+                    <div class="scenario-result-label">New Margin</div>
+                    <div class="scenario-result-value">${Math.round(newMargin)}%</div>
+                    <div class="scenario-result-change ${newMargin > costScenario.currentMargin ? 'positive' : 'negative'}">from ${Math.round(costScenario.currentMargin)}%</div>
+                </div>
+                <div class="scenario-result">
+                    <div class="scenario-result-label">Valuation Impact</div>
+                    <div class="scenario-result-value">${formatCurrency(combinedValuationIncrease)}</div>
+                    <div class="scenario-result-change positive">+${Math.round((combinedValuationIncrease / Math.max(1, costScenario.currentValuation)) * 100)}%</div>
+                </div>
+            `;
+        }
+
+        // Refresh button
+        document.getElementById('refreshBtn').addEventListener('click', async () => {
+            const btn = document.getElementById('refreshBtn');
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Refreshing...';
+            btn.disabled = true;
+
+            await EconomicsAnalytics.fetchAllData(true);
+            await initEconomics();
+
+            btn.innerHTML = '<i class="fas fa-sync-alt"></i> <span>Refresh</span>';
+            btn.disabled = false;
+        });
+
+        // Logout
+        document.getElementById('logoutBtn').addEventListener('click', async () => {
+            await signOut(auth);
+            window.location.href = 'login.html';
+        });
+
+        // Auth state
+        onAuthStateChanged(auth, async (user) => {
+            if (!user) {
+                window.location.href = 'login.html';
+                return;
+            }
+
+            await initEconomics();
+            hideLoader();
+        });
+    </script>
+</body>
+
+</html>

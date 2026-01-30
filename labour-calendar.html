@@ -1,0 +1,1914 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>B&B - Labour Calendar</title>
+    <script>
+        (function() {
+            const theme = localStorage.getItem('bb_theme') || 'light';
+            const accent = localStorage.getItem('bb_accent') || 'green';
+            if (theme === 'dark') document.documentElement.setAttribute('data-theme', 'dark');
+            else if (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                document.documentElement.setAttribute('data-theme', 'dark');
+            }
+            if (accent !== 'green') document.documentElement.setAttribute('data-accent', accent);
+        })();
+    </script>
+    <link rel="icon" type="image/png" href="B&B.png">
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="css/styles-professional.css" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; background: var(--bg-light); display: flex; min-height: 100vh; }
+        
+        /* Sidebar */
+        .sidebar { width: 64px; background: var(--white); padding: 1rem 0.5rem; display: flex; flex-direction: column; position: fixed; left: 0; top: 0; bottom: 0; border-right: 1px solid var(--border); z-index: 100; transition: width 0.3s ease; overflow: hidden; }
+        .sidebar:hover { width: 200px; }
+        .sidebar:hover .nav-text, .sidebar:hover .logo-text { opacity: 1; width: auto; }
+        .nav-text, .logo-text { opacity: 0; width: 0; overflow: hidden; white-space: nowrap; transition: opacity 0.2s ease; }
+        .logo-section { text-align: center; padding: 0.5rem 0 1rem; border-bottom: 1px solid var(--border); margin-bottom: 1rem; }
+        .logo-link { text-decoration: none; display: flex; flex-direction: column; align-items: center; gap: 0.25rem; }
+        .logo-img { width: 32px; height: 32px; }
+        .logo-text { font-size: 0.875rem; font-weight: 700; color: var(--primary); }
+        .nav-menu { display: flex; flex-direction: column; gap: 0.25rem; flex: 1; }
+        .nav-item { display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem; border-radius: 8px; text-decoration: none; color: var(--gray); font-weight: 600; font-size: 0.8125rem; transition: all 0.2s; }
+        .nav-item:hover { background: var(--primary-muted); color: var(--primary); }
+        .nav-item.active { background: var(--primary); color: white; }
+        .nav-icon { font-size: 1rem; width: 20px; text-align: center; flex-shrink: 0; }
+        .sidebar-footer { padding-top: 0.75rem; border-top: 1px solid var(--border); }
+        
+        /* Main Content */
+        .main-content { flex: 1; margin-left: 64px; padding: 1.5rem 2rem; transition: margin-left 0.3s ease; }
+        .sidebar:hover ~ .main-content { margin-left: 200px; }
+        
+        /* Page Header */
+        .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem; }
+        .page-title { font-size: 1.5rem; font-weight: 700; color: var(--dark); display: flex; align-items: center; gap: 0.75rem; }
+        .page-title i { color: var(--primary); }
+        
+        /* Calendar Navigation */
+        .calendar-nav { display: flex; align-items: center; gap: 1rem; background: var(--white); padding: 0.75rem 1rem; border-radius: var(--radius-lg); border: 1px solid var(--border); }
+        .nav-btn { width: 36px; height: 36px; border-radius: var(--radius-md); border: 1px solid var(--border); background: var(--white); cursor: pointer; display: flex; align-items: center; justify-content: center; color: var(--gray); transition: all 0.2s; }
+        .nav-btn:hover { border-color: var(--primary); color: var(--primary); background: var(--primary-muted); }
+        .month-display { font-size: 1.125rem; font-weight: 700; color: var(--dark); min-width: 180px; text-align: center; }
+        .today-btn { padding: 0.5rem 1rem; border-radius: var(--radius-md); border: 1px solid var(--primary); background: var(--primary-muted); color: var(--primary); font-weight: 600; font-size: 0.8125rem; cursor: pointer; transition: all 0.2s; }
+        .today-btn:hover { background: var(--primary); color: white; }
+        
+        /* Calendar Grid */
+        .calendar-container { background: var(--white); border-radius: var(--radius-xl); border: 1px solid var(--border); overflow: hidden; margin-bottom: 1.5rem; }
+        .calendar-header { display: grid; grid-template-columns: repeat(7, 1fr); background: var(--bg-light); border-bottom: 1px solid var(--border); }
+        .calendar-header-cell { padding: 0.75rem; text-align: center; font-size: 0.75rem; font-weight: 700; color: var(--gray); text-transform: uppercase; letter-spacing: 0.5px; }
+        .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); }
+        .calendar-cell { min-height: 100px; border-right: 1px solid var(--border); border-bottom: 1px solid var(--border); padding: 0.5rem; cursor: pointer; transition: all 0.15s; position: relative; }
+        .calendar-cell:nth-child(7n) { border-right: none; }
+        .calendar-cell:hover { background: var(--primary-muted); }
+        .calendar-cell.other-month { background: var(--bg-light); opacity: 0.5; }
+        .calendar-cell.today { background: var(--primary-muted); }
+        .calendar-cell.selected { background: var(--primary); }
+        .calendar-cell.selected .day-number { color: white; }
+        .calendar-cell.selected .day-summary { color: rgba(255,255,255,0.9); }
+        .day-number { font-size: 0.875rem; font-weight: 600; color: var(--dark); margin-bottom: 0.25rem; }
+        .day-summary { font-size: 0.6875rem; color: var(--gray); }
+        .day-badges { display: flex; flex-wrap: wrap; gap: 0.25rem; margin-top: 0.25rem; }
+        .day-badge { padding: 0.125rem 0.375rem; border-radius: 4px; font-size: 0.625rem; font-weight: 600; }
+        .badge-labour { background: var(--info-light); color: var(--info); }
+        .badge-payment { background: var(--success-light); color: var(--success); }
+        .badge-meeting { background: var(--warning-light); color: var(--warning); }
+        .work-type-icons { display: flex; gap: 0.25rem; margin-top: 0.25rem; }
+        .work-type-icon { width: 18px; height: 18px; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 0.625rem; color: white; }
+        .wt-mason { background: #8B4513; }
+        .wt-helper { background: #6B7280; }
+        .wt-carpenter { background: #D97706; }
+        .wt-electrician { background: #FBBF24; color: #78350F; }
+        .wt-plumber { background: #3B82F6; }
+        .wt-painter { background: #EC4899; }
+        
+        /* Day Detail Panel */
+        .day-detail-panel { background: var(--white); border-radius: var(--radius-xl); border: 1px solid var(--border); padding: 1.5rem; }
+        .panel-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border); }
+        .panel-title { font-size: 1.125rem; font-weight: 700; color: var(--dark); }
+        .panel-date { font-size: 0.875rem; color: var(--gray); }
+        .panel-actions { display: flex; gap: 0.5rem; }
+        
+        /* Summary Cards */
+        .summary-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; margin-bottom: 1.5rem; }
+        .summary-card { background: var(--bg-light); border-radius: var(--radius-lg); padding: 1rem; text-align: center; }
+        .summary-value { font-size: 1.5rem; font-weight: 800; color: var(--dark); }
+        .summary-label { font-size: 0.75rem; color: var(--gray); margin-top: 0.25rem; }
+        .summary-card.earned .summary-value { color: var(--info); }
+        .summary-card.paid .summary-value { color: var(--success); }
+        .summary-card.due .summary-value { color: var(--error); }
+        
+        /* Timeline Section */
+        .timeline-section { margin-bottom: 1.5rem; }
+        .section-title { font-size: 0.875rem; font-weight: 700; color: var(--dark); margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.5rem; }
+        .section-title i { color: var(--primary); }
+        .timeline-list { display: flex; flex-direction: column; gap: 0.75rem; }
+        .timeline-item { background: var(--bg-light); border-radius: var(--radius-lg); padding: 1rem; }
+        .timeline-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; }
+        .timeline-name { font-weight: 600; color: var(--dark); }
+        .timeline-total { font-size: 0.875rem; color: var(--primary); font-weight: 600; }
+        .time-blocks { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+        .time-block { padding: 0.375rem 0.625rem; border-radius: var(--radius-md); font-size: 0.75rem; background: var(--white); border: 1px solid var(--border); }
+        .time-block.work { border-left: 3px solid var(--primary); }
+        .time-block.meeting { border-left: 3px solid var(--warning); background: var(--warning-light); }
+        
+        /* Project Breakdown */
+        .project-list { display: flex; flex-direction: column; gap: 0.5rem; }
+        .project-item { display: flex; justify-content: space-between; align-items: center; padding: 0.75rem; background: var(--bg-light); border-radius: var(--radius-md); }
+        .project-name { font-weight: 600; color: var(--dark); font-size: 0.875rem; }
+        .project-stats { display: flex; gap: 1rem; font-size: 0.75rem; color: var(--gray); }
+        
+        /* Buttons */
+        .btn { padding: 0.625rem 1rem; border-radius: var(--radius-md); font-weight: 600; font-size: 0.8125rem; cursor: pointer; transition: all 0.2s; border: none; display: inline-flex; align-items: center; gap: 0.5rem; }
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-primary:hover { background: var(--primary-dark); }
+        .btn-secondary { background: var(--white); color: var(--gray); border: 1px solid var(--border); }
+        .btn-secondary:hover { border-color: var(--primary); color: var(--primary); }
+        
+        /* Empty State */
+        .empty-state { text-align: center; padding: 3rem; color: var(--gray); }
+        .empty-state i { font-size: 3rem; opacity: 0.3; margin-bottom: 1rem; }
+        .empty-state p { font-size: 0.875rem; }
+
+        /* Modal Styles */
+        .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.6); display: flex; align-items: center; justify-content: center; z-index: 1000; padding: 1rem; opacity: 0; visibility: hidden; transition: all 0.3s ease; }
+        .modal-overlay.active { opacity: 1; visibility: visible; }
+        .modal-content { background: var(--white); border-radius: var(--radius-xl); width: 100%; max-width: 500px; max-height: 90vh; overflow-y: auto; }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--border); }
+        .modal-header h3 { font-size: 1.125rem; font-weight: 700; color: var(--dark); }
+        .close-btn { width: 32px; height: 32px; border-radius: var(--radius-md); border: 1px solid var(--border); background: var(--white); cursor: pointer; display: flex; align-items: center; justify-content: center; color: var(--gray); }
+        .close-btn:hover { border-color: var(--error); color: var(--error); }
+        .modal-form { padding: 1.5rem; }
+        .form-group { margin-bottom: 1rem; }
+        .form-group label { display: block; font-size: 0.8125rem; font-weight: 600; color: var(--gray); margin-bottom: 0.375rem; }
+        .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 0.75rem; border: 1px solid var(--border); border-radius: var(--radius-md); font-size: 0.875rem; }
+        .form-group input:focus, .form-group select:focus { outline: none; border-color: var(--primary); }
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+        .form-actions { display: flex; justify-content: flex-end; gap: 0.75rem; padding-top: 1rem; border-top: 1px solid var(--border); margin-top: 1rem; }
+        
+        /* Toast */
+        .toast { position: fixed; bottom: 2rem; right: 2rem; padding: 1rem 1.5rem; border-radius: var(--radius-lg); color: white; font-weight: 600; z-index: 10000; animation: slideIn 0.3s ease; }
+        .toast.success { background: var(--success); }
+        .toast.error { background: var(--error); }
+        @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+        
+        /* Labourers Panel */
+        .labourers-panel { background: var(--white); border-radius: var(--radius-xl); border: 1px solid var(--border); margin-bottom: 1.5rem; overflow: hidden; }
+        .labourers-header { background: linear-gradient(135deg, var(--primary), var(--primary-dark)); color: white; padding: 1.25rem 1.5rem; display: flex; justify-content: space-between; align-items: center; }
+        .company-info { display: flex; align-items: center; gap: 1rem; }
+        .company-logo { width: 48px; height: 48px; background: rgba(255,255,255,0.2); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; }
+        .company-name { font-size: 1.125rem; font-weight: 700; }
+        .company-subtitle { font-size: 0.75rem; opacity: 0.9; }
+        .labourer-count { background: rgba(255,255,255,0.2); padding: 0.5rem 1rem; border-radius: var(--radius-lg); font-weight: 700; font-size: 1.25rem; }
+        .labourer-count span { font-size: 0.75rem; font-weight: 500; display: block; }
+        .labourers-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 1rem; padding: 1.5rem; }
+        .labourer-card { background: var(--bg-light); border-radius: var(--radius-lg); padding: 1rem; border: 1px solid var(--border); transition: all 0.2s; }
+        .labourer-card:hover { border-color: var(--primary); box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
+        .labourer-card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.75rem; }
+        .labourer-avatar { width: 44px; height: 44px; border-radius: 50%; background: var(--primary); color: white; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 1rem; }
+        .labourer-info { flex: 1; margin-left: 0.75rem; }
+        .labourer-name { font-weight: 700; color: var(--dark); font-size: 0.9375rem; }
+        .labourer-role { font-size: 0.75rem; color: var(--gray); background: var(--white); padding: 0.125rem 0.5rem; border-radius: 4px; display: inline-block; margin-top: 0.25rem; }
+        .labourer-status { padding: 0.25rem 0.625rem; border-radius: var(--radius-md); font-size: 0.6875rem; font-weight: 700; text-transform: uppercase; }
+        .status-paid { background: var(--success-light); color: var(--success); }
+        .status-unpaid { background: var(--error-light); color: var(--error); }
+        .status-partial { background: var(--warning-light); color: var(--warning); }
+        .labourer-details { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; margin-bottom: 0.75rem; font-size: 0.75rem; }
+        .labourer-detail { display: flex; align-items: center; gap: 0.375rem; color: var(--gray); }
+        .labourer-detail i { width: 14px; color: var(--primary); }
+        .labourer-stats { display: flex; gap: 1rem; padding: 0.75rem; background: var(--white); border-radius: var(--radius-md); margin-bottom: 0.75rem; }
+        .labourer-stat { flex: 1; text-align: center; }
+        .labourer-stat-value { font-weight: 700; color: var(--dark); font-size: 0.875rem; }
+        .labourer-stat-label { font-size: 0.625rem; color: var(--gray); text-transform: uppercase; }
+        .labourer-actions { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+        .labourer-action { padding: 0.375rem 0.625rem; border-radius: var(--radius-md); font-size: 0.6875rem; font-weight: 600; cursor: pointer; border: 1px solid var(--border); background: var(--white); color: var(--gray); transition: all 0.2s; display: flex; align-items: center; gap: 0.25rem; }
+        .labourer-action:hover { border-color: var(--primary); color: var(--primary); }
+        .labourer-action.pay { border-color: var(--success); color: var(--success); }
+        .labourer-action.pay:hover { background: var(--success); color: white; }
+        .labourer-action.assign { border-color: var(--info); color: var(--info); }
+        .labourer-action.assign:hover { background: var(--info); color: white; }
+        .labourer-action.delete { border-color: var(--error); color: var(--error); }
+        .labourer-action.delete:hover { background: var(--error); color: white; }
+        .labourers-empty { text-align: center; padding: 3rem; color: var(--gray); }
+        .labourers-empty i { font-size: 3rem; opacity: 0.3; margin-bottom: 1rem; }
+        .toggle-panel { display: flex; align-items: center; gap: 0.5rem; background: rgba(255,255,255,0.2); padding: 0.5rem 1rem; border-radius: var(--radius-md); cursor: pointer; font-size: 0.8125rem; font-weight: 600; border: none; color: white; }
+        .toggle-panel:hover { background: rgba(255,255,255,0.3); }
+        .labourers-content { max-height: 500px; overflow-y: auto; }
+        .labourers-content.collapsed { display: none; }
+        
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .summary-grid { grid-template-columns: repeat(2, 1fr); }
+            .labourers-grid { grid-template-columns: 1fr; }
+        }
+        @media (max-width: 768px) {
+            .main-content { margin-left: 0; padding: 1rem; }
+            .sidebar { display: none; }
+            .calendar-cell { min-height: 60px; }
+            .day-badges, .work-type-icons { display: none; }
+            .summary-grid { grid-template-columns: 1fr 1fr; }
+            .labourers-header { flex-direction: column; gap: 1rem; text-align: center; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <div class="logo-section">
+            <a href="hub.html" class="logo-link">
+                <img src="B&B.png" alt="B&B" class="logo-img">
+                <span class="logo-text">B&B</span>
+            </a>
+        </div>
+        <nav class="nav-menu">
+            <a href="hub.html" class="nav-item"><i class="fas fa-th-large nav-icon"></i><span class="nav-text">Dashboard</span></a>
+            <a href="index.html" class="nav-item"><i class="fas fa-building nav-icon"></i><span class="nav-text">Projects</span></a>
+            <a href="labour-calendar.html" class="nav-item active"><i class="fas fa-calendar-alt nav-icon"></i><span class="nav-text">Labour Calendar</span></a>
+            <a href="funds.html" class="nav-item"><i class="fas fa-wallet nav-icon"></i><span class="nav-text">Funds</span></a>
+            <a href="payments.html" class="nav-item"><i class="fas fa-credit-card nav-icon"></i><span class="nav-text">Payments</span></a>
+            <a href="materials.html" class="nav-item"><i class="fas fa-boxes nav-icon"></i><span class="nav-text">Materials</span></a>
+        </nav>
+        <div class="sidebar-footer">
+            <a href="settings.html" class="nav-item"><i class="fas fa-cog nav-icon"></i><span class="nav-text">Settings</span></a>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Page Header -->
+        <div class="page-header">
+            <h1 class="page-title"><i class="fas fa-calendar-alt"></i> Labour Calendar</h1>
+            <div class="calendar-nav">
+                <button class="nav-btn" id="prevMonth"><i class="fas fa-chevron-left"></i></button>
+                <span class="month-display" id="monthDisplay">January 2026</span>
+                <button class="nav-btn" id="nextMonth"><i class="fas fa-chevron-right"></i></button>
+                <button class="today-btn" id="todayBtn">Today</button>
+            </div>
+            <div class="header-actions">
+                <button class="btn btn-secondary" id="migrateDataBtn" style="display: none;"><i class="fas fa-database"></i> Migrate Old Data</button>
+                <button class="btn btn-secondary" id="addWorkerBtn"><i class="fas fa-user-plus"></i> Add Worker</button>
+                <button class="btn btn-primary" id="markAttendanceBtn" style="background: var(--info);"><i class="fas fa-clipboard-check"></i> Mark Attendance</button>
+                <button class="btn btn-primary" id="addWorkEntryBtn"><i class="fas fa-plus"></i> Add Work Entry</button>
+            </div>
+        </div>
+
+        <!-- Calendar Grid -->
+        <div class="calendar-container">
+            <div class="calendar-header">
+                <div class="calendar-header-cell">Sun</div>
+                <div class="calendar-header-cell">Mon</div>
+                <div class="calendar-header-cell">Tue</div>
+                <div class="calendar-header-cell">Wed</div>
+                <div class="calendar-header-cell">Thu</div>
+                <div class="calendar-header-cell">Fri</div>
+                <div class="calendar-header-cell">Sat</div>
+            </div>
+            <div class="calendar-grid" id="calendarGrid">
+                <!-- Calendar cells will be rendered here -->
+            </div>
+        </div>
+
+        <!-- Labourers Panel -->
+        <div class="labourers-panel">
+            <div class="labourers-header">
+                <div class="company-info">
+                    <div class="company-logo"><i class="fas fa-hard-hat"></i></div>
+                    <div>
+                        <div class="company-name" id="companyName">Your Company</div>
+                        <div class="company-subtitle">Registered Labourers</div>
+                    </div>
+                </div>
+                <div style="display: flex; align-items: center; gap: 1rem;">
+                    <div class="labourer-count">
+                        <span id="labourerCount">0</span>
+                        <span>Labourers</span>
+                    </div>
+                    <button class="toggle-panel" id="toggleLabourersBtn">
+                        <i class="fas fa-chevron-up" id="toggleIcon"></i> Toggle
+                    </button>
+                </div>
+            </div>
+            <div class="labourers-content" id="labourersContent">
+                <div class="labourers-grid" id="labourersGrid">
+                    <!-- Labourer cards will be rendered here -->
+                </div>
+                <div class="labourers-empty" id="labourersEmpty" style="display: none;">
+                    <i class="fas fa-users"></i>
+                    <p>No labourers registered yet</p>
+                    <button class="btn btn-primary" onclick="CalendarApp.openModal('addWorkerModal')" style="margin-top: 1rem;">
+                        <i class="fas fa-user-plus"></i> Add First Labourer
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Day Detail Panel -->
+        <div class="day-detail-panel" id="dayDetailPanel">
+            <div class="panel-header">
+                <div>
+                    <h2 class="panel-title" id="panelTitle">Select a Date</h2>
+                    <p class="panel-date" id="panelDate">Click on a date to view details</p>
+                </div>
+                <div class="panel-actions">
+                    <button class="btn btn-secondary" id="addPaymentBtn"><i class="fas fa-money-bill-wave"></i> Record Payment</button>
+                    <button class="btn btn-secondary" id="addMeetingBtn"><i class="fas fa-users"></i> Add Meeting</button>
+                </div>
+            </div>
+
+            <!-- Summary Cards -->
+            <div class="summary-grid" id="summaryGrid">
+                <div class="summary-card">
+                    <div class="summary-value" id="summaryLabour">0</div>
+                    <div class="summary-label">Workers</div>
+                </div>
+                <div class="summary-card earned">
+                    <div class="summary-value" id="summaryEarned">₹0</div>
+                    <div class="summary-label">Earned</div>
+                </div>
+                <div class="summary-card paid">
+                    <div class="summary-value" id="summaryPaid">₹0</div>
+                    <div class="summary-label">Paid</div>
+                </div>
+                <div class="summary-card due">
+                    <div class="summary-value" id="summaryDue">₹0</div>
+                    <div class="summary-label">Due</div>
+                </div>
+            </div>
+
+            <!-- Labour Timeline -->
+            <div class="timeline-section" id="timelineSection">
+                <h3 class="section-title"><i class="fas fa-clock"></i> Labour Timeline</h3>
+                <div class="timeline-list" id="timelineList">
+                    <div class="empty-state">
+                        <i class="fas fa-calendar-day"></i>
+                        <p>No work entries for this date</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Project Breakdown -->
+            <div class="timeline-section" id="projectSection">
+                <h3 class="section-title"><i class="fas fa-building"></i> Project Breakdown</h3>
+                <div class="project-list" id="projectList">
+                    <div class="empty-state">
+                        <i class="fas fa-folder-open"></i>
+                        <p>No project data for this date</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Add Work Entry Modal -->
+    <div id="workEntryModal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-hard-hat" style="color: var(--primary); margin-right: 0.5rem;"></i> Add Work Entry</h3>
+                <button class="close-btn" onclick="CalendarApp.closeModal('workEntryModal')"><i class="fas fa-times"></i></button>
+            </div>
+            <form id="workEntryForm" class="modal-form">
+                <div class="form-group">
+                    <label>Worker *</label>
+                    <select id="entryLabourId" required>
+                        <option value="">Select Worker</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Project *</label>
+                    <select id="entryProjectId" required>
+                        <option value="">Select Project</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Work Type *</label>
+                    <select id="entryWorkType" required>
+                        <option value="Mason">Mason</option>
+                        <option value="Helper">Helper</option>
+                        <option value="Carpenter">Carpenter</option>
+                        <option value="Electrician">Electrician</option>
+                        <option value="Plumber">Plumber</option>
+                        <option value="Painter">Painter</option>
+                        <option value="Welder">Welder</option>
+                        <option value="Tile Worker">Tile Worker</option>
+                        <option value="Plasterer">Plasterer</option>
+                        <option value="General">General</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Date *</label>
+                    <input type="date" id="entryDate" required>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Start Time *</label>
+                        <input type="time" id="entryStartTime" value="09:00" required>
+                    </div>
+                    <div class="form-group">
+                        <label>End Time *</label>
+                        <input type="time" id="entryEndTime" value="17:00" required>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Hours</label>
+                        <input type="text" id="entryHours" readonly style="background: var(--bg-light);">
+                    </div>
+                    <div class="form-group">
+                        <label>Estimated Earnings</label>
+                        <input type="text" id="entryEarnings" readonly style="background: var(--bg-light);">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Notes</label>
+                    <textarea id="entryNotes" rows="2" placeholder="Optional notes..."></textarea>
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn btn-secondary" onclick="CalendarApp.closeModal('workEntryModal')">Cancel</button>
+                    <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Save Entry</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Record Payment Modal -->
+    <div id="paymentModal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-money-bill-wave" style="color: var(--success); margin-right: 0.5rem;"></i> Record Payment</h3>
+                <button class="close-btn" onclick="CalendarApp.closeModal('paymentModal')"><i class="fas fa-times"></i></button>
+            </div>
+            <form id="paymentForm" class="modal-form">
+                <div class="form-group">
+                    <label>Worker *</label>
+                    <select id="paymentLabourId" required>
+                        <option value="">Select Worker</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Project *</label>
+                    <select id="paymentProjectId" required>
+                        <option value="">Select Project</option>
+                    </select>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Current Due</label>
+                        <input type="text" id="paymentDue" readonly style="background: var(--bg-light); color: var(--error); font-weight: 600;">
+                    </div>
+                    <div class="form-group">
+                        <label>Amount *</label>
+                        <input type="number" id="paymentAmount" min="1" required placeholder="Enter amount">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Payment Date *</label>
+                    <input type="date" id="paymentDate" required>
+                </div>
+                <div class="form-group">
+                    <label>Payment Method</label>
+                    <select id="paymentMethod">
+                        <option value="Cash">Cash</option>
+                        <option value="Bank Transfer">Bank Transfer</option>
+                        <option value="UPI">UPI</option>
+                        <option value="Cheque">Cheque</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Notes</label>
+                    <textarea id="paymentNotes" rows="2" placeholder="Optional notes..."></textarea>
+                </div>
+                <div id="paymentWarning" style="display: none; padding: 0.75rem; background: var(--warning-light); border-radius: var(--radius-md); color: var(--warning); font-size: 0.8125rem; margin-bottom: 1rem;">
+                    <i class="fas fa-exclamation-triangle"></i> <span id="paymentWarningText"></span>
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn btn-secondary" onclick="CalendarApp.closeModal('paymentModal')">Cancel</button>
+                    <button type="submit" class="btn btn-primary"><i class="fas fa-check"></i> Record Payment</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Add Meeting Modal -->
+    <div id="meetingModal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-users" style="color: var(--warning); margin-right: 0.5rem;"></i> Add Meeting</h3>
+                <button class="close-btn" onclick="CalendarApp.closeModal('meetingModal')"><i class="fas fa-times"></i></button>
+            </div>
+            <form id="meetingForm" class="modal-form">
+                <div class="form-group">
+                    <label>Project *</label>
+                    <select id="meetingProjectId" required>
+                        <option value="">Select Project</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Date *</label>
+                    <input type="date" id="meetingDate" required>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Start Time</label>
+                        <input type="time" id="meetingStartTime" value="10:00">
+                    </div>
+                    <div class="form-group">
+                        <label>End Time</label>
+                        <input type="time" id="meetingEndTime" value="11:00">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Purpose *</label>
+                    <input type="text" id="meetingPurpose" required placeholder="e.g., Site inspection, Planning">
+                </div>
+                <div class="form-group">
+                    <label>Outcome</label>
+                    <textarea id="meetingOutcome" rows="2" placeholder="What was decided..."></textarea>
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn btn-secondary" onclick="CalendarApp.closeModal('meetingModal')">Cancel</button>
+                    <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Save Meeting</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Add Worker Modal -->
+    <div id="addWorkerModal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-user-plus" style="color: var(--primary); margin-right: 0.5rem;"></i> Add New Worker</h3>
+                <button class="close-btn" onclick="CalendarApp.closeModal('addWorkerModal')"><i class="fas fa-times"></i></button>
+            </div>
+            <form id="addWorkerForm" class="modal-form">
+                <div class="form-group">
+                    <label>Worker Name *</label>
+                    <input type="text" id="newWorkerName" required placeholder="Enter worker name">
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Phone</label>
+                        <input type="tel" id="newWorkerPhone" placeholder="Phone number">
+                    </div>
+                    <div class="form-group">
+                        <label>Role *</label>
+                        <select id="newWorkerRole" required>
+                            <option value="Mason">Mason</option>
+                            <option value="Helper">Helper</option>
+                            <option value="Carpenter">Carpenter</option>
+                            <option value="Electrician">Electrician</option>
+                            <option value="Plumber">Plumber</option>
+                            <option value="Painter">Painter</option>
+                            <option value="Welder">Welder</option>
+                            <option value="Tile Worker">Tile Worker</option>
+                            <option value="Plasterer">Plasterer</option>
+                            <option value="General">General</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Daily Wage (₹)</label>
+                    <input type="number" id="newWorkerDailyWage" min="0" placeholder="e.g., 500">
+                </div>
+                <div class="form-group">
+                    <label>Address</label>
+                    <textarea id="newWorkerAddress" rows="2" placeholder="Worker's address (optional)"></textarea>
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn btn-secondary" onclick="CalendarApp.closeModal('addWorkerModal')">Cancel</button>
+                    <button type="submit" class="btn btn-primary"><i class="fas fa-user-plus"></i> Add Worker</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Edit Worker Modal -->
+    <div id="editWorkerModal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-user-edit" style="color: var(--warning); margin-right: 0.5rem;"></i> Edit Worker</h3>
+                <button class="close-btn" onclick="CalendarApp.closeModal('editWorkerModal')"><i class="fas fa-times"></i></button>
+            </div>
+            <form id="editWorkerForm" class="modal-form">
+                <input type="hidden" id="editWorkerId">
+                <div class="form-group">
+                    <label>Worker Name *</label>
+                    <input type="text" id="editWorkerName" required placeholder="Enter worker name">
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Phone</label>
+                        <input type="tel" id="editWorkerPhone" placeholder="Phone number">
+                    </div>
+                    <div class="form-group">
+                        <label>Role *</label>
+                        <select id="editWorkerRole" required>
+                            <option value="Mason">Mason</option>
+                            <option value="Helper">Helper</option>
+                            <option value="Carpenter">Carpenter</option>
+                            <option value="Electrician">Electrician</option>
+                            <option value="Plumber">Plumber</option>
+                            <option value="Painter">Painter</option>
+                            <option value="Welder">Welder</option>
+                            <option value="Tile Worker">Tile Worker</option>
+                            <option value="Plasterer">Plasterer</option>
+                            <option value="General">General</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Daily Wage (₹)</label>
+                    <input type="number" id="editWorkerDailyWage" min="0" placeholder="e.g., 500">
+                </div>
+                <div class="form-group">
+                    <label>Address</label>
+                    <textarea id="editWorkerAddress" rows="2" placeholder="Worker's address"></textarea>
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn btn-secondary" onclick="CalendarApp.closeModal('editWorkerModal')">Cancel</button>
+                    <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Assign Worker to Project Modal -->
+    <div id="assignWorkerModal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-project-diagram" style="color: var(--info); margin-right: 0.5rem;"></i> Assign to Project</h3>
+                <button class="close-btn" onclick="CalendarApp.closeModal('assignWorkerModal')"><i class="fas fa-times"></i></button>
+            </div>
+            <form id="assignWorkerForm" class="modal-form">
+                <input type="hidden" id="assignWorkerId">
+                <div class="form-group">
+                    <label>Worker</label>
+                    <input type="text" id="assignWorkerName" readonly style="background: var(--bg-light);">
+                </div>
+                <div class="form-group">
+                    <label>Select Project *</label>
+                    <select id="assignProjectId" required>
+                        <option value="">Select Project</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Role in Project</label>
+                    <select id="assignWorkerRole">
+                        <option value="Mason">Mason</option>
+                        <option value="Helper">Helper</option>
+                        <option value="Carpenter">Carpenter</option>
+                        <option value="Electrician">Electrician</option>
+                        <option value="Plumber">Plumber</option>
+                        <option value="Painter">Painter</option>
+                        <option value="Welder">Welder</option>
+                        <option value="Tile Worker">Tile Worker</option>
+                        <option value="Plasterer">Plasterer</option>
+                        <option value="General">General</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Daily Wage for this Project (₹)</label>
+                    <input type="number" id="assignDailyWage" min="0" placeholder="Leave empty to use default">
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn btn-secondary" onclick="CalendarApp.closeModal('assignWorkerModal')">Cancel</button>
+                    <button type="submit" class="btn btn-primary"><i class="fas fa-link"></i> Assign Worker</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Quick Pay Worker Modal -->
+    <div id="quickPayModal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-money-bill-wave" style="color: var(--success); margin-right: 0.5rem;"></i> Pay Worker</h3>
+                <button class="close-btn" onclick="CalendarApp.closeModal('quickPayModal')"><i class="fas fa-times"></i></button>
+            </div>
+            <form id="quickPayForm" class="modal-form">
+                <input type="hidden" id="quickPayWorkerId">
+                <div class="form-group">
+                    <label>Worker</label>
+                    <input type="text" id="quickPayWorkerName" readonly style="background: var(--bg-light);">
+                </div>
+                <div class="form-group">
+                    <label>Total Due (All Projects)</label>
+                    <input type="text" id="quickPayTotalDue" readonly style="background: var(--bg-light); color: var(--error); font-weight: 600;">
+                </div>
+                <!-- Auto-detected projects info -->
+                <div id="quickPayProjectsInfo" style="display: none;"></div>
+                <div class="form-group">
+                    <label>Select Project *</label>
+                    <select id="quickPayProjectId" required>
+                        <option value="">Select Project</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Amount to Pay *</label>
+                    <input type="number" id="quickPayAmount" min="1" required placeholder="Enter amount">
+                </div>
+                <div class="form-group">
+                    <label>Payment Method</label>
+                    <select id="quickPayMethod">
+                        <option value="Cash">Cash</option>
+                        <option value="Bank Transfer">Bank Transfer</option>
+                        <option value="UPI">UPI</option>
+                        <option value="Cheque">Cheque</option>
+                    </select>
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn btn-secondary" onclick="CalendarApp.closeModal('quickPayModal')">Cancel</button>
+                    <button type="submit" class="btn btn-primary" style="background: var(--success);"><i class="fas fa-check"></i> Pay Now</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div id="deleteWorkerModal" class="modal-overlay">
+        <div class="modal-content" style="max-width: 400px;">
+            <div class="modal-header">
+                <h3><i class="fas fa-exclamation-triangle" style="color: var(--error); margin-right: 0.5rem;"></i> Delete Worker</h3>
+                <button class="close-btn" onclick="CalendarApp.closeModal('deleteWorkerModal')"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-form">
+                <input type="hidden" id="deleteWorkerId">
+                <p style="color: var(--gray); margin-bottom: 1rem;">Are you sure you want to delete <strong id="deleteWorkerName"></strong>?</p>
+                <p style="color: var(--error); font-size: 0.8125rem; margin-bottom: 1rem;"><i class="fas fa-warning"></i> This action cannot be undone. All work entries and payment records will remain in the system.</p>
+                <div class="form-actions">
+                    <button type="button" class="btn btn-secondary" onclick="CalendarApp.closeModal('deleteWorkerModal')">Cancel</button>
+                    <button type="button" class="btn btn-primary" style="background: var(--error);" onclick="CalendarApp.confirmDeleteWorker()"><i class="fas fa-trash"></i> Delete</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Mark Attendance Modal -->
+    <div id="attendanceModal" class="modal-overlay">
+        <div class="modal-content" style="max-width: 700px;">
+            <div class="modal-header">
+                <h3><i class="fas fa-clipboard-check" style="color: var(--info); margin-right: 0.5rem;"></i> Mark Attendance</h3>
+                <button class="close-btn" onclick="CalendarApp.closeModal('attendanceModal')"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-form">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Date *</label>
+                        <input type="date" id="attendanceDate" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Project *</label>
+                        <select id="attendanceProjectId" required>
+                            <option value="">Select Project</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div style="margin-bottom: 1rem;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+                        <label style="font-size: 0.875rem; font-weight: 700; color: var(--dark);">Select Workers</label>
+                        <div style="display: flex; gap: 0.5rem;">
+                            <button type="button" class="btn btn-secondary" style="padding: 0.375rem 0.75rem; font-size: 0.75rem;" onclick="CalendarApp.selectAllAttendance('present')">
+                                <i class="fas fa-check-double"></i> All Present
+                            </button>
+                            <button type="button" class="btn btn-secondary" style="padding: 0.375rem 0.75rem; font-size: 0.75rem;" onclick="CalendarApp.selectAllAttendance('absent')">
+                                <i class="fas fa-times"></i> All Absent
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div id="attendanceWorkersList" style="max-height: 350px; overflow-y: auto; border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 0.5rem;">
+                        <p style="text-align: center; color: var(--gray); padding: 2rem;">Loading workers...</p>
+                    </div>
+                </div>
+                
+                <div style="background: var(--info-light); padding: 0.75rem; border-radius: var(--radius-md); margin-bottom: 1rem;">
+                    <p style="font-size: 0.75rem; color: var(--info);">
+                        <i class="fas fa-info-circle"></i> 
+                        <strong>Present:</strong> Full day (8 hours) | 
+                        <strong>Half-Day:</strong> 4 hours | 
+                        <strong>Absent:</strong> No work entry
+                    </p>
+                </div>
+                
+                <div class="form-actions">
+                    <button type="button" class="btn btn-secondary" onclick="CalendarApp.closeModal('attendanceModal')">Cancel</button>
+                    <button type="button" class="btn btn-primary" style="background: var(--info);" onclick="CalendarApp.saveAttendance()">
+                        <i class="fas fa-save"></i> Save Attendance
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import Storage from './js/firebase-storage.js';
+        import LabourCalendar from './js/labour-calendar.js';
+
+        const CalendarApp = {
+            currentYear: new Date().getFullYear(),
+            currentMonth: new Date().getMonth() + 1,
+            selectedDate: null,
+            workers: [],
+            projects: [],
+
+            async init() {
+                await Storage.waitForAuth();
+                
+                // Load company info
+                await this.loadCompanyInfo();
+                
+                // Check and run migration if needed
+                await this.checkAndRunMigration();
+                
+                await this.loadData();
+                this.renderCalendar();
+                this.setupEventListeners();
+                this.selectDate(new Date().toISOString().split('T')[0]);
+                
+                // Show migrate button if old data exists
+                await this.checkShowMigrateButton();
+            },
+            
+            async loadCompanyInfo() {
+                try {
+                    // Try to get from Firebase user_preferences
+                    const { db, doc, getDoc, auth } = await import('./js/firebase-config.js');
+                    const user = auth.currentUser;
+                    
+                    if (user) {
+                        const docRef = doc(db, 'user_preferences', user.uid);
+                        const docSnap = await getDoc(docRef);
+                        
+                        if (docSnap.exists()) {
+                            const prefs = docSnap.data();
+                            
+                            // Update company name
+                            const companyNameEl = document.getElementById('companyName');
+                            if (companyNameEl && prefs.companyName) {
+                                companyNameEl.textContent = prefs.companyName;
+                            }
+                            
+                            // Update company logo
+                            const companyLogoEl = document.querySelector('.company-logo');
+                            if (companyLogoEl && prefs.companyLogo) {
+                                companyLogoEl.innerHTML = `<img src="${prefs.companyLogo}" alt="Logo" style="width: 100%; height: 100%; object-fit: cover; border-radius: 12px;">`;
+                            }
+                        }
+                    }
+                    
+                    // Fallback to localStorage
+                    const localSettings = localStorage.getItem('bb_settings');
+                    if (localSettings) {
+                        const settings = JSON.parse(localSettings);
+                        const companyNameEl = document.getElementById('companyName');
+                        const companyLogoEl = document.querySelector('.company-logo');
+                        
+                        if (companyNameEl && settings.account?.companyName && companyNameEl.textContent === 'Your Company') {
+                            companyNameEl.textContent = settings.account.companyName;
+                        }
+                        
+                        if (companyLogoEl && settings.account?.companyLogo && !companyLogoEl.querySelector('img')) {
+                            companyLogoEl.innerHTML = `<img src="${settings.account.companyLogo}" alt="Logo" style="width: 100%; height: 100%; object-fit: cover; border-radius: 12px;">`;
+                        }
+                    }
+                } catch (error) {
+                    console.warn('Could not load company info:', error);
+                }
+            },
+
+            async checkShowMigrateButton() {
+                try {
+                    const oldAttendance = await Storage.workerAttendance.getAll();
+                    const oldPayments = await Storage.workerPayments.getAll();
+                    
+                    if (oldAttendance.length > 0 || oldPayments.length > 0) {
+                        const migrateBtn = document.getElementById('migrateDataBtn');
+                        if (migrateBtn) {
+                            migrateBtn.style.display = 'inline-flex';
+                        }
+                    }
+                } catch (error) {
+                    console.warn('Could not check old data:', error);
+                }
+            },
+
+            async checkAndRunMigration() {
+                try {
+                    const needsMigration = await LabourCalendar.needsMigration();
+                    if (needsMigration) {
+                        this.showMigrationBanner();
+                        const results = await LabourCalendar.migrateOldData();
+                        this.showToast(`Migration complete: ${results.attendanceMigrated} work entries, ${results.paymentsMigrated} payments migrated`, 'success');
+                        this.hideMigrationBanner();
+                    }
+                } catch (error) {
+                    console.error('Migration error:', error);
+                    this.showToast('Error migrating old data. Some data may not appear.', 'error');
+                }
+            },
+
+            showMigrationBanner() {
+                const banner = document.createElement('div');
+                banner.id = 'migrationBanner';
+                banner.style.cssText = 'position: fixed; top: 0; left: 0; right: 0; background: linear-gradient(135deg, var(--primary), var(--primary-dark)); color: white; padding: 1rem; text-align: center; z-index: 9999; display: flex; align-items: center; justify-content: center; gap: 1rem;';
+                banner.innerHTML = '<i class="fas fa-sync fa-spin"></i> <span>Migrating your old labour data to the new calendar system...</span>';
+                document.body.prepend(banner);
+            },
+
+            hideMigrationBanner() {
+                const banner = document.getElementById('migrationBanner');
+                if (banner) banner.remove();
+            },
+
+            async loadData() {
+                this.workers = await Storage.workers.getAll();
+                this.projects = await Storage.projects.getAll();
+                this.populateDropdowns();
+                await this.renderLabourersPanel();
+            },
+
+            async renderLabourersPanel() {
+                const grid = document.getElementById('labourersGrid');
+                const empty = document.getElementById('labourersEmpty');
+                const countEl = document.getElementById('labourerCount');
+                
+                // Update count
+                countEl.textContent = this.workers.length;
+                
+                if (this.workers.length === 0) {
+                    grid.style.display = 'none';
+                    empty.style.display = 'block';
+                    return;
+                }
+                
+                grid.style.display = 'grid';
+                empty.style.display = 'none';
+                
+                // Get payment status and projects for each worker
+                const workerCards = await Promise.all(this.workers.map(async (worker) => {
+                    const workerData = await LabourCalendar.getWorkerProjects(worker.id);
+                    const dueInfo = await LabourCalendar.getLabourDue(worker.id);
+                    const statusClass = dueInfo.due <= 0 ? 'status-paid' : (dueInfo.paid > 0 ? 'status-partial' : 'status-unpaid');
+                    const statusText = dueInfo.due <= 0 ? 'Paid' : (dueInfo.paid > 0 ? 'Partial' : 'Unpaid');
+                    
+                    // Build projects list
+                    const projectsHtml = workerData.projects.length > 0 
+                        ? `<div class="labourer-projects" style="margin-bottom: 0.75rem;">
+                            <div style="font-size: 0.6875rem; color: var(--gray); margin-bottom: 0.375rem; font-weight: 600;">
+                                <i class="fas fa-building" style="margin-right: 0.25rem;"></i> 
+                                Working on ${workerData.totalProjects} project${workerData.totalProjects > 1 ? 's' : ''}
+                                ${workerData.activeProjects > 0 ? `<span style="color: var(--warning);">(${workerData.activeProjects} with dues)</span>` : ''}
+                            </div>
+                            <div style="display: flex; flex-wrap: wrap; gap: 0.25rem;">
+                                ${workerData.projects.slice(0, 3).map(p => `
+                                    <span style="background: ${p.totalDue > 0 ? 'var(--error-light)' : 'var(--success-light)'}; 
+                                                 color: ${p.totalDue > 0 ? 'var(--error)' : 'var(--success)'}; 
+                                                 padding: 0.125rem 0.5rem; border-radius: 4px; font-size: 0.625rem; font-weight: 600;"
+                                          title="${p.projectName}: ₹${this.formatNumber(p.totalDue)} due">
+                                        ${p.projectName.length > 15 ? p.projectName.substring(0, 15) + '...' : p.projectName}
+                                    </span>
+                                `).join('')}
+                                ${workerData.projects.length > 3 ? `<span style="font-size: 0.625rem; color: var(--gray);">+${workerData.projects.length - 3} more</span>` : ''}
+                            </div>
+                          </div>`
+                        : `<div style="font-size: 0.6875rem; color: var(--gray); margin-bottom: 0.75rem; font-style: italic;">
+                            <i class="fas fa-info-circle"></i> Not assigned to any project yet
+                          </div>`;
+                    
+                    return `
+                        <div class="labourer-card" data-worker-id="${worker.id}">
+                            <div class="labourer-card-header">
+                                <div class="labourer-avatar">${worker.name.charAt(0).toUpperCase()}</div>
+                                <div class="labourer-info">
+                                    <div class="labourer-name">${worker.name}</div>
+                                    <span class="labourer-role">${worker.role || 'General'}</span>
+                                </div>
+                                <span class="labourer-status ${statusClass}">${statusText}</span>
+                            </div>
+                            <div class="labourer-details">
+                                <div class="labourer-detail"><i class="fas fa-phone"></i> ${worker.phone || 'No phone'}</div>
+                                <div class="labourer-detail"><i class="fas fa-rupee-sign"></i> ₹${worker.dailyWage || 500}/day</div>
+                                ${worker.address ? `<div class="labourer-detail" style="grid-column: span 2;"><i class="fas fa-map-marker-alt"></i> ${worker.address}</div>` : ''}
+                            </div>
+                            ${projectsHtml}
+                            <div class="labourer-stats">
+                                <div class="labourer-stat">
+                                    <div class="labourer-stat-value">₹${this.formatNumber(dueInfo.earned)}</div>
+                                    <div class="labourer-stat-label">Earned</div>
+                                </div>
+                                <div class="labourer-stat">
+                                    <div class="labourer-stat-value" style="color: var(--success);">₹${this.formatNumber(dueInfo.paid)}</div>
+                                    <div class="labourer-stat-label">Paid</div>
+                                </div>
+                                <div class="labourer-stat">
+                                    <div class="labourer-stat-value" style="color: ${dueInfo.due > 0 ? 'var(--error)' : 'var(--success)'};">₹${this.formatNumber(dueInfo.due)}</div>
+                                    <div class="labourer-stat-label">Due</div>
+                                </div>
+                            </div>
+                            <div class="labourer-actions">
+                                <button class="labourer-action pay" onclick="CalendarApp.openQuickPay('${worker.id}')"><i class="fas fa-money-bill"></i> Pay</button>
+                                <button class="labourer-action assign" onclick="CalendarApp.openAssignWorker('${worker.id}')"><i class="fas fa-link"></i> Assign</button>
+                                <button class="labourer-action" onclick="CalendarApp.openEditWorker('${worker.id}')"><i class="fas fa-edit"></i> Edit</button>
+                                <button class="labourer-action delete" onclick="CalendarApp.openDeleteWorker('${worker.id}')"><i class="fas fa-trash"></i></button>
+                            </div>
+                        </div>
+                    `;
+                }));
+                
+                grid.innerHTML = workerCards.join('');
+            },
+
+            populateDropdowns() {
+                const workerSelects = ['entryLabourId', 'paymentLabourId'];
+                const projectSelects = ['entryProjectId', 'paymentProjectId', 'meetingProjectId'];
+
+                workerSelects.forEach(id => {
+                    const select = document.getElementById(id);
+                    if (select) {
+                        select.innerHTML = '<option value="">Select Worker</option>' +
+                            this.workers.map(w => `<option value="${w.id}">${w.name} - ${w.role || 'Worker'}</option>`).join('');
+                    }
+                });
+
+                projectSelects.forEach(id => {
+                    const select = document.getElementById(id);
+                    if (select) {
+                        select.innerHTML = '<option value="">Select Project</option>' +
+                            this.projects.map(p => `<option value="${p.id}">${p.name}</option>`).join('');
+                    }
+                });
+            },
+
+            async renderCalendar() {
+                const monthSummary = await LabourCalendar.getMonthSummary(this.currentYear, this.currentMonth);
+                const firstDay = new Date(this.currentYear, this.currentMonth - 1, 1).getDay();
+                const daysInMonth = new Date(this.currentYear, this.currentMonth, 0).getDate();
+                const today = new Date().toISOString().split('T')[0];
+
+                // Update month display
+                const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+                document.getElementById('monthDisplay').textContent = `${monthNames[this.currentMonth - 1]} ${this.currentYear}`;
+
+                // Build calendar grid
+                let html = '';
+                
+                // Previous month days
+                const prevMonth = this.currentMonth === 1 ? 12 : this.currentMonth - 1;
+                const prevYear = this.currentMonth === 1 ? this.currentYear - 1 : this.currentYear;
+                const daysInPrevMonth = new Date(prevYear, prevMonth, 0).getDate();
+                
+                for (let i = firstDay - 1; i >= 0; i--) {
+                    const day = daysInPrevMonth - i;
+                    html += `<div class="calendar-cell other-month"><div class="day-number">${day}</div></div>`;
+                }
+
+                // Current month days
+                for (let day = 1; day <= daysInMonth; day++) {
+                    const date = `${this.currentYear}-${String(this.currentMonth).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                    const daySummary = monthSummary.find(s => s.day === day) || {};
+                    const isToday = date === today;
+                    const isSelected = date === this.selectedDate;
+
+                    let cellClass = 'calendar-cell';
+                    if (isToday) cellClass += ' today';
+                    if (isSelected) cellClass += ' selected';
+
+                    let badges = '';
+                    if (daySummary.labourCount > 0) {
+                        badges += `<span class="day-badge badge-labour">${daySummary.labourCount} workers</span>`;
+                    }
+                    if (daySummary.totalPaid > 0) {
+                        badges += `<span class="day-badge badge-payment">₹${this.formatNumber(daySummary.totalPaid)}</span>`;
+                    }
+
+                    let workTypeIcons = '';
+                    if (daySummary.workTypes && daySummary.workTypes.length > 0) {
+                        workTypeIcons = '<div class="work-type-icons">' +
+                            daySummary.workTypes.slice(0, 3).map(wt => {
+                                const iconClass = this.getWorkTypeIconClass(wt);
+                                return `<div class="work-type-icon ${iconClass}" title="${wt}">${wt.charAt(0)}</div>`;
+                            }).join('') +
+                            '</div>';
+                    }
+
+                    html += `
+                        <div class="${cellClass}" data-date="${date}" onclick="CalendarApp.selectDate('${date}')">
+                            <div class="day-number">${day}</div>
+                            ${daySummary.hasActivity ? `
+                                <div class="day-summary">₹${this.formatNumber(daySummary.totalEarned || 0)}</div>
+                                <div class="day-badges">${badges}</div>
+                                ${workTypeIcons}
+                            ` : ''}
+                        </div>
+                    `;
+                }
+
+                // Next month days
+                const totalCells = firstDay + daysInMonth;
+                const remainingCells = totalCells % 7 === 0 ? 0 : 7 - (totalCells % 7);
+                for (let i = 1; i <= remainingCells; i++) {
+                    html += `<div class="calendar-cell other-month"><div class="day-number">${i}</div></div>`;
+                }
+
+                document.getElementById('calendarGrid').innerHTML = html;
+            },
+
+            getWorkTypeIconClass(workType) {
+                const map = {
+                    'Mason': 'wt-mason',
+                    'Helper': 'wt-helper',
+                    'Carpenter': 'wt-carpenter',
+                    'Electrician': 'wt-electrician',
+                    'Plumber': 'wt-plumber',
+                    'Painter': 'wt-painter'
+                };
+                return map[workType] || 'wt-helper';
+            },
+
+            async selectDate(date) {
+                this.selectedDate = date;
+                
+                // Update calendar selection
+                document.querySelectorAll('.calendar-cell').forEach(cell => {
+                    cell.classList.remove('selected');
+                    if (cell.dataset.date === date) {
+                        cell.classList.add('selected');
+                    }
+                });
+
+                // Load day details
+                const summary = await LabourCalendar.getDaySummary(date);
+                const timeline = await LabourCalendar.getLabourTimeline(date);
+
+                // Update panel header
+                const dateObj = new Date(date + 'T00:00:00');
+                document.getElementById('panelTitle').textContent = dateObj.toLocaleDateString('en-IN', { weekday: 'long' });
+                document.getElementById('panelDate').textContent = dateObj.toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' });
+
+                // Update summary cards
+                document.getElementById('summaryLabour').textContent = summary.labourCount;
+                document.getElementById('summaryEarned').textContent = `₹${this.formatNumber(summary.totalEarned)}`;
+                document.getElementById('summaryPaid').textContent = `₹${this.formatNumber(summary.totalPaid)}`;
+                document.getElementById('summaryDue').textContent = `₹${this.formatNumber(summary.totalDue)}`;
+
+                // Update timeline
+                this.renderTimeline(timeline);
+
+                // Update project breakdown
+                this.renderProjectBreakdown(summary.projectBreakdown);
+
+                // Set date in forms
+                document.getElementById('entryDate').value = date;
+                document.getElementById('paymentDate').value = date;
+                document.getElementById('meetingDate').value = date;
+            },
+
+            renderTimeline(timeline) {
+                const container = document.getElementById('timelineList');
+                
+                if (!timeline || timeline.length === 0) {
+                    container.innerHTML = `
+                        <div class="empty-state">
+                            <i class="fas fa-calendar-day"></i>
+                            <p>No work entries for this date</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                container.innerHTML = timeline.map(labour => `
+                    <div class="timeline-item">
+                        <div class="timeline-header">
+                            <span class="timeline-name">${labour.labourName}</span>
+                            <span class="timeline-total">${labour.totalHours}h • ₹${this.formatNumber(labour.totalEarned)}</span>
+                        </div>
+                        <div class="time-blocks">
+                            ${labour.timeBlocks.map(block => `
+                                <div class="time-block ${block.type}">
+                                    <strong>${block.startTime} - ${block.endTime}</strong>
+                                    ${block.type === 'work' ? `
+                                        <span>${block.projectName} • ${block.workType}</span>
+                                        <span>₹${this.formatNumber(block.earned)}</span>
+                                    ` : `
+                                        <span>Meeting: ${block.purpose}</span>
+                                    `}
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                `).join('');
+            },
+
+            renderProjectBreakdown(breakdown) {
+                const container = document.getElementById('projectList');
+                
+                if (!breakdown || breakdown.length === 0) {
+                    container.innerHTML = `
+                        <div class="empty-state">
+                            <i class="fas fa-folder-open"></i>
+                            <p>No project data for this date</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                container.innerHTML = breakdown.map(proj => `
+                    <div class="project-item">
+                        <span class="project-name">${proj.projectName}</span>
+                        <div class="project-stats">
+                            <span><i class="fas fa-users"></i> ${proj.labourCount}</span>
+                            <span><i class="fas fa-clock"></i> ${proj.hours}h</span>
+                            <span><i class="fas fa-rupee-sign"></i> ${this.formatNumber(proj.earned)}</span>
+                        </div>
+                    </div>
+                `).join('');
+            },
+
+            formatNumber(num) {
+                return (num || 0).toLocaleString('en-IN');
+            },
+
+            setupEventListeners() {
+                // Navigation
+                document.getElementById('prevMonth').addEventListener('click', () => this.changeMonth(-1));
+                document.getElementById('nextMonth').addEventListener('click', () => this.changeMonth(1));
+                document.getElementById('todayBtn').addEventListener('click', () => this.goToToday());
+
+                // Modal triggers
+                document.getElementById('addWorkEntryBtn').addEventListener('click', () => this.openModal('workEntryModal'));
+                document.getElementById('addPaymentBtn').addEventListener('click', () => this.openModal('paymentModal'));
+                document.getElementById('addMeetingBtn').addEventListener('click', () => this.openModal('meetingModal'));
+                document.getElementById('addWorkerBtn').addEventListener('click', () => this.openModal('addWorkerModal'));
+                document.getElementById('markAttendanceBtn').addEventListener('click', () => this.openAttendanceModal());
+                
+                // Toggle labourers panel
+                document.getElementById('toggleLabourersBtn').addEventListener('click', () => this.toggleLabourersPanel());
+                
+                // Migrate data button
+                document.getElementById('migrateDataBtn').addEventListener('click', () => this.runForceMigration());
+
+                // Form submissions
+                document.getElementById('workEntryForm').addEventListener('submit', (e) => this.handleWorkEntrySubmit(e));
+                document.getElementById('paymentForm').addEventListener('submit', (e) => this.handlePaymentSubmit(e));
+                document.getElementById('meetingForm').addEventListener('submit', (e) => this.handleMeetingSubmit(e));
+                document.getElementById('addWorkerForm').addEventListener('submit', (e) => this.handleAddWorkerSubmit(e));
+                document.getElementById('editWorkerForm').addEventListener('submit', (e) => this.handleEditWorkerSubmit(e));
+                document.getElementById('assignWorkerForm').addEventListener('submit', (e) => this.handleAssignWorkerSubmit(e));
+                document.getElementById('quickPayForm').addEventListener('submit', (e) => this.handleQuickPaySubmit(e));
+
+                // Time change for earnings calculation
+                document.getElementById('entryStartTime').addEventListener('change', () => this.calculateEstimatedEarnings());
+                document.getElementById('entryEndTime').addEventListener('change', () => this.calculateEstimatedEarnings());
+                document.getElementById('entryWorkType').addEventListener('change', () => this.calculateEstimatedEarnings());
+
+                // Payment due calculation
+                document.getElementById('paymentLabourId').addEventListener('change', () => this.updatePaymentDue());
+                document.getElementById('paymentProjectId').addEventListener('change', () => this.updatePaymentDue());
+            },
+            
+            toggleLabourersPanel() {
+                const content = document.getElementById('labourersContent');
+                const icon = document.getElementById('toggleIcon');
+                content.classList.toggle('collapsed');
+                icon.classList.toggle('fa-chevron-up');
+                icon.classList.toggle('fa-chevron-down');
+            },
+            
+            async runForceMigration() {
+                if (!confirm('This will migrate all old labour data to the new calendar format. Continue?')) {
+                    return;
+                }
+                
+                this.showMigrationBanner();
+                try {
+                    const results = await LabourCalendar.forceMigration();
+                    this.showToast(`Migration complete: ${results.attendanceMigrated} work entries, ${results.paymentsMigrated} payments migrated`, 'success');
+                    
+                    // Reload calendar
+                    await this.renderCalendar();
+                    await this.selectDate(this.selectedDate || new Date().toISOString().split('T')[0]);
+                    
+                    // Hide migrate button after successful migration
+                    document.getElementById('migrateDataBtn').style.display = 'none';
+                } catch (error) {
+                    console.error('Migration error:', error);
+                    this.showToast('Migration failed: ' + error.message, 'error');
+                } finally {
+                    this.hideMigrationBanner();
+                }
+            },
+
+            changeMonth(delta) {
+                this.currentMonth += delta;
+                if (this.currentMonth > 12) {
+                    this.currentMonth = 1;
+                    this.currentYear++;
+                } else if (this.currentMonth < 1) {
+                    this.currentMonth = 12;
+                    this.currentYear--;
+                }
+                this.renderCalendar();
+            },
+
+            goToToday() {
+                const today = new Date();
+                this.currentYear = today.getFullYear();
+                this.currentMonth = today.getMonth() + 1;
+                this.renderCalendar();
+                this.selectDate(today.toISOString().split('T')[0]);
+            },
+
+            openModal(modalId) {
+                document.getElementById(modalId).classList.add('active');
+            },
+
+            closeModal(modalId) {
+                document.getElementById(modalId).classList.remove('active');
+            },
+
+            async calculateEstimatedEarnings() {
+                const startTime = document.getElementById('entryStartTime').value;
+                const endTime = document.getElementById('entryEndTime').value;
+                const workType = document.getElementById('entryWorkType').value;
+
+                if (startTime && endTime) {
+                    const hours = LabourCalendar.calculateHoursWorked(startTime, endTime);
+                    const rate = await LabourCalendar.getHourlyRate(workType);
+                    const earnings = LabourCalendar.calculateEarnings(hours, rate);
+
+                    document.getElementById('entryHours').value = `${hours} hours`;
+                    document.getElementById('entryEarnings').value = `₹${this.formatNumber(earnings)}`;
+                }
+            },
+
+            async updatePaymentDue() {
+                const labourId = document.getElementById('paymentLabourId').value;
+                const projectId = document.getElementById('paymentProjectId').value;
+
+                if (labourId && projectId) {
+                    const dueInfo = await LabourCalendar.getLabourDue(labourId, projectId);
+                    document.getElementById('paymentDue').value = `₹${this.formatNumber(dueInfo.due)}`;
+                } else {
+                    document.getElementById('paymentDue').value = '';
+                }
+            },
+
+            async handleWorkEntrySubmit(e) {
+                e.preventDefault();
+                try {
+                    const entry = {
+                        labourId: document.getElementById('entryLabourId').value,
+                        projectId: document.getElementById('entryProjectId').value,
+                        workType: document.getElementById('entryWorkType').value,
+                        date: document.getElementById('entryDate').value,
+                        startTime: document.getElementById('entryStartTime').value,
+                        endTime: document.getElementById('entryEndTime').value,
+                        notes: document.getElementById('entryNotes').value
+                    };
+
+                    await LabourCalendar.createWorkEntry(entry);
+                    this.closeModal('workEntryModal');
+                    this.showToast('Work entry added successfully', 'success');
+                    this.renderCalendar();
+                    this.selectDate(this.selectedDate);
+                    e.target.reset();
+                } catch (error) {
+                    this.showToast(error.message, 'error');
+                }
+            },
+
+            async handlePaymentSubmit(e) {
+                e.preventDefault();
+                try {
+                    const payment = {
+                        labourId: document.getElementById('paymentLabourId').value,
+                        projectId: document.getElementById('paymentProjectId').value,
+                        amount: parseFloat(document.getElementById('paymentAmount').value),
+                        paymentDate: document.getElementById('paymentDate').value,
+                        paymentMethod: document.getElementById('paymentMethod').value,
+                        notes: document.getElementById('paymentNotes').value
+                    };
+
+                    const result = await LabourCalendar.processPaymentWithFundUpdate(payment);
+                    
+                    if (result.warning) {
+                        console.warn(result.warning);
+                    }
+
+                    this.closeModal('paymentModal');
+                    this.showToast('Payment recorded successfully', 'success');
+                    this.renderCalendar();
+                    this.selectDate(this.selectedDate);
+                    e.target.reset();
+                } catch (error) {
+                    this.showToast(error.message, 'error');
+                }
+            },
+
+            async handleMeetingSubmit(e) {
+                e.preventDefault();
+                try {
+                    const meeting = {
+                        projectId: document.getElementById('meetingProjectId').value,
+                        date: document.getElementById('meetingDate').value,
+                        startTime: document.getElementById('meetingStartTime').value,
+                        endTime: document.getElementById('meetingEndTime').value,
+                        purpose: document.getElementById('meetingPurpose').value,
+                        outcome: document.getElementById('meetingOutcome').value
+                    };
+
+                    await LabourCalendar.createMeeting(meeting);
+                    this.closeModal('meetingModal');
+                    this.showToast('Meeting added successfully', 'success');
+                    this.renderCalendar();
+                    this.selectDate(this.selectedDate);
+                    e.target.reset();
+                } catch (error) {
+                    this.showToast(error.message, 'error');
+                }
+            },
+
+            async handleAddWorkerSubmit(e) {
+                e.preventDefault();
+                try {
+                    const worker = {
+                        name: document.getElementById('newWorkerName').value.trim(),
+                        phone: document.getElementById('newWorkerPhone').value.trim(),
+                        role: document.getElementById('newWorkerRole').value,
+                        dailyWage: parseFloat(document.getElementById('newWorkerDailyWage').value) || 500,
+                        address: document.getElementById('newWorkerAddress').value.trim(),
+                        status: 'active'
+                    };
+
+                    if (!worker.name) {
+                        throw new Error('Worker name is required');
+                    }
+
+                    await Storage.workers.add(worker);
+                    this.closeModal('addWorkerModal');
+                    this.showToast('Worker added successfully', 'success');
+                    
+                    // Reload workers and update dropdowns
+                    await this.loadData();
+                    e.target.reset();
+                } catch (error) {
+                    this.showToast(error.message, 'error');
+                }
+            },
+
+            // Edit Worker
+            openEditWorker(workerId) {
+                const worker = this.workers.find(w => w.id === workerId);
+                if (!worker) return;
+                
+                document.getElementById('editWorkerId').value = worker.id;
+                document.getElementById('editWorkerName').value = worker.name || '';
+                document.getElementById('editWorkerPhone').value = worker.phone || '';
+                document.getElementById('editWorkerRole').value = worker.role || 'General';
+                document.getElementById('editWorkerDailyWage').value = worker.dailyWage || 500;
+                document.getElementById('editWorkerAddress').value = worker.address || '';
+                
+                this.openModal('editWorkerModal');
+            },
+
+            async handleEditWorkerSubmit(e) {
+                e.preventDefault();
+                try {
+                    const workerId = document.getElementById('editWorkerId').value;
+                    const updates = {
+                        name: document.getElementById('editWorkerName').value.trim(),
+                        phone: document.getElementById('editWorkerPhone').value.trim(),
+                        role: document.getElementById('editWorkerRole').value,
+                        dailyWage: parseFloat(document.getElementById('editWorkerDailyWage').value) || 500,
+                        address: document.getElementById('editWorkerAddress').value.trim()
+                    };
+
+                    if (!updates.name) {
+                        throw new Error('Worker name is required');
+                    }
+
+                    await Storage.workers.update(workerId, updates);
+                    this.closeModal('editWorkerModal');
+                    this.showToast('Worker updated successfully', 'success');
+                    await this.loadData();
+                } catch (error) {
+                    this.showToast(error.message, 'error');
+                }
+            },
+
+            // Assign Worker to Project
+            openAssignWorker(workerId) {
+                const worker = this.workers.find(w => w.id === workerId);
+                if (!worker) return;
+                
+                document.getElementById('assignWorkerId').value = worker.id;
+                document.getElementById('assignWorkerName').value = worker.name;
+                document.getElementById('assignWorkerRole').value = worker.role || 'General';
+                document.getElementById('assignDailyWage').value = worker.dailyWage || '';
+                
+                // Populate projects dropdown
+                const projectSelect = document.getElementById('assignProjectId');
+                projectSelect.innerHTML = '<option value="">Select Project</option>' +
+                    this.projects.map(p => `<option value="${p.id}">${p.name}</option>`).join('');
+                
+                this.openModal('assignWorkerModal');
+            },
+
+            async handleAssignWorkerSubmit(e) {
+                e.preventDefault();
+                try {
+                    const assignment = {
+                        workerId: document.getElementById('assignWorkerId').value,
+                        projectId: document.getElementById('assignProjectId').value,
+                        role: document.getElementById('assignWorkerRole').value,
+                        dailyWage: parseFloat(document.getElementById('assignDailyWage').value) || null
+                    };
+
+                    if (!assignment.projectId) {
+                        throw new Error('Please select a project');
+                    }
+
+                    // Check if already assigned
+                    const existing = await Storage.workerAssignments.getByProject(assignment.projectId);
+                    const alreadyAssigned = existing.find(a => a.workerId === assignment.workerId);
+                    
+                    if (alreadyAssigned) {
+                        throw new Error('Worker is already assigned to this project');
+                    }
+
+                    await Storage.workerAssignments.add(assignment);
+                    this.closeModal('assignWorkerModal');
+                    this.showToast('Worker assigned to project successfully', 'success');
+                } catch (error) {
+                    this.showToast(error.message, 'error');
+                }
+            },
+
+            // Quick Pay Worker
+            async openQuickPay(workerId) {
+                const worker = this.workers.find(w => w.id === workerId);
+                if (!worker) return;
+                
+                document.getElementById('quickPayWorkerId').value = worker.id;
+                document.getElementById('quickPayWorkerName').value = worker.name;
+                
+                // Get worker's projects (auto-detect)
+                const workerData = await LabourCalendar.getWorkerProjects(workerId);
+                
+                // Get total due across all projects
+                document.getElementById('quickPayTotalDue').value = `₹${this.formatNumber(workerData.totalDue)}`;
+                
+                // Populate projects dropdown with ONLY projects the worker has worked on
+                const projectSelect = document.getElementById('quickPayProjectId');
+                
+                // Show worker's projects with dues info
+                const projectsInfoDiv = document.getElementById('quickPayProjectsInfo');
+                
+                if (workerData.projects.length > 0) {
+                    // Show only projects worker has worked on, sorted by due amount
+                    const projectsWithDues = workerData.projects.filter(p => p.totalDue > 0);
+                    const projectsFullyPaid = workerData.projects.filter(p => p.totalDue <= 0);
+                    
+                    let optionsHtml = '<option value="">Select Project</option>';
+                    
+                    if (projectsWithDues.length > 0) {
+                        optionsHtml += '<optgroup label="Projects with Dues">';
+                        projectsWithDues.forEach(p => {
+                            optionsHtml += `<option value="${p.projectId}" data-due="${p.totalDue}">${p.projectName} (₹${this.formatNumber(p.totalDue)} due)</option>`;
+                        });
+                        optionsHtml += '</optgroup>';
+                    }
+                    
+                    if (projectsFullyPaid.length > 0) {
+                        optionsHtml += '<optgroup label="Fully Paid Projects">';
+                        projectsFullyPaid.forEach(p => {
+                            optionsHtml += `<option value="${p.projectId}" data-due="0">${p.projectName} (Paid)</option>`;
+                        });
+                        optionsHtml += '</optgroup>';
+                    }
+                    
+                    projectSelect.innerHTML = optionsHtml;
+                    
+                    // Show projects info
+                    if (projectsInfoDiv) {
+                        projectsInfoDiv.innerHTML = `
+                            <div style="background: var(--info-light); padding: 0.75rem; border-radius: var(--radius-md); margin-bottom: 1rem;">
+                                <p style="font-size: 0.75rem; color: var(--info); font-weight: 600; margin-bottom: 0.5rem;">
+                                    <i class="fas fa-info-circle"></i> ${worker.name} has worked on ${workerData.totalProjects} project(s)
+                                </p>
+                                <div style="display: flex; flex-wrap: wrap; gap: 0.375rem;">
+                                    ${workerData.projects.map(p => `
+                                        <span style="background: ${p.totalDue > 0 ? 'var(--error-light)' : 'var(--success-light)'}; 
+                                                     color: ${p.totalDue > 0 ? 'var(--error)' : 'var(--success)'}; 
+                                                     padding: 0.25rem 0.5rem; border-radius: 4px; font-size: 0.6875rem; font-weight: 600;">
+                                            ${p.projectName}: ₹${this.formatNumber(p.totalDue)}
+                                        </span>
+                                    `).join('')}
+                                </div>
+                            </div>
+                        `;
+                        projectsInfoDiv.style.display = 'block';
+                    }
+                    
+                    // Auto-select first project with dues
+                    if (projectsWithDues.length > 0) {
+                        projectSelect.value = projectsWithDues[0].projectId;
+                        document.getElementById('quickPayAmount').value = projectsWithDues[0].totalDue;
+                    }
+                } else {
+                    // Worker hasn't worked on any project yet - show all projects
+                    projectSelect.innerHTML = '<option value="">Select Project</option>' +
+                        this.projects.map(p => `<option value="${p.id}">${p.name}</option>`).join('');
+                    
+                    if (projectsInfoDiv) {
+                        projectsInfoDiv.innerHTML = `
+                            <div style="background: var(--warning-light); padding: 0.75rem; border-radius: var(--radius-md); margin-bottom: 1rem;">
+                                <p style="font-size: 0.75rem; color: var(--warning); font-weight: 600;">
+                                    <i class="fas fa-exclamation-triangle"></i> ${worker.name} hasn't worked on any project yet. 
+                                    Add work entries first or select a project to record advance payment.
+                                </p>
+                            </div>
+                        `;
+                        projectsInfoDiv.style.display = 'block';
+                    }
+                }
+                
+                this.openModal('quickPayModal');
+            },
+
+            async handleQuickPaySubmit(e) {
+                e.preventDefault();
+                try {
+                    const payment = {
+                        labourId: document.getElementById('quickPayWorkerId').value,
+                        projectId: document.getElementById('quickPayProjectId').value,
+                        amount: parseFloat(document.getElementById('quickPayAmount').value),
+                        paymentDate: new Date().toISOString().split('T')[0],
+                        paymentMethod: document.getElementById('quickPayMethod').value
+                    };
+
+                    if (!payment.projectId) {
+                        throw new Error('Please select a project');
+                    }
+
+                    if (!payment.amount || payment.amount <= 0) {
+                        throw new Error('Please enter a valid amount');
+                    }
+
+                    await LabourCalendar.processPaymentWithFundUpdate(payment);
+                    this.closeModal('quickPayModal');
+                    this.showToast('Payment recorded successfully', 'success');
+                    
+                    // Refresh data
+                    await this.renderLabourersPanel();
+                    await this.renderCalendar();
+                    if (this.selectedDate) {
+                        await this.selectDate(this.selectedDate);
+                    }
+                } catch (error) {
+                    this.showToast(error.message, 'error');
+                }
+            },
+
+            // Delete Worker
+            openDeleteWorker(workerId) {
+                const worker = this.workers.find(w => w.id === workerId);
+                if (!worker) return;
+                
+                document.getElementById('deleteWorkerId').value = worker.id;
+                document.getElementById('deleteWorkerName').textContent = worker.name;
+                
+                this.openModal('deleteWorkerModal');
+            },
+
+            async confirmDeleteWorker() {
+                try {
+                    const workerId = document.getElementById('deleteWorkerId').value;
+                    await Storage.workers.delete(workerId);
+                    this.closeModal('deleteWorkerModal');
+                    this.showToast('Worker deleted successfully', 'success');
+                    await this.loadData();
+                } catch (error) {
+                    this.showToast(error.message, 'error');
+                }
+            },
+
+            // ==================== ATTENDANCE FUNCTIONS ====================
+            
+            async openAttendanceModal() {
+                // Set default date to selected date or today
+                const date = this.selectedDate || new Date().toISOString().split('T')[0];
+                document.getElementById('attendanceDate').value = date;
+                
+                // Populate projects dropdown
+                const projectSelect = document.getElementById('attendanceProjectId');
+                projectSelect.innerHTML = '<option value="">Select Project</option>' +
+                    this.projects.map(p => `<option value="${p.id}">${p.name}</option>`).join('');
+                
+                // Render workers list
+                await this.renderAttendanceWorkersList();
+                
+                this.openModal('attendanceModal');
+            },
+            
+            async renderAttendanceWorkersList() {
+                const container = document.getElementById('attendanceWorkersList');
+                const date = document.getElementById('attendanceDate').value;
+                const projectId = document.getElementById('attendanceProjectId').value;
+                
+                if (this.workers.length === 0) {
+                    container.innerHTML = `
+                        <div style="text-align: center; padding: 2rem; color: var(--gray);">
+                            <i class="fas fa-users" style="font-size: 2rem; opacity: 0.3; margin-bottom: 0.5rem;"></i>
+                            <p>No workers registered. Add workers first.</p>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                // Get existing attendance for this date
+                const existingEntries = date ? await LabourCalendar.getWorkEntriesByDate(date) : [];
+                
+                container.innerHTML = this.workers.map(worker => {
+                    // Check if worker already has attendance for this date and project
+                    const existingEntry = existingEntries.find(e => 
+                        e.labourId === worker.id && 
+                        (!projectId || e.projectId === projectId)
+                    );
+                    
+                    const currentStatus = existingEntry ? 
+                        (existingEntry.hoursWorked >= 7 ? 'present' : 'half-day') : 
+                        'none';
+                    
+                    return `
+                        <div class="attendance-worker-row" data-worker-id="${worker.id}" style="display: flex; align-items: center; justify-content: space-between; padding: 0.75rem; border-bottom: 1px solid var(--border);">
+                            <div style="display: flex; align-items: center; gap: 0.75rem;">
+                                <div style="width: 36px; height: 36px; border-radius: 50%; background: var(--primary); color: white; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.875rem;">
+                                    ${worker.name.charAt(0).toUpperCase()}
+                                </div>
+                                <div>
+                                    <div style="font-weight: 600; color: var(--dark); font-size: 0.875rem;">${worker.name}</div>
+                                    <div style="font-size: 0.6875rem; color: var(--gray);">${worker.role || 'General'} • ₹${worker.dailyWage || 500}/day</div>
+                                </div>
+                            </div>
+                            <div class="attendance-buttons" style="display: flex; gap: 0.375rem;">
+                                <button type="button" class="attendance-btn ${currentStatus === 'present' ? 'active' : ''}" 
+                                        data-status="present" 
+                                        onclick="CalendarApp.setWorkerAttendance('${worker.id}', 'present', this)"
+                                        style="padding: 0.375rem 0.75rem; border-radius: var(--radius-md); font-size: 0.6875rem; font-weight: 600; cursor: pointer; border: 1px solid var(--success); background: ${currentStatus === 'present' ? 'var(--success)' : 'var(--white)'}; color: ${currentStatus === 'present' ? 'white' : 'var(--success)'};">
+                                    <i class="fas fa-check"></i> Present
+                                </button>
+                                <button type="button" class="attendance-btn ${currentStatus === 'half-day' ? 'active' : ''}" 
+                                        data-status="half-day" 
+                                        onclick="CalendarApp.setWorkerAttendance('${worker.id}', 'half-day', this)"
+                                        style="padding: 0.375rem 0.75rem; border-radius: var(--radius-md); font-size: 0.6875rem; font-weight: 600; cursor: pointer; border: 1px solid var(--warning); background: ${currentStatus === 'half-day' ? 'var(--warning)' : 'var(--white)'}; color: ${currentStatus === 'half-day' ? 'white' : 'var(--warning)'};">
+                                    <i class="fas fa-adjust"></i> Half
+                                </button>
+                                <button type="button" class="attendance-btn ${currentStatus === 'none' ? 'active' : ''}" 
+                                        data-status="absent" 
+                                        onclick="CalendarApp.setWorkerAttendance('${worker.id}', 'absent', this)"
+                                        style="padding: 0.375rem 0.75rem; border-radius: var(--radius-md); font-size: 0.6875rem; font-weight: 600; cursor: pointer; border: 1px solid var(--gray); background: ${currentStatus === 'none' ? 'var(--gray)' : 'var(--white)'}; color: ${currentStatus === 'none' ? 'white' : 'var(--gray)'};">
+                                    <i class="fas fa-times"></i> Absent
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            },
+            
+            setWorkerAttendance(workerId, status, buttonEl) {
+                // Update button styles in the row
+                const row = buttonEl.closest('.attendance-worker-row');
+                const buttons = row.querySelectorAll('.attendance-btn');
+                
+                buttons.forEach(btn => {
+                    const btnStatus = btn.dataset.status;
+                    const isActive = btnStatus === status;
+                    
+                    if (btnStatus === 'present') {
+                        btn.style.background = isActive ? 'var(--success)' : 'var(--white)';
+                        btn.style.color = isActive ? 'white' : 'var(--success)';
+                    } else if (btnStatus === 'half-day') {
+                        btn.style.background = isActive ? 'var(--warning)' : 'var(--white)';
+                        btn.style.color = isActive ? 'white' : 'var(--warning)';
+                    } else {
+                        btn.style.background = isActive ? 'var(--gray)' : 'var(--white)';
+                        btn.style.color = isActive ? 'white' : 'var(--gray)';
+                    }
+                    
+                    btn.classList.toggle('active', isActive);
+                });
+                
+                // Store the selection
+                row.dataset.attendance = status;
+            },
+            
+            selectAllAttendance(status) {
+                const rows = document.querySelectorAll('.attendance-worker-row');
+                rows.forEach(row => {
+                    const button = row.querySelector(`.attendance-btn[data-status="${status}"]`);
+                    if (button) {
+                        this.setWorkerAttendance(row.dataset.workerId, status, button);
+                    }
+                });
+            },
+            
+            async saveAttendance() {
+                const date = document.getElementById('attendanceDate').value;
+                const projectId = document.getElementById('attendanceProjectId').value;
+                
+                if (!date) {
+                    this.showToast('Please select a date', 'error');
+                    return;
+                }
+                
+                if (!projectId) {
+                    this.showToast('Please select a project', 'error');
+                    return;
+                }
+                
+                const project = this.projects.find(p => p.id === projectId);
+                const rows = document.querySelectorAll('.attendance-worker-row');
+                
+                let savedCount = 0;
+                let errors = [];
+                
+                for (const row of rows) {
+                    const workerId = row.dataset.workerId;
+                    const attendance = row.dataset.attendance;
+                    
+                    // Skip if no attendance selected or absent
+                    if (!attendance || attendance === 'absent') continue;
+                    
+                    const worker = this.workers.find(w => w.id === workerId);
+                    if (!worker) continue;
+                    
+                    try {
+                        // Calculate hours and times based on attendance
+                        const hoursWorked = attendance === 'present' ? 8 : 4;
+                        const startTime = '09:00';
+                        const endTime = attendance === 'present' ? '17:00' : '13:00';
+                        
+                        // Get hourly rate
+                        const dailyWage = worker.dailyWage || 500;
+                        const hourlyRate = dailyWage / 8;
+                        
+                        // Create work entry
+                        await LabourCalendar.createWorkEntry({
+                            labourId: workerId,
+                            labourName: worker.name,
+                            projectId: projectId,
+                            projectName: project.name,
+                            workType: worker.role || 'General',
+                            date: date,
+                            startTime: startTime,
+                            endTime: endTime,
+                            hoursWorked: hoursWorked,
+                            hourlyRate: hourlyRate,
+                            notes: `Attendance: ${attendance === 'present' ? 'Full Day' : 'Half Day'}`
+                        });
+                        
+                        savedCount++;
+                    } catch (error) {
+                        console.error(`Error saving attendance for ${worker.name}:`, error);
+                        errors.push(worker.name);
+                    }
+                }
+                
+                if (savedCount > 0) {
+                    this.closeModal('attendanceModal');
+                    this.showToast(`Attendance saved for ${savedCount} worker(s)`, 'success');
+                    
+                    // Refresh calendar and data
+                    await this.renderCalendar();
+                    await this.renderLabourersPanel();
+                    if (this.selectedDate) {
+                        await this.selectDate(this.selectedDate);
+                    }
+                } else if (errors.length > 0) {
+                    this.showToast(`Failed to save attendance for: ${errors.join(', ')}`, 'error');
+                } else {
+                    this.showToast('No workers marked as present or half-day', 'error');
+                }
+            },
+
+            showToast(message, type = 'success') {
+                const toast = document.createElement('div');
+                toast.className = `toast ${type}`;
+                toast.innerHTML = `<i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'}"></i> ${message}`;
+                document.body.appendChild(toast);
+                setTimeout(() => toast.remove(), 3000);
+            }
+        };
+
+        // Make globally accessible
+        window.CalendarApp = CalendarApp;
+
+        // Initialize on load
+        CalendarApp.init();
+    </script>
+</body>
+</html>
