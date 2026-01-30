@@ -1,0 +1,3888 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>B&B - Project Details | Bricks & Bits</title>
+    <script>
+        // Apply saved theme immediately to prevent flash
+        (function () {
+            const theme = localStorage.getItem('bb_theme') || 'light';
+            const accent = localStorage.getItem('bb_accent') || 'green';
+            if (theme === 'dark') document.documentElement.setAttribute('data-theme', 'dark');
+            else if (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                document.documentElement.setAttribute('data-theme', 'dark');
+            }
+            if (accent !== 'green') document.documentElement.setAttribute('data-accent', accent);
+        })();
+    </script>
+    <link rel="icon" type="image/png" href="B&B.png">
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <link href="css/styles-professional.css" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+
+        .app-wrapper {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* Sidebar, nav, logo, and main-content styles are defined in styles-professional.css */
+
+        .project-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .project-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--dark);
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        /* Project Switcher Styles */
+        .project-switcher {
+            position: relative;
+        }
+
+        .project-switcher-btn {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 0.75rem;
+            background: var(--bg-light);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md, 6px);
+            cursor: pointer;
+            font-size: 0.8125rem;
+            font-weight: 600;
+            color: var(--gray);
+            transition: all 0.2s;
+        }
+
+        .project-switcher-btn:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+            background: var(--primary-muted);
+        }
+
+        .project-switcher-btn i {
+            font-size: 0.75rem;
+            transition: transform 0.2s;
+        }
+
+        .project-switcher.open .project-switcher-btn i {
+            transform: rotate(180deg);
+        }
+
+        .project-switcher-dropdown {
+            position: absolute;
+            top: calc(100% + 0.5rem);
+            left: 0;
+            min-width: 280px;
+            max-height: 320px;
+            background: var(--white);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg, 8px);
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+            z-index: 200;
+            overflow: hidden;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(-10px);
+            transition: all 0.2s ease;
+        }
+
+        .project-switcher.open .project-switcher-dropdown {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+
+        .project-switcher-header {
+            padding: 0.75rem 1rem;
+            background: var(--bg-light);
+            border-bottom: 1px solid var(--border);
+            font-size: 0.6875rem;
+            font-weight: 700;
+            color: var(--gray);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .project-switcher-list {
+            max-height: 260px;
+            overflow-y: auto;
+        }
+
+        .project-switcher-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem 1rem;
+            cursor: pointer;
+            transition: all 0.15s;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .project-switcher-item:last-child {
+            border-bottom: none;
+        }
+
+        .project-switcher-item:hover {
+            background: var(--primary-muted);
+        }
+
+        .project-switcher-item.active {
+            background: var(--primary-muted);
+            border-left: 3px solid var(--primary);
+        }
+
+        .project-switcher-item .project-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: var(--radius-md, 6px);
+            background: var(--primary);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+
+        .project-switcher-item .project-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .project-switcher-item .project-name {
+            font-size: 0.8125rem;
+            font-weight: 600;
+            color: var(--dark);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .project-switcher-item .project-meta {
+            font-size: 0.6875rem;
+            color: var(--gray);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .project-switcher-item .status-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+        }
+
+        .project-switcher-item .status-dot.active {
+            background: var(--success);
+        }
+
+        .project-switcher-item .status-dot.completed {
+            background: var(--info);
+        }
+
+        .project-switcher-item .status-dot.planning {
+            background: var(--gray-light);
+        }
+
+        .project-status {
+            padding: 0.5rem 1rem;
+            border-radius: var(--radius-md);
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        .project-status.active {
+            background: var(--success-light);
+            color: var(--success);
+        }
+
+        .project-status.completed {
+            background: var(--info-light);
+            color: var(--info);
+        }
+
+        .project-status.delayed {
+            background: var(--warning-light);
+            color: var(--warning);
+        }
+
+        .project-status.planning {
+            background: var(--bg-light);
+            color: var(--gray);
+        }
+
+        .overview-grid {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .overview-card,
+        .metric-card {
+            background: var(--white);
+            border-radius: var(--radius-lg, 8px);
+            padding: 1rem;
+            text-align: center;
+            border: 1px solid var(--border);
+            transition: all 0.2s ease;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        }
+
+        .overview-card:hover,
+        .metric-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            border-color: var(--primary-light);
+        }
+
+        .overview-label {
+            font-size: 0.6875rem;
+            font-weight: 700;
+            color: var(--gray);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 0.25rem;
+        }
+
+        .overview-value {
+            font-size: 1.25rem;
+            font-weight: 800;
+            color: var(--dark);
+        }
+
+        /* Progress Bar */
+        .progress-bar {
+            height: 6px;
+            background: var(--border);
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: var(--primary);
+            border-radius: 3px;
+            transition: width 0.3s ease;
+        }
+
+        /* Health Meter */
+        .health-meter {
+            height: 6px;
+            background: linear-gradient(to right, var(--success), var(--warning), var(--error));
+            border-radius: 3px;
+            position: relative;
+        }
+
+        .health-indicator {
+            position: absolute;
+            top: -3px;
+            width: 12px;
+            height: 12px;
+            background: white;
+            border: 2px solid var(--dark);
+            border-radius: 50%;
+            transform: translateX(-50%);
+        }
+
+        .health-green {
+            border-color: var(--success);
+        }
+
+        .health-amber {
+            border-color: var(--warning);
+        }
+
+        .health-red {
+            border-color: var(--error);
+        }
+
+        .tabs-nav {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+            background: var(--white);
+            padding: 0.75rem;
+            border-radius: var(--radius-lg, 8px);
+            border: 1px solid var(--border);
+            overflow-x: auto;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        }
+
+        .tab-btn {
+            padding: 0.625rem 1rem;
+            background: transparent;
+            border: 1px solid transparent;
+            border-radius: var(--radius-md, 6px);
+            font-weight: 600;
+            color: var(--gray);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.8125rem;
+            white-space: nowrap;
+        }
+
+        .tab-btn:hover {
+            background: var(--primary-muted);
+            color: var(--primary);
+        }
+
+        .tab-btn.active {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+            box-shadow: 0 2px 4px rgba(74, 124, 89, 0.2);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .section-card {
+            background: var(--white);
+            border-radius: var(--radius-xl, 12px);
+            padding: 1.5rem;
+            border: 1px solid var(--border);
+            margin-bottom: 1.5rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .section-title {
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--dark);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .section-title i {
+            color: var(--primary);
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .data-table th {
+            padding: 0.75rem 1rem;
+            text-align: left;
+            font-weight: 700;
+            color: var(--gray);
+            font-size: 0.6875rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            background: var(--bg-light);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .data-table td {
+            padding: 0.875rem 1rem;
+            font-size: 0.8125rem;
+            color: var(--dark);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .data-table tr:hover td {
+            background: var(--bg-card);
+        }
+
+        .cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 1rem;
+        }
+
+        .btn-add {
+            padding: 0.625rem 1rem;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: var(--radius-md);
+            font-weight: 600;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.8125rem;
+            transition: all 0.2s;
+        }
+
+        .btn-add:hover {
+            background: var(--primary-dark);
+        }
+
+        .btn-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: var(--radius-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-whatsapp {
+            background: #25D366;
+            color: white;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 250px;
+        }
+
+        .overflow-x-auto {
+            overflow-x: auto;
+        }
+
+        /* Modal Styles - Using .active class pattern for visibility */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.6);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            padding: var(--space-md, 1rem);
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+            backdrop-filter: blur(2px);
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .modal-overlay.hidden {
+            display: none !important;
+        }
+
+        .modal-content {
+            background: var(--white);
+            border-radius: var(--radius-xl, 12px);
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25);
+            transform: scale(0.95);
+            transition: transform 0.3s ease;
+        }
+
+        .modal-overlay.active .modal-content {
+            transform: scale(1);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1.25rem 1.5rem;
+            border-bottom: 1px solid var(--border);
+            background: var(--bg-card, #FAFAFA);
+        }
+
+        .modal-header h3 {
+            font-size: 1.125rem;
+            font-weight: 700;
+            color: var(--dark);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .close-btn {
+            width: 32px;
+            height: 32px;
+            border-radius: var(--radius-md, 6px);
+            border: 1px solid var(--border);
+            background: var(--white);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--gray);
+            transition: all 0.2s ease;
+        }
+
+        .close-btn:hover {
+            border-color: var(--error);
+            color: var(--error);
+            background: var(--error-light);
+        }
+
+        .modal-form {
+            padding: 1.5rem;
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 0.8125rem;
+            font-weight: 600;
+            color: var(--gray-dark, #4A4A4A);
+            margin-bottom: 0.375rem;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 0.75rem 0.875rem;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md, 6px);
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: var(--dark);
+            background: var(--white);
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px var(--primary-muted);
+        }
+
+        .form-group input::placeholder,
+        .form-group textarea::placeholder {
+            color: var(--gray-light, #9E9E9E);
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+
+        .form-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 0.75rem;
+            padding-top: 1rem;
+            border-top: 1px solid var(--border);
+            margin-top: 1rem;
+        }
+
+        /* Action Buttons - Professional Theme Aligned */
+        .btn {
+            padding: 0.625rem 1.25rem;
+            border-radius: var(--radius-md, 6px);
+            font-weight: 600;
+            font-size: 0.875rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+            box-shadow: 0 2px 4px rgba(74, 124, 89, 0.2);
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-dark);
+            box-shadow: 0 4px 8px rgba(74, 124, 89, 0.3);
+        }
+
+        /* Attendance Button Styles */
+        .attendance-btn {
+            padding: 0.5rem 0.75rem;
+            border-radius: 6px;
+            border: 1px solid var(--border);
+            font-size: 0.75rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .attendance-btn:hover {
+            transform: translateY(-1px);
+        }
+
+        .btn-secondary {
+            background: var(--white);
+            color: var(--gray-dark, #4A4A4A);
+            border: 1px solid var(--border);
+        }
+
+        .btn-secondary:hover {
+            background: var(--bg-light);
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+
+        .btn-danger {
+            background: var(--error);
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #B71C1C;
+        }
+
+        .btn-add {
+            padding: 0.625rem 1rem;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: var(--radius-md, 6px);
+            font-weight: 600;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.8125rem;
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 4px rgba(74, 124, 89, 0.2);
+        }
+
+        .btn-add:hover {
+            background: var(--primary-dark);
+            box-shadow: 0 4px 8px rgba(74, 124, 89, 0.3);
+            transform: translateY(-1px);
+        }
+
+        .btn-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: var(--radius-md, 6px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .btn-icon:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+        }
+
+        .btn-whatsapp {
+            background: #25D366;
+            color: white;
+        }
+
+        .btn-whatsapp:hover {
+            background: #1DA851;
+        }
+
+        /* Action Buttons in Tables/Cards */
+        .action-btn {
+            width: 28px;
+            height: 28px;
+            border-radius: var(--radius-md, 6px);
+            border: 1px solid var(--border);
+            background: var(--white);
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--gray);
+            transition: all 0.2s ease;
+        }
+
+        .action-btn:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+            background: var(--primary-muted);
+        }
+
+        .action-btn.delete:hover {
+            border-color: var(--error);
+            color: var(--error);
+            background: var(--error-light);
+        }
+
+        .action-btn.edit:hover {
+            border-color: var(--info);
+            color: var(--info);
+            background: var(--info-light);
+        }
+
+        /* Empty State - Theme Consistent */
+        .empty-state {
+            text-align: center;
+            padding: 3rem 1rem;
+            color: var(--gray);
+        }
+
+        .empty-state i {
+            font-size: 3rem;
+            opacity: 0.2;
+            margin-bottom: 1rem;
+            display: block;
+            color: var(--gray-light, #9E9E9E);
+        }
+
+        .empty-state p {
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: var(--gray);
+        }
+
+        .empty-state .text-sm {
+            font-size: 0.75rem;
+            margin-top: 0.25rem;
+            color: var(--gray-light, #9E9E9E);
+        }
+
+        /* Toast Notifications - Theme Aligned */
+        .toast {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            padding: 1rem 1.5rem;
+            border-radius: var(--radius-lg, 8px);
+            color: white;
+            font-weight: 600;
+            font-size: 0.875rem;
+            z-index: 10000;
+            animation: slideIn 0.3s ease;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .toast.success {
+            background: var(--success);
+        }
+
+        .toast.error {
+            background: var(--error);
+        }
+
+        .toast.info {
+            background: var(--info);
+        }
+
+        .toast.warning {
+            background: var(--warning);
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        /* Status Badges - Theme Defined Colors */
+        .material-status {
+            padding: 0.25rem 0.625rem;
+            border-radius: var(--radius-sm, 4px);
+            font-size: 0.6875rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+
+        .material-used {
+            background: var(--info-light);
+            color: var(--info);
+        }
+
+        .material-recovered {
+            background: var(--success-light);
+            color: var(--success);
+        }
+
+        /* Financial Cards - Consistent Shadows and Borders */
+        .item-card {
+            background: var(--white);
+            border-radius: var(--radius-lg, 8px);
+            padding: 1rem;
+            border: 1px solid var(--border);
+            transition: all 0.2s ease;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        }
+
+        .item-card:hover {
+            border-color: var(--primary);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        }
+
+        /* Metric Cards - Financial Summary */
+        .metric-card {
+            background: var(--white);
+            border-radius: var(--radius-lg, 8px);
+            padding: 1.25rem;
+            border: 1px solid var(--border);
+            text-align: center;
+            transition: all 0.2s ease;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        }
+
+        .metric-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        }
+
+        .metric-card .text-gray {
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            margin-bottom: 0.5rem;
+        }
+
+        .metric-card .font-bold {
+            font-size: 1.5rem;
+        }
+
+        /* Total Row - Financial Summaries */
+        .total-row {
+            margin-top: 1rem;
+            padding: 1rem;
+            border-radius: var(--radius-lg, 8px);
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+            background: var(--bg-light);
+            border: 1px solid var(--border);
+        }
+
+        .total-row>div {
+            text-align: center;
+        }
+
+        /* Status Badge Variants */
+        .status-badge {
+            padding: 0.5rem 1rem;
+            border-radius: var(--radius-md, 6px);
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+
+        .status-badge.active,
+        .status-badge.status-in-progress {
+            background: var(--success-light);
+            color: var(--success);
+        }
+
+        .status-badge.completed,
+        .status-badge.status-completed {
+            background: var(--info-light);
+            color: var(--info);
+        }
+
+        .status-badge.delayed,
+        .status-badge.status-on-hold {
+            background: var(--warning-light);
+            color: var(--warning);
+        }
+
+        .status-badge.planning,
+        .status-badge.status-planning {
+            background: var(--bg-light);
+            color: var(--gray);
+        }
+
+        /* Budget Health Indicators */
+        .budget-ok {
+            color: var(--success);
+        }
+
+        .budget-warning {
+            color: var(--warning);
+        }
+
+        .budget-critical {
+            color: var(--error);
+        }
+
+        .budget-over {
+            color: var(--error);
+            font-weight: 700;
+        }
+
+        /* Fund Status Cards */
+        .fund-card {
+            background: var(--white);
+            border-radius: var(--radius-lg, 8px);
+            padding: 1rem;
+            border: 1px solid var(--border);
+            transition: all 0.2s ease;
+        }
+
+        .fund-card:hover {
+            border-color: var(--primary-light);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+        }
+
+        .fund-card-header {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 0.75rem;
+            font-weight: 600;
+            color: var(--dark);
+        }
+
+        .fund-card-value {
+            font-size: 1.25rem;
+            font-weight: 700;
+        }
+
+        .fund-positive {
+            color: var(--success);
+        }
+
+        .fund-negative {
+            color: var(--error);
+        }
+
+        .fund-neutral {
+            color: var(--info);
+        }
+
+        /* Log Cards - Theme Consistent */
+        .log-card {
+            background: var(--white);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg, 8px);
+            padding: 1.25rem;
+            margin-bottom: 1rem;
+            transition: all 0.2s ease;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        }
+
+        .log-card:hover {
+            border-color: var(--primary-light);
+        }
+
+        .log-card.has-issues {
+            border-left: 4px solid var(--error);
+        }
+
+        .log-date-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: var(--bg-light);
+            padding: 0.375rem 0.75rem;
+            border-radius: var(--radius-md, 6px);
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--gray);
+        }
+
+        /* Document Cards - Theme Consistent */
+        .doc-card {
+            background: var(--white);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg, 8px);
+            overflow: hidden;
+            transition: all 0.2s ease;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        }
+
+        .doc-card:hover {
+            border-color: var(--primary);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        }
+
+        .doc-preview {
+            height: 120px;
+            background: var(--bg-light);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        .doc-preview img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        /* Floor Plan Cards - Theme Consistent */
+        .floor-plan-card {
+            background: var(--white);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg, 8px);
+            overflow: hidden;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        }
+
+        .floor-plan-card:hover {
+            border-color: var(--primary);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .floor-plan-thumbnail {
+            height: 150px;
+            background: var(--bg-light);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        .floor-plan-thumbnail img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .floor-plan-info {
+            padding: 1rem;
+        }
+
+        .floor-plan-name {
+            font-weight: 600;
+            color: var(--dark);
+            margin-bottom: 0.25rem;
+        }
+
+        .pdf-icon {
+            font-size: 3rem;
+            color: var(--error);
+        }
+
+        /* Loading Overlay */
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: white;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+        }
+
+        .loading-overlay.hidden {
+            display: none;
+        }
+
+        .loading-spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid var(--border);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .loading-text {
+            margin-top: 1rem;
+            color: var(--gray);
+            font-weight: 500;
+        }
+
+        /* Flex utilities */
+        .flex {
+            display: flex;
+        }
+
+        .items-center {
+            align-items: center;
+        }
+
+        .items-start {
+            align-items: flex-start;
+        }
+
+        .justify-between {
+            justify-content: space-between;
+        }
+
+        .justify-center {
+            justify-content: center;
+        }
+
+        .gap-1 {
+            gap: 0.25rem;
+        }
+
+        .gap-2 {
+            gap: 0.5rem;
+        }
+
+        .gap-4 {
+            gap: 1rem;
+        }
+
+        .flex-wrap {
+            flex-wrap: wrap;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .space-y-4>*+* {
+            margin-top: 1rem;
+        }
+
+        .space-y-3>*+* {
+            margin-top: 0.75rem;
+        }
+
+        .mb-4 {
+            margin-bottom: 1rem;
+        }
+
+        .mb-6 {
+            margin-bottom: 1.5rem;
+        }
+
+        .mt-1 {
+            margin-top: 0.25rem;
+        }
+
+        .mt-2 {
+            margin-top: 0.5rem;
+        }
+
+        .mr-1 {
+            margin-right: 0.25rem;
+        }
+
+        .p-3 {
+            padding: 0.75rem;
+        }
+
+        .p-4 {
+            padding: 1rem;
+        }
+
+        .pl-6 {
+            padding-left: 1.5rem;
+        }
+
+        .pl-7 {
+            padding-left: 1.75rem;
+        }
+
+        .px-2 {
+            padding-left: 0.5rem;
+            padding-right: 0.5rem;
+        }
+
+        .py-1 {
+            padding-top: 0.25rem;
+            padding-bottom: 0.25rem;
+        }
+
+        .rounded {
+            border-radius: 0.25rem;
+        }
+
+        .rounded-lg {
+            border-radius: 0.5rem;
+        }
+
+        .rounded-r-lg {
+            border-radius: 0 0.5rem 0.5rem 0;
+        }
+
+        .text-center {
+            text-align: center;
+        }
+
+        .text-xs {
+            font-size: 0.75rem;
+        }
+
+        .text-sm {
+            font-size: 0.875rem;
+        }
+
+        .text-xl {
+            font-size: 1.25rem;
+        }
+
+        .text-2xl {
+            font-size: 1.5rem;
+        }
+
+        .font-medium {
+            font-weight: 500;
+        }
+
+        .font-semibold {
+            font-weight: 600;
+        }
+
+        .font-bold {
+            font-weight: 700;
+        }
+
+        .text-white {
+            color: white;
+        }
+
+        .text-gray {
+            color: var(--gray);
+        }
+
+        .text-slate-500 {
+            color: #64748b;
+        }
+
+        .text-slate-600 {
+            color: #475569;
+        }
+
+        .text-slate-700 {
+            color: #334155;
+        }
+
+        .text-slate-800 {
+            color: #1e293b;
+        }
+
+        .text-emerald-600 {
+            color: #059669;
+        }
+
+        .text-rose-600 {
+            color: #e11d48;
+        }
+
+        .text-rose-700 {
+            color: #be123c;
+        }
+
+        .text-rose-800 {
+            color: #9f1239;
+        }
+
+        .text-amber-500 {
+            color: #f59e0b;
+        }
+
+        .text-amber-700 {
+            color: #b45309;
+        }
+
+        .text-amber-800 {
+            color: #92400e;
+        }
+
+        .text-sky-500 {
+            color: #0ea5e9;
+        }
+
+        .text-sky-600 {
+            color: #0284c7;
+        }
+
+        .text-green-600 {
+            color: var(--success);
+        }
+
+        .text-red-500 {
+            color: var(--error);
+        }
+
+        .bg-slate-100 {
+            background: #f1f5f9;
+        }
+
+        .bg-rose-50 {
+            background: #fff1f2;
+        }
+
+        .bg-amber-50 {
+            background: #fffbeb;
+        }
+
+        .border-l-4 {
+            border-left-width: 4px;
+        }
+
+        .border-rose-500 {
+            border-color: #f43f5e;
+        }
+
+        .border-amber-400 {
+            border-color: #fbbf24;
+        }
+
+        .leading-relaxed {
+            line-height: 1.625;
+        }
+
+        .truncate {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .cursor-pointer {
+            cursor: pointer;
+        }
+
+        .inline-block {
+            display: inline-block;
+        }
+
+        @media (max-width: 1400px) {
+            .overview-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                display: none;
+            }
+
+            .main-content {
+                margin-left: 0;
+                padding: 1rem;
+            }
+
+            .overview-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        /* Timeline / Phase Management Styles */
+        .timeline-container {
+            position: relative;
+        }
+
+        .phases-timeline {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .phase-card {
+            background: var(--white);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg, 8px);
+            padding: 1rem 1.25rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            position: relative;
+        }
+
+        .phase-card:hover {
+            border-color: var(--primary);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        }
+
+        .phase-card.active {
+            border-color: var(--primary);
+            border-left: 4px solid var(--primary);
+            background: var(--primary-muted);
+        }
+
+        .phase-card.completed {
+            border-left: 4px solid var(--success);
+            opacity: 0.85;
+        }
+
+        .phase-card.on-hold {
+            border-left: 4px solid var(--warning);
+        }
+
+        .phase-card.dragging {
+            opacity: 0.5;
+            transform: scale(0.98);
+        }
+
+        .phase-card.drag-over {
+            border-top: 3px solid var(--primary);
+        }
+
+        .phase-drag-handle {
+            cursor: grab;
+            color: var(--gray-light);
+            padding: 0.25rem;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+
+        .phase-card:hover .phase-drag-handle {
+            opacity: 1;
+        }
+
+        .phase-drag-handle:active {
+            cursor: grabbing;
+        }
+
+        .phase-order {
+            width: 32px;
+            height: 32px;
+            background: var(--bg-light);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 0.875rem;
+            color: var(--gray);
+            flex-shrink: 0;
+        }
+
+        .phase-card.active .phase-order {
+            background: var(--primary);
+            color: white;
+        }
+
+        .phase-card.completed .phase-order {
+            background: var(--success);
+            color: white;
+        }
+
+        .phase-card-content {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .phase-card-header {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 0.25rem;
+        }
+
+        .phase-card-name {
+            font-weight: 600;
+            color: var(--dark);
+            font-size: 0.9375rem;
+        }
+
+        .phase-card-meta {
+            font-size: 0.75rem;
+            color: var(--gray);
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .phase-card-progress {
+            width: 120px;
+            flex-shrink: 0;
+        }
+
+        .phase-card-progress .progress-bar {
+            height: 6px;
+            margin-bottom: 0.25rem;
+        }
+
+        .phase-card-progress-text {
+            font-size: 0.6875rem;
+            color: var(--gray);
+            text-align: right;
+        }
+
+        .phase-card-actions {
+            display: flex;
+            gap: 0.5rem;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+
+        .phase-card:hover .phase-card-actions {
+            opacity: 1;
+        }
+
+        .phase-status-badge {
+            padding: 0.25rem 0.5rem;
+            border-radius: var(--radius-sm, 4px);
+            font-size: 0.6875rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+
+        .phase-status-badge.not_started {
+            background: var(--bg-light);
+            color: var(--gray);
+        }
+
+        .phase-status-badge.in_progress {
+            background: var(--success-light);
+            color: var(--success);
+        }
+
+        .phase-status-badge.completed {
+            background: var(--info-light);
+            color: var(--info);
+        }
+
+        .phase-status-badge.on_hold {
+            background: var(--warning-light);
+            color: var(--warning);
+        }
+
+        /* Phase Details Panel */
+        .phase-info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            padding: 1rem;
+            background: var(--bg-light);
+            border-radius: var(--radius-md, 6px);
+        }
+
+        .phase-info-item {
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+
+        .phase-info-label {
+            font-size: 0.6875rem;
+            font-weight: 600;
+            color: var(--gray);
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+
+        .phase-progress {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .phase-progress-text {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--dark);
+        }
+
+        .phase-section {
+            margin-bottom: 1.5rem;
+        }
+
+        .phase-section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.75rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .phase-section-header h3 {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--dark);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .phase-section-header h3 i {
+            color: var(--primary);
+        }
+
+        /* Checklist Styles */
+        .phase-checklist {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .checklist-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.625rem 0.75rem;
+            background: var(--white);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md, 6px);
+            transition: all 0.15s ease;
+        }
+
+        .checklist-item:hover {
+            border-color: var(--primary-light);
+        }
+
+        .checklist-item.completed {
+            background: var(--success-light);
+            border-color: var(--success);
+        }
+
+        .checklist-item.completed .checklist-item-name {
+            text-decoration: line-through;
+            color: var(--gray);
+        }
+
+        .checklist-checkbox {
+            width: 18px;
+            height: 18px;
+            border: 2px solid var(--border);
+            border-radius: 4px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.15s ease;
+            flex-shrink: 0;
+        }
+
+        .checklist-checkbox:hover {
+            border-color: var(--primary);
+        }
+
+        .checklist-checkbox.checked {
+            background: var(--success);
+            border-color: var(--success);
+            color: white;
+        }
+
+        .checklist-item-content {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .checklist-item-name {
+            font-size: 0.8125rem;
+            font-weight: 500;
+            color: var(--dark);
+        }
+
+        .checklist-item-meta {
+            font-size: 0.6875rem;
+            color: var(--gray);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .checklist-required {
+            color: var(--error);
+            font-weight: 600;
+        }
+
+        .checklist-category {
+            padding: 0.125rem 0.375rem;
+            background: var(--bg-light);
+            border-radius: 3px;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+
+        /* Phase Workers Styles */
+        .phase-workers {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .phase-worker-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.625rem 0.75rem;
+            background: var(--white);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md, 6px);
+        }
+
+        .phase-worker-avatar {
+            width: 32px;
+            height: 32px;
+            background: var(--primary-muted);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 0.75rem;
+            color: var(--primary);
+            flex-shrink: 0;
+        }
+
+        .phase-worker-info {
+            flex: 1;
+        }
+
+        .phase-worker-name {
+            font-size: 0.8125rem;
+            font-weight: 600;
+            color: var(--dark);
+        }
+
+        .phase-worker-meta {
+            font-size: 0.6875rem;
+            color: var(--gray);
+        }
+
+        /* Small empty state */
+        .empty-state.small {
+            padding: 1.5rem;
+        }
+
+        .empty-state.small i {
+            font-size: 1.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .empty-state.small p {
+            font-size: 0.75rem;
+        }
+
+        /* Button variants */
+        .btn-sm {
+            padding: 0.375rem 0.75rem;
+            font-size: 0.75rem;
+        }
+
+        .btn-ghost {
+            background: transparent;
+            color: var(--gray);
+            border: none;
+        }
+
+        .btn-ghost:hover {
+            background: var(--bg-light);
+            color: var(--dark);
+        }
+
+        /* Sidebar Dashboard Dropdown */
+        .nav-item-expandable {
+            position: relative;
+        }
+
+        .nav-item-expandable .nav-item {
+            cursor: pointer;
+        }
+
+        .nav-item-expandable .nav-caret {
+            margin-left: auto;
+            font-size: 0.625rem;
+            transition: transform 0.2s ease;
+            opacity: 0;
+        }
+
+        .sidebar:hover .nav-item-expandable .nav-caret {
+            opacity: 1;
+        }
+
+        .nav-item-expandable.open .nav-caret {
+            transform: rotate(180deg);
+        }
+
+        .nav-dropdown {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+            background: var(--bg-light);
+            border-radius: 0 0 8px 8px;
+            margin-top: -4px;
+        }
+
+        .nav-item-expandable.open .nav-dropdown {
+            max-height: 300px;
+        }
+
+        .nav-dropdown-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 0.75rem 0.5rem 2.5rem;
+            font-size: 0.75rem;
+            color: var(--gray);
+            text-decoration: none;
+            transition: all 0.15s ease;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .nav-dropdown-item:hover {
+            background: var(--primary-muted);
+            color: var(--primary);
+        }
+
+        .nav-dropdown-item.active {
+            color: var(--primary);
+            font-weight: 600;
+        }
+
+        .nav-dropdown-item i {
+            font-size: 0.625rem;
+            width: 12px;
+            text-align: center;
+        }
+
+        .nav-dropdown-divider {
+            height: 1px;
+            background: var(--border);
+            margin: 0.25rem 0.75rem;
+        }
+
+        @media (max-width: 768px) {
+            .mobile-toggle {
+                display: flex !important;
+            }
+
+            .sidebar {
+                display: flex;
+                transform: translateX(-100%);
+                transition: transform 0.3s ease;
+                width: 250px;
+                z-index: 1000;
+            }
+
+            .sidebar.open {
+                transform: translateX(0);
+                width: 250px;
+            }
+
+            .sidebar.open .nav-text,
+            .sidebar.open .logo-text,
+            .sidebar.open .logout-text {
+                opacity: 1;
+                width: auto;
+            }
+
+            .main-content {
+                margin-left: 0 !important;
+                padding: 1rem;
+            }
+
+            .sidebar-overlay {
+                display: none;
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: rgba(0, 0, 0, 0.5);
+                z-index: 999;
+            }
+
+            .sidebar-overlay.active {
+                display: block;
+            }
+
+            .overview-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        .mobile-toggle {
+            display: none;
+            width: 32px;
+            height: 32px;
+            border-radius: 6px;
+            background: white;
+            border: 1px solid var(--border);
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            margin-right: 0.75rem;
+            color: var(--gray);
+        }
+    </style>
+</head>
+
+<body>
+    <link href="css/logo-loader.css" rel="stylesheet">
+    <div id="pageLoader" class="loading-overlay">
+        <svg class="logo-loader" width="120" height="110" viewBox="0 0 200 160" xmlns="http://www.w3.org/2000/svg">
+            <rect class="brick bit b1" x="20" y="100" width="24" height="24" rx="3" />
+            <rect class="brick" x="48" y="100" width="24" height="24" rx="3" />
+            <rect class="brick bit b2" x="76" y="100" width="24" height="24" rx="3" />
+            <rect class="brick" x="104" y="100" width="24" height="24" rx="3" />
+            <rect class="brick bit b3" x="132" y="100" width="24" height="24" rx="3" />
+            <rect class="brick" x="48" y="72" width="24" height="24" rx="3" />
+            <rect class="brick bit b4" x="76" y="72" width="24" height="24" rx="3" />
+            <rect class="brick" x="104" y="72" width="24" height="24" rx="3" />
+            <rect class="brick bit b5" x="76" y="44" width="24" height="24" rx="3" />
+            <rect class="brick" x="104" y="44" width="24" height="24" rx="3" />
+        </svg>
+        <p class="loading-text">Loading project details...</p>
+    </div>
+
+    <div class="app-wrapper">
+        <!-- Sidebar Overlay for Mobile -->
+        <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="logo-section">
+                <a href="hub.html" class="logo-link">
+                    <svg class="logo-img" viewBox="0 0 140 110" xmlns="http://www.w3.org/2000/svg"
+                        style="width:32px;height:32px;">
+                        <rect x="0" y="56" width="17" height="17" rx="2" fill="#2f2f2f" stroke="#000"
+                            stroke-width="1.5" />
+                        <rect x="20" y="56" width="17" height="17" rx="2" fill="#b7c8b8" stroke="#000"
+                            stroke-width="1.5" />
+                        <rect x="40" y="56" width="17" height="17" rx="2" fill="#2f2f2f" stroke="#000"
+                            stroke-width="1.5" />
+                        <rect x="60" y="56" width="17" height="17" rx="2" fill="#b7c8b8" stroke="#000"
+                            stroke-width="1.5" />
+                        <rect x="80" y="56" width="17" height="17" rx="2" fill="#2f2f2f" stroke="#000"
+                            stroke-width="1.5" />
+                        <rect x="20" y="36" width="17" height="17" rx="2" fill="#b7c8b8" stroke="#000"
+                            stroke-width="1.5" />
+                        <rect x="40" y="36" width="17" height="17" rx="2" fill="#2f2f2f" stroke="#000"
+                            stroke-width="1.5" />
+                        <rect x="60" y="36" width="17" height="17" rx="2" fill="#b7c8b8" stroke="#000"
+                            stroke-width="1.5" />
+                        <rect x="40" y="16" width="17" height="17" rx="2" fill="#b7c8b8" stroke="#000"
+                            stroke-width="1.5" />
+                        <rect x="60" y="16" width="17" height="17" rx="2" fill="#b7c8b8" stroke="#000"
+                            stroke-width="1.5" />
+                    </svg>
+                    <span class="logo-text">B&B</span>
+                </a>
+            </div>
+            <nav class="nav-menu">
+                <div class="nav-item-expandable" id="dashboardDropdown">
+                    <div class="nav-item" title="Dashboard" onclick="toggleDashboardDropdown(event)">
+                        <i class="fas fa-th-large nav-icon"></i>
+                        <span class="nav-text">Dashboard</span>
+                        <i class="fas fa-chevron-down nav-caret"></i>
+                    </div>
+                    <div class="nav-dropdown">
+                        <a href="index.html" class="nav-dropdown-item">
+                            <i class="fas fa-tachometer-alt"></i>
+                            <span>Go to Dashboard</span>
+                        </a>
+                        <div class="nav-dropdown-divider"></div>
+                        <div id="sidebarProjectsList">
+                            <div class="nav-dropdown-item" style="color: #95a5a6; font-style: italic;">
+                                <i class="fas fa-spinner fa-spin"></i>
+                                <span>Loading projects...</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <a href="compare.html" class="nav-item" title="Compare"><i class="fas fa-chart-bar nav-icon"></i><span
+                        class="nav-text">Compare</span></a>
+                <a href="payments.html" class="nav-item" title="Payments"><i
+                        class="fas fa-credit-card nav-icon"></i><span class="nav-text">Payments</span></a>
+                <a href="funds.html" class="nav-item" title="Funds"><i class="fas fa-wallet nav-icon"></i><span
+                        class="nav-text">Funds</span></a>
+                <a href="materials.html" class="nav-item" title="Materials"><i class="fas fa-boxes nav-icon"></i><span
+                        class="nav-text">Materials</span></a>
+                <div class="nav-divider"></div>
+                <a href="hub.html" class="nav-item" title="Hub"><i class="fas fa-home nav-icon"></i><span
+                        class="nav-text">Hub</span></a>
+                <div class="nav-divider"></div>
+                <a href="about.html" class="nav-item" title="Help"><i class="fas fa-life-ring nav-icon"></i><span
+                        class="nav-text">Help</span></a>
+                <a href="settings.html" class="nav-item" title="Settings"><i class="fas fa-cog nav-icon"></i><span
+                        class="nav-text">Settings</span></a>
+            </nav>
+            <div class="sidebar-footer">
+                <button id="logoutBtn" class="logout-btn" title="Logout"><i class="fas fa-sign-out-alt"></i><span
+                        class="logout-text">Logout</span></button>
+            </div>
+        </aside>
+
+        <main class="main-content">
+            <div class="project-header">
+                <div class="flex items-center gap-4">
+                    <button class="mobile-toggle" id="mobileSidebarToggle">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                    <a href="index.html" class="btn btn-secondary" style="padding: 0.625rem 0.875rem;"><i
+                            class="fas fa-arrow-left"></i></a>
+                    <h1 id="projectTitle" class="project-title"><i class="fas fa-clipboard-list"></i> Loading...</h1>
+                    <div id="projectStatus" class="project-status planning">Loading</div>
+                    <!-- Project Switcher -->
+                    <div class="project-switcher" id="projectSwitcher">
+                        <button class="project-switcher-btn" onclick="ProjectApp.toggleProjectSwitcher()">
+                            <i class="fas fa-exchange-alt"></i> Switch
+                            <i class="fas fa-chevron-down"></i>
+                        </button>
+                        <div class="project-switcher-dropdown">
+                            <div class="project-switcher-header">Your Projects</div>
+                            <div class="project-switcher-list" id="projectSwitcherList">
+                                <div style="padding: 1rem; text-align: center; color: var(--gray);">Loading...</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <button id="reopenProjectBtn" class="btn btn-secondary hidden"
+                        onclick="ProjectApp.reopenProject()"><i class="fas fa-lock-open"></i> Re-open</button>
+                    <button class="btn btn-secondary" onclick="ProjectApp.generatePDF()"><i class="fas fa-file-pdf"></i>
+                        Export PDF</button>
+                </div>
+            </div>
+
+            <section id="overviewSection" class="overview-grid"></section>
+
+            <div class="tabs-nav">
+                <button class="tab-btn active" data-tab="materials"><i class="fas fa-boxes"></i> Materials</button>
+                <button class="tab-btn" data-tab="labour"><i class="fas fa-users"></i> Labour</button>
+                <button class="tab-btn" data-tab="vendors"><i class="fas fa-handshake"></i> Vendors</button>
+                <button class="tab-btn" data-tab="expenses"><i class="fas fa-receipt"></i> Expenses</button>
+                <button class="tab-btn" data-tab="timeline"><i class="fas fa-stream"></i> Timeline</button>
+                <button class="tab-btn" data-tab="documents"><i class="fas fa-folder"></i> Docs</button>
+                <button class="tab-btn" data-tab="logs"><i class="fas fa-clipboard-list"></i> Logs</button>
+                <button class="tab-btn" data-tab="floorplans"><i class="fas fa-drafting-compass"></i> Floor
+                    Plans</button>
+                <button class="tab-btn" data-tab="summary"><i class="fas fa-chart-pie"></i> Summary</button>
+                <button class="tab-btn" data-tab="funds"><i class="fas fa-wallet"></i> Funds</button>
+            </div>
+
+            <!-- Materials Tab -->
+            <div id="materialsTab" class="tab-content active">
+                <div class="section-card">
+                    <div class="section-header">
+                        <h2 class="section-title"><i class="fas fa-boxes"></i> Material Management</h2>
+                        <div class="flex gap-2 flex-wrap">
+                            <button onclick="ProjectApp.generateInvoice('materials')" class="btn-icon"
+                                style="background: var(--info);"><i class="fas fa-file-invoice text-white"></i></button>
+                            <button onclick="ProjectApp.shareMaterialsWhatsApp()" class="btn-icon btn-whatsapp"><i
+                                    class="fab fa-whatsapp"></i></button>
+                            <button id="addMaterialBtn" class="btn-add"><i class="fas fa-plus"></i> Add
+                                Material</button>
+                        </div>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Material</th>
+                                    <th>Category</th>
+                                    <th>Qty</th>
+                                    <th>Unit</th>
+                                    <th>Rate</th>
+                                    <th>Total</th>
+                                    <th>Paid</th>
+                                    <th>Balance</th>
+                                    <th>Status</th>
+                                    <th>Date</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="materialsTableBody"></tbody>
+                        </table>
+                    </div>
+                    <div id="materialsEmpty" class="empty-state hidden"><i class="fas fa-box-open"></i>
+                        <p>No materials</p>
+                    </div>
+                    <div id="materialsTotalRow" class="total-row hidden">
+                        <div>
+                            <p class="text-xs text-gray">Total Amount</p>
+                            <p id="materialsTotalAmount" class="text-xl font-bold" style="color: var(--info);">₹0</p>
+                        </div>
+                        <div>
+                            <p class="text-xs text-gray">Total Paid</p>
+                            <p id="materialsTotalPaid" class="text-xl font-bold" style="color: var(--success);">₹0</p>
+                        </div>
+                        <div>
+                            <p class="text-xs text-gray">Balance Due</p>
+                            <p id="materialsTotalBalance" class="text-xl font-bold" style="color: var(--error);">₹0</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Labour Tab -->
+            <div id="labourTab" class="tab-content">
+                <div class="section-card">
+                    <div class="section-header">
+                        <h2 class="section-title"><i class="fas fa-users"></i> Labour Summary</h2>
+                        <div class="flex gap-2 flex-wrap">
+                            <a href="labour-calendar.html" class="btn-add"><i class="fas fa-calendar-alt"></i> Open
+                                Labour Calendar</a>
+                        </div>
+                    </div>
+
+                    <!-- Summary Stats -->
+                    <div id="labourSummaryStats" class="grid grid-cols-4 gap-4 mb-4">
+                        <div class="bg-slate-50 rounded-lg p-3 text-center">
+                            <p class="text-2xl font-bold text-slate-800" id="labourTotalWorkers">0</p>
+                            <p class="text-xs text-slate-500">Workers</p>
+                        </div>
+                        <div class="bg-sky-50 rounded-lg p-3 text-center">
+                            <p class="text-2xl font-bold text-sky-600" id="labourTotalEarned">₹0</p>
+                            <p class="text-xs text-slate-500">Total Earned</p>
+                        </div>
+                        <div class="bg-emerald-50 rounded-lg p-3 text-center">
+                            <p class="text-2xl font-bold text-emerald-600" id="labourTotalPaidSummary">₹0</p>
+                            <p class="text-xs text-slate-500">Total Paid</p>
+                        </div>
+                        <div class="bg-rose-50 rounded-lg p-3 text-center">
+                            <p class="text-2xl font-bold text-rose-600" id="labourTotalDue">₹0</p>
+                            <p class="text-xs text-slate-500">Balance Due</p>
+                        </div>
+                    </div>
+
+                    <!-- Simple Worker List -->
+                    <div id="labourSimpleList" class="space-y-2"></div>
+                    <div id="labourEmpty" class="empty-state hidden">
+                        <i class="fas fa-hard-hat"></i>
+                        <p>No work entries for this project</p>
+                        <p class="text-sm mt-2">Use the <a href="labour-calendar.html"
+                                class="text-sky-600 underline">Labour Calendar</a> to add work entries</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Vendors Tab -->
+            <div id="vendorsTab" class="tab-content">
+                <div class="section-card">
+                    <div class="section-header">
+                        <h2 class="section-title"><i class="fas fa-handshake"></i> Vendor Management</h2>
+                        <div class="flex gap-2 flex-wrap">
+                            <button onclick="ProjectApp.shareVendorsWhatsApp()" class="btn-icon btn-whatsapp"><i
+                                    class="fab fa-whatsapp"></i></button>
+                            <button id="addVendorBtn" class="btn-add"><i class="fas fa-plus"></i> Add Vendor</button>
+                        </div>
+                    </div>
+                    <div id="vendorCardsContainer" class="cards-grid"></div>
+                    <div id="vendorEmpty" class="empty-state hidden"><i class="fas fa-handshake"></i>
+                        <p>No vendors assigned</p>
+                    </div>
+                    <div id="vendorTotalRow" class="total-row hidden">
+                        <div>
+                            <p class="text-xs text-gray">Total Cost</p>
+                            <p id="vendorTotalAmount" class="text-xl font-bold" style="color: var(--warning);">₹0</p>
+                        </div>
+                        <div>
+                            <p class="text-xs text-gray">Total Paid</p>
+                            <p id="vendorTotalPaid" class="text-xl font-bold" style="color: var(--success);">₹0</p>
+                        </div>
+                        <div>
+                            <p class="text-xs text-gray">Balance Due</p>
+                            <p id="vendorTotalBalance" class="text-xl font-bold" style="color: var(--error);">₹0</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Expenses Tab -->
+            <div id="expensesTab" class="tab-content">
+                <div class="section-card">
+                    <div class="section-header">
+                        <h2 class="section-title"><i class="fas fa-receipt"></i> Expense Tracking</h2>
+                        <div class="flex gap-2">
+                            <button onclick="ProjectApp.generateAllExpenseInvoices()" class="btn btn-secondary"><i
+                                    class="fas fa-file-invoice"></i> Export All Invoices</button>
+                            <button id="addExpenseBtn" class="btn-add"><i class="fas fa-plus"></i> Add Expense</button>
+                        </div>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Description</th>
+                                    <th>Category</th>
+                                    <th>Amount</th>
+                                    <th>Date</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="expensesTableBody"></tbody>
+                        </table>
+                    </div>
+                    <div id="expensesEmpty" class="empty-state hidden"><i class="fas fa-receipt"></i>
+                        <p>No expenses</p>
+                    </div>
+                    <div id="expensesTotalRow" class="total-row hidden" style="grid-template-columns: 1fr;">
+                        <div class="flex justify-between"><span class="text-gray font-semibold">Total:</span><span
+                                id="expensesTotalAmount" class="text-xl font-bold" style="color: #8B5CF6;">₹0</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Timeline Tab -->
+            <div id="timelineTab" class="tab-content">
+                <div class="section-card">
+                    <div class="section-header">
+                        <h2 class="section-title"><i class="fas fa-stream"></i> Project Timeline</h2>
+                        <button id="addPhaseBtn" class="btn-add"><i class="fas fa-plus"></i> Add Phase</button>
+                    </div>
+
+                    <!-- Timeline Container -->
+                    <div id="timelineContainer" class="timeline-container">
+                        <div id="phasesTimeline" class="phases-timeline"></div>
+                        <div id="timelineEmpty" class="empty-state">
+                            <i class="fas fa-stream"></i>
+                            <p>No phases defined yet</p>
+                            <p class="text-sm">Add phases to track your project progress</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Phase Details Panel (shown when a phase is selected) -->
+                <div id="phaseDetailsPanel" class="section-card hidden">
+                    <div class="section-header">
+                        <h2 class="section-title" id="phaseDetailTitle"><i class="fas fa-tasks"></i> Phase Details</h2>
+                        <div class="flex gap-2">
+                            <button id="startPhaseBtn" class="btn btn-secondary btn-sm hidden"><i
+                                    class="fas fa-play"></i> Start</button>
+                            <button id="completePhaseBtn" class="btn btn-primary btn-sm hidden"><i
+                                    class="fas fa-check"></i> Complete</button>
+                            <button id="closePhaseDetailsBtn" class="btn btn-ghost btn-sm"><i
+                                    class="fas fa-times"></i></button>
+                        </div>
+                    </div>
+
+                    <!-- Phase Info -->
+                    <div class="phase-info-grid">
+                        <div class="phase-info-item">
+                            <span class="phase-info-label">Status</span>
+                            <span id="phaseStatus" class="phase-status-badge">Not Started</span>
+                        </div>
+                        <div class="phase-info-item">
+                            <span class="phase-info-label">Completion</span>
+                            <div class="phase-progress">
+                                <div class="progress-bar" style="height: 8px;">
+                                    <div id="phaseProgressBar" class="progress-fill" style="width: 0%;"></div>
+                                </div>
+                                <span id="phaseProgressText" class="phase-progress-text">0%</span>
+                            </div>
+                        </div>
+                        <div class="phase-info-item">
+                            <span class="phase-info-label">Planned Duration</span>
+                            <span id="phasePlannedDuration">-</span>
+                        </div>
+                        <div class="phase-info-item">
+                            <span class="phase-info-label">Actual Duration</span>
+                            <span id="phaseActualDuration">-</span>
+                        </div>
+                    </div>
+
+                    <!-- Checklist Section -->
+                    <div class="phase-section">
+                        <div class="phase-section-header">
+                            <h3><i class="fas fa-check-square"></i> Checklist</h3>
+                            <button id="addChecklistItemBtn" class="btn btn-ghost btn-sm"><i class="fas fa-plus"></i>
+                                Add Item</button>
+                        </div>
+                        <div id="phaseChecklist" class="phase-checklist"></div>
+                        <div id="checklistEmpty" class="empty-state small hidden">
+                            <i class="fas fa-clipboard-list"></i>
+                            <p>No checklist items</p>
+                        </div>
+                    </div>
+
+                    <!-- Workers Section -->
+                    <div class="phase-section">
+                        <div class="phase-section-header">
+                            <h3><i class="fas fa-hard-hat"></i> Workers Assigned</h3>
+                            <button id="assignWorkerBtn" class="btn btn-ghost btn-sm"><i class="fas fa-plus"></i>
+                                Assign</button>
+                        </div>
+                        <div id="phaseWorkers" class="phase-workers"></div>
+                        <div id="workersEmpty" class="empty-state small hidden">
+                            <i class="fas fa-users"></i>
+                            <p>No workers assigned</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Documents Tab -->
+            <div id="documentsTab" class="tab-content">
+                <div class="section-card">
+                    <div class="section-header">
+                        <h2 class="section-title"><i class="fas fa-folder"></i> Document Management</h2>
+                        <button id="addDocBtn" class="btn-add"><i class="fas fa-upload"></i> Upload</button>
+                    </div>
+                    <div id="documentsGrid" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4"></div>
+                    <div id="documentsEmpty" class="empty-state hidden"><i class="fas fa-folder-open"></i>
+                        <p>No documents uploaded</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Logs Tab -->
+            <div id="logsTab" class="tab-content">
+                <div class="section-card">
+                    <div class="section-header">
+                        <h2 class="section-title"><i class="fas fa-clipboard-list"></i> Daily Site Logs</h2>
+                        <button id="addLogBtn" class="btn-add"><i class="fas fa-plus"></i> Add Log</button>
+                    </div>
+                    <div id="logsContainer" class="space-y-4"></div>
+                    <div id="logsEmpty" class="empty-state hidden"><i class="fas fa-clipboard"></i>
+                        <p>No logs</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Floor Plans Tab -->
+            <div id="floorplansTab" class="tab-content">
+                <div class="section-card">
+                    <div class="section-header">
+                        <h2 class="section-title"><i class="fas fa-drafting-compass"></i> Floor Plans</h2>
+                        <button id="addFloorPlanBtn" class="btn-add"><i class="fas fa-upload"></i> Upload Floor
+                            Plan</button>
+                    </div>
+                    <div id="floorPlansGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+                    <div id="floorPlansEmpty" class="empty-state hidden"><i class="fas fa-drafting-compass"></i>
+                        <p>No floor plans uploaded</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Summary Tab -->
+            <div id="summaryTab" class="tab-content">
+                <div class="section-card">
+                    <h2 class="section-title mb-6"><i class="fas fa-chart-pie"></i> Financial Summary</h2>
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                        <div class="item-card">
+                            <p class="text-gray text-sm">Effective Budget</p>
+                            <p id="summaryBudget" class="text-2xl font-bold text-dark">₹0</p>
+                        </div>
+                        <div class="item-card" style="border-color: var(--info);">
+                            <p class="text-gray text-sm">Total Spent</p>
+                            <p id="summarySpent" class="text-2xl font-bold" style="color: var(--info);">₹0</p>
+                        </div>
+                        <div id="summaryBalanceCard" class="item-card" style="border-color: var(--success);">
+                            <p class="text-gray text-sm">Remaining</p>
+                            <p id="summaryBalance" class="text-2xl font-bold" style="color: var(--success);">₹0</p>
+                        </div>
+                        <div class="item-card">
+                            <p class="text-gray text-sm">Budget Used</p>
+                            <p id="summaryPercent" class="text-2xl font-bold text-dark">0%</p>
+                        </div>
+                    </div>
+
+                    <!-- Client Payments Section -->
+                    <div class="section-card mb-6" style="background: var(--bg-light);">
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="font-semibold text-slate-800 flex items-center gap-2">
+                                <i class="fas fa-hand-holding-usd text-emerald-500"></i> Client Payments Received
+                            </h3>
+                            <button id="addClientPaymentBtn" class="btn btn-primary btn-sm">
+                                <i class="fas fa-plus"></i> Add Payment
+                            </button>
+                        </div>
+                        <div class="grid grid-cols-2 gap-4 mb-4">
+                            <div class="item-card" style="border-color: var(--success);">
+                                <p class="text-gray text-sm">Total Received</p>
+                                <p id="clientTotalReceived" class="text-xl font-bold" style="color: var(--success);">₹0
+                                </p>
+                            </div>
+                            <div class="item-card" style="border-color: var(--warning);">
+                                <p class="text-gray text-sm">Pending from Client</p>
+                                <p id="clientTotalPending" class="text-xl font-bold" style="color: var(--warning);">₹0
+                                </p>
+                            </div>
+                        </div>
+                        <div id="clientPaymentsList" class="space-y-2 max-h-64 overflow-y-auto">
+                            <p class="text-xs text-slate-500 text-center py-2">Loading...</p>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <div class="item-card">
+                            <h3 class="text-gray font-semibold mb-4">Expense Breakdown</h3>
+                            <div class="chart-container"><canvas id="expenseChart"></canvas></div>
+                        </div>
+                        <div class="item-card">
+                            <h3 class="text-gray font-semibold mb-4">Budget vs Spent</h3>
+                            <div class="chart-container"><canvas id="budgetChart"></canvas></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Funds Tab -->
+            <div id="fundsTab" class="tab-content">
+                <div class="section-card">
+                    <div class="section-header">
+                        <h2 class="section-title"><i class="fas fa-wallet"></i> Fund Management Status</h2>
+                        <div class="flex gap-2">
+                            <button id="recalculateWalletBtn" class="btn btn-secondary"
+                                title="Recalculate wallet based on actual payment allocations"><i
+                                    class="fas fa-calculator"></i> Recalculate</button>
+                            <button id="refreshFundStatusBtn" class="btn btn-secondary"><i class="fas fa-sync-alt"></i>
+                                Refresh</button>
+                            <button onclick="window.open('funds.html', '_blank')" class="btn btn-secondary"><i
+                                    class="fas fa-external-link-alt"></i> Fund Management</button>
+                        </div>
+                    </div>
+
+                    <!-- Virtual Wallet Metrics -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                        <div class="item-card">
+                            <p class="text-gray text-sm">Total Bank Balance</p>
+                            <p id="virtualBalance" class="font-bold text-2xl" style="color: var(--info);">₹0</p>
+                            <p class="text-xs text-slate-400">All projects combined</p>
+                        </div>
+                        <div class="item-card">
+                            <p class="text-gray text-sm">Loans Given</p>
+                            <p id="loansGiven" class="font-bold text-2xl" style="color: var(--warning);">₹0</p>
+                        </div>
+                        <div class="item-card">
+                            <p class="text-gray text-sm">Loans Received</p>
+                            <p id="loansReceived" class="font-bold text-2xl" style="color: var(--error);">₹0</p>
+                        </div>
+                        <div class="item-card">
+                            <p class="text-gray text-sm">Net Available</p>
+                            <p id="netAvailable" class="font-bold text-2xl" style="color: var(--success);">₹0</p>
+                        </div>
+                    </div>
+
+                    <!-- Fund Details Grid -->
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <!-- Payment Allocations -->
+                        <div class="item-card">
+                            <h3 class="font-semibold text-slate-800 mb-3 flex items-center gap-2">
+                                <i class="fas fa-money-bill-wave text-emerald-500"></i> Payment Allocations Received
+                            </h3>
+                            <div id="paymentAllocationsContainer" class="space-y-2 max-h-64 overflow-y-auto">
+                                <p class="text-slate-500 text-sm">Loading...</p>
+                            </div>
+                        </div>
+
+                        <!-- Cross-Project Expenses -->
+                        <div class="item-card">
+                            <h3 class="font-semibold text-slate-800 mb-3 flex items-center gap-2">
+                                <i class="fas fa-exchange-alt text-violet-500"></i> Cross-Project Expenses
+                            </h3>
+                            <div id="crossProjectExpensesContainer" class="space-y-2 max-h-64 overflow-y-auto">
+                                <p class="text-slate-500 text-sm">Loading...</p>
+                            </div>
+                        </div>
+
+                        <!-- Loans Given -->
+                        <div class="item-card">
+                            <h3 class="font-semibold text-slate-800 mb-3 flex items-center gap-2">
+                                <i class="fas fa-hand-holding-usd text-amber-500"></i> Loans Given (Receivable)
+                            </h3>
+                            <div id="loansGivenContainer" class="space-y-2 max-h-64 overflow-y-auto">
+                                <p class="text-slate-500 text-sm">Loading...</p>
+                            </div>
+                        </div>
+
+                        <!-- Loans Received -->
+                        <div class="item-card">
+                            <h3 class="font-semibold text-slate-800 mb-3 flex items-center gap-2">
+                                <i class="fas fa-hand-holding-usd text-rose-500"></i> Loans Received (Payable)
+                            </h3>
+                            <div id="loansReceivedContainer" class="space-y-2 max-h-64 overflow-y-auto">
+                                <p class="text-slate-500 text-sm">Loading...</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Material Modal -->
+    <div id="materialModal" class="modal-overlay hidden">
+        <div class="modal-content" style="max-width: 500px;">
+            <div class="modal-header">
+                <h3 id="materialModalTitle">Add Material</h3><button class="close-btn"
+                    onclick="ProjectApp.closeAllModals()"><i class="fas fa-times"></i></button>
+            </div>
+            <form id="materialForm" class="modal-form">
+                <input type="hidden" id="materialId">
+                <div class="form-group"><label>Material *</label><select id="materialSelect" required
+                        onchange="document.getElementById('customMaterialDiv').classList.toggle('hidden', this.value !== 'Other')">
+                        <option value="">Select Material</option>
+                    </select></div>
+                <div id="customMaterialDiv" class="form-group hidden"><label>Custom Name *</label><input type="text"
+                        id="customMaterialName" placeholder="Enter material name"></div>
+                <div class="form-row">
+                    <div class="form-group"><label>Category *</label><select id="materialCategory" required></select>
+                    </div>
+                    <div class="form-group"><label>Unit *</label><select id="materialUnit" required></select></div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group"><label>Quantity *</label><input type="number" id="materialQty" required
+                            min="0" step="0.01"></div>
+                    <div class="form-group"><label>Rate (₹) *</label><input type="number" id="materialRate" required
+                            min="0" step="0.01"></div>
+                </div>
+                <div id="materialTotalDisplay" class="hidden"
+                    style="background:#f0f9ff;padding:0.75rem;border-radius:8px;margin-bottom:1rem;"><span
+                        class="text-gray">Total: </span><span id="materialTotalAmount" class="font-bold"
+                        style="color:var(--info);">₹0</span></div>
+                <div class="form-row">
+                    <div class="form-group"><label>Paid Amount (₹)</label><input type="number" id="materialPaidAmount"
+                            value="0" min="0" step="0.01"></div>
+                    <div class="form-group"><label>Status</label><select id="materialStatus">
+                            <option value="used">Used</option>
+                            <option value="recovered">Recovered</option>
+                        </select></div>
+                </div>
+                <div id="materialBalanceDisplay" class="hidden"
+                    style="background:#fef2f2;padding:0.75rem;border-radius:8px;margin-bottom:1rem;"><span
+                        class="text-gray">Paid: </span><span id="materialPaidDisplay">₹0</span> | <span
+                        class="text-gray">Balance: </span><span id="materialBalanceAmount"
+                        style="color:var(--error);">₹0</span></div>
+                <div class="form-row">
+                    <div class="form-group"><label>Date *</label><input type="date" id="materialDate" required></div>
+                    <div class="form-group"><label>Supplier</label><input type="text" id="materialSupplier"
+                            placeholder="Supplier name"></div>
+                </div>
+                <div class="form-actions"><button type="button" class="btn btn-secondary"
+                        onclick="ProjectApp.closeAllModals()">Cancel</button><button type="submit"
+                        class="btn btn-primary">Save</button></div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Vendor Modal -->
+    <div id="vendorModal" class="modal-overlay hidden">
+        <div class="modal-content" style="max-width: 500px;">
+            <div class="modal-header">
+                <h3 id="vendorModalTitle">Add Vendor</h3><button class="close-btn"
+                    onclick="ProjectApp.closeAllModals()"><i class="fas fa-times"></i></button>
+            </div>
+            <form id="vendorForm" class="modal-form">
+                <input type="hidden" id="vendorId">
+                <div class="form-row">
+                    <div class="form-group"><label>Vendor Name *</label><input type="text" id="vendorName" required
+                            placeholder="Enter vendor name"></div>
+                    <div class="form-group"><label>Phone</label><input type="tel" id="vendorPhone"
+                            placeholder="Phone number"></div>
+                </div>
+                <div class="form-group"><label>Service Type *</label><select id="vendorServiceType" required>
+                        <option value="">Select Service</option>
+                        <option value="Electrical">Electrical</option>
+                        <option value="Plumbing">Plumbing</option>
+                        <option value="Painting">Painting</option>
+                        <option value="Flooring">Flooring</option>
+                        <option value="Carpentry">Carpentry</option>
+                        <option value="Masonry">Masonry</option>
+                        <option value="Welding">Welding</option>
+                        <option value="HVAC">HVAC</option>
+                        <option value="Roofing">Roofing</option>
+                        <option value="Landscaping">Landscaping</option>
+                        <option value="Other">Other</option>
+                    </select></div>
+                <div class="form-group"><label>Work Description *</label><textarea id="vendorWorkDescription" required
+                        rows="3" placeholder="Describe the work"></textarea></div>
+                <div class="form-group"><label>Agreed Cost (₹) *</label><input type="number" id="vendorAgreedCost"
+                        required min="0"></div>
+                <div class="form-actions"><button type="button" class="btn btn-secondary"
+                        onclick="ProjectApp.closeAllModals()">Cancel</button><button type="submit"
+                        class="btn btn-primary">Save</button></div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Expense Modal -->
+    <div id="expenseModal" class="modal-overlay hidden">
+        <div class="modal-content" style="max-width: 450px;">
+            <div class="modal-header">
+                <h3 id="expenseModalTitle">Add Expense</h3><button class="close-btn"
+                    onclick="ProjectApp.closeAllModals()"><i class="fas fa-times"></i></button>
+            </div>
+            <form id="expenseForm" class="modal-form">
+                <input type="hidden" id="expenseId">
+                <div class="form-group"><label>Description *</label><input type="text" id="expenseDesc" required
+                        placeholder="What was this expense for?"></div>
+                <div class="form-row">
+                    <div class="form-group"><label>Category *</label><select id="expenseCategory" required>
+                            <option value="Transport">Transport</option>
+                            <option value="Food">Food</option>
+                            <option value="Tools">Tools</option>
+                            <option value="Equipment">Equipment</option>
+                            <option value="Permits">Permits</option>
+                            <option value="Utilities">Utilities</option>
+                            <option value="Miscellaneous">Miscellaneous</option>
+                        </select></div>
+                    <div class="form-group"><label>Amount (₹) *</label><input type="number" id="expenseAmount" required
+                            min="0"></div>
+                </div>
+                <div class="form-group"><label>Date *</label><input type="date" id="expenseDate" required></div>
+                <div class="form-actions"><button type="button" class="btn btn-secondary"
+                        onclick="ProjectApp.closeAllModals()">Cancel</button><button type="submit"
+                        class="btn btn-primary">Save</button></div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Document Modal -->
+    <div id="documentModal" class="modal-overlay hidden">
+        <div class="modal-content" style="max-width: 450px;">
+            <div class="modal-header">
+                <h3>Upload Document</h3><button class="close-btn" onclick="ProjectApp.closeAllModals()"><i
+                        class="fas fa-times"></i></button>
+            </div>
+            <form id="documentForm" class="modal-form">
+                <div class="form-group"><label>Document Name *</label><input type="text" id="docName" required
+                        placeholder="Enter document name"></div>
+                <div class="form-row">
+                    <div class="form-group"><label>Category *</label><select id="docCategory" required></select></div>
+                    <div class="form-group"><label>Date</label><input type="date" id="docDate"></div>
+                </div>
+                <div class="form-group"><label>File *</label><input type="file" id="docFile" required
+                        accept="image/*,.pdf"></div>
+                <div class="form-actions"><button type="button" class="btn btn-secondary"
+                        onclick="ProjectApp.closeAllModals()">Cancel</button><button type="submit"
+                        class="btn btn-primary">Upload</button></div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Log Modal -->
+    <div id="logModal" class="modal-overlay hidden">
+        <div class="modal-content" style="max-width: 500px;">
+            <div class="modal-header">
+                <h3 id="logModalTitle">Add Daily Log</h3><button class="close-btn"
+                    onclick="ProjectApp.closeAllModals()"><i class="fas fa-times"></i></button>
+            </div>
+            <form id="logForm" class="modal-form">
+                <input type="hidden" id="logId">
+                <div class="form-group"><label>Date *</label><input type="date" id="logDate" required></div>
+                <div class="form-group"><label>Work Done *</label><textarea id="logDescription" required rows="3"
+                        placeholder="Describe work completed today"></textarea></div>
+                <div class="form-group"><label>Issues / Delays</label><textarea id="logIssues" rows="2"
+                        placeholder="Any problems or delays?"></textarea></div>
+                <div class="form-group"><label>Notes</label><textarea id="logNotes" rows="2"
+                        placeholder="Additional notes"></textarea></div>
+                <div class="form-actions"><button type="button" class="btn btn-secondary"
+                        onclick="ProjectApp.closeAllModals()">Cancel</button><button type="submit"
+                        class="btn btn-primary">Save</button></div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Client Payment Modal -->
+    <div id="clientPaymentModal" class="modal-overlay hidden">
+        <div class="modal-content" style="max-width: 500px;">
+            <div class="modal-header">
+                <h3>Record Client Payment</h3><button class="close-btn" onclick="ProjectApp.closeAllModals()"><i
+                        class="fas fa-times"></i></button>
+            </div>
+            <form id="clientPaymentForm" class="modal-form">
+                <input type="hidden" id="clientPaymentId">
+                <div class="form-row">
+                    <div class="form-group"><label>Amount (₹) *</label><input type="number" id="clientPaymentAmount"
+                            required min="1" step="0.01" placeholder="Enter amount"></div>
+                    <div class="form-group"><label>Date *</label><input type="date" id="clientPaymentDate" required>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group"><label>From (Client Name) *</label><input type="text" id="clientPaymentFrom"
+                            required placeholder="Client name"></div>
+                    <div class="form-group"><label>Received By *</label><input type="text" id="clientPaymentReceivedBy"
+                            required placeholder="Your name"></div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Payment Method</label>
+                        <select id="clientPaymentMethod">
+                            <option value="Cash">Cash</option>
+                            <option value="Bank Transfer">Bank Transfer</option>
+                            <option value="Cheque">Cheque</option>
+                            <option value="UPI">UPI</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group"><label>Notes</label><textarea id="clientPaymentNotes" rows="2"
+                        placeholder="Optional notes"></textarea></div>
+                <div class="bg-emerald-50 p-3 rounded-lg mb-4 text-sm text-emerald-800">
+                    <i class="fas fa-info-circle mr-1"></i> This payment will be automatically allocated to the
+                    project's virtual wallet.
+                </div>
+                <div class="form-actions"><button type="button" class="btn btn-secondary"
+                        onclick="ProjectApp.closeAllModals()">Cancel</button><button type="submit"
+                        class="btn btn-primary">Save Payment</button></div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Floor Plan Modal -->
+    <div id="floorPlanModal" class="modal-overlay hidden">
+        <div class="modal-content" style="max-width: 450px;">
+            <div class="modal-header">
+                <h3>Upload Floor Plan</h3><button class="close-btn close-modal"><i class="fas fa-times"></i></button>
+            </div>
+            <form id="floorPlanForm" class="modal-form">
+                <div class="form-group"><label>Floor Plan Name *</label><input type="text" id="floorPlanName" required
+                        placeholder="e.g., Ground Floor Layout"></div>
+                <div class="form-group">
+                    <label>Type</label>
+                    <select id="floorPlanType">
+                        <option value="Floor Plan">Floor Plan</option>
+                        <option value="Site Plan">Site Plan</option>
+                        <option value="Elevation">Elevation</option>
+                        <option value="Section">Section</option>
+                        <option value="Electrical">Electrical Layout</option>
+                        <option value="Plumbing">Plumbing Layout</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+                <div class="form-group"><label>Description</label><textarea id="floorPlanDescription" rows="2"
+                        placeholder="Optional description"></textarea></div>
+                <div class="form-group">
+                    <label>File * <span class="text-xs text-slate-500">(PNG, JPG, PDF - Max 10MB)</span></label>
+                    <input type="file" id="floorPlanFile" required
+                        accept="image/png,image/jpeg,image/jpg,.pdf,application/pdf">
+                </div>
+                <div id="floorPlanPreview" class="hidden" style="margin-bottom:1rem;">
+                    <div id="floorPlanPreviewContent"></div>
+                </div>
+                <div class="form-actions"><button type="button"
+                        class="btn btn-secondary cancel-modal">Cancel</button><button type="submit"
+                        class="btn btn-primary">Upload</button></div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Floor Plan Viewer Modal -->
+    <div id="floorPlanViewerModal" class="modal-overlay hidden">
+        <div class="modal-content"
+            style="max-width: 90vw; max-height: 90vh; width: 900px; height: 700px; padding: 0; overflow: hidden;">
+            <div class="modal-header" style="padding: 1rem; border-bottom: 1px solid var(--border);">
+                <h3 id="floorPlanViewerTitle">Floor Plan</h3>
+                <div class="flex items-center gap-2">
+                    <div id="floorPlan3DControls" class="flex gap-1">
+                        <button type="button" id="floorPlanZoomIn" class="action-btn" title="Zoom In"><i
+                                class="fas fa-search-plus"></i></button>
+                        <button type="button" id="floorPlanZoomOut" class="action-btn" title="Zoom Out"><i
+                                class="fas fa-search-minus"></i></button>
+                        <button type="button" id="floorPlanRotateX" class="action-btn" title="Rotate X"><i
+                                class="fas fa-arrows-alt-v"></i></button>
+                        <button type="button" id="floorPlanRotateY" class="action-btn" title="Rotate Y"><i
+                                class="fas fa-arrows-alt-h"></i></button>
+                        <button type="button" id="floorPlanResetView" class="action-btn" title="Reset View"><i
+                                class="fas fa-undo"></i></button>
+                        <button type="button" id="floorPlanToggle3D" class="action-btn" title="Toggle 2D/3D"><i
+                                class="fas fa-cube"></i></button>
+                    </div>
+                    <button class="close-btn close-modal"><i class="fas fa-times"></i></button>
+                </div>
+            </div>
+            <div id="floorPlanViewerContent"
+                style="width: 100%; height: calc(100% - 60px); position: relative; background: #1e293b;">
+                <canvas id="floorPlan3DCanvas" style="width: 100%; height: 100%;"></canvas>
+                <div id="floorPlan3DLoading"
+                    style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; display: flex; align-items: center; justify-content: center; background: rgba(30, 41, 59, 0.9);">
+                    <div class="text-center">
+                        <i class="fas fa-spinner fa-spin text-4xl text-sky-500 mb-3"></i>
+                        <p class="text-slate-400">Loading floor plan...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div id="deleteModal" class="modal-overlay hidden">
+        <div class="modal-content" style="max-width: 400px; text-align: center;">
+            <div style="font-size: 3rem; color: var(--error); margin-bottom: 1rem;"><i
+                    class="fas fa-exclamation-triangle"></i></div>
+            <h3 style="margin-bottom: 0.5rem;">Delete Item?</h3>
+            <p style="color: var(--gray); margin-bottom: 1.5rem;">This action cannot be undone.</p>
+            <div class="form-actions" style="justify-content: center;">
+                <button class="btn btn-secondary" onclick="ProjectApp.closeAllModals()">Cancel</button>
+                <button class="btn" style="background: var(--error); color: white;"
+                    onclick="ProjectApp.confirmDelete()">Delete</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Preview Modal -->
+    <div id="previewModal" class="modal-overlay hidden">
+        <div class="modal-content" style="max-width: 800px; max-height: 90vh;">
+            <div class="modal-header">
+                <h3 id="previewTitle">Preview</h3><button class="close-btn" onclick="ProjectApp.closeAllModals()"><i
+                        class="fas fa-times"></i></button>
+            </div>
+            <div id="previewContent" style="max-height: 70vh; overflow: auto;"></div>
+        </div>
+    </div>
+
+    <!-- Vendor Payment Modal -->
+    <div id="vendorPaymentModal" class="modal-overlay hidden">
+        <div class="modal-content" style="max-width: 450px;">
+            <div class="modal-header">
+                <h3>Pay Vendor</h3>
+                <button class="close-btn" onclick="ProjectApp.closeAllModals()"><i class="fas fa-times"></i></button>
+            </div>
+            <form id="vendorPaymentForm" class="modal-form">
+                <input type="hidden" id="vendorPaymentVendorId">
+                <div class="form-group" style="margin-bottom: 1rem;">
+                    <label>Vendor</label>
+                    <p id="vendorPaymentVendorName" style="font-weight: 600; font-size: 1rem;"></p>
+                </div>
+                <div class="form-group" style="margin-bottom: 1rem;">
+                    <label>Pending Amount</label>
+                    <p id="vendorPaymentPendingAmount"
+                        style="font-weight: 700; font-size: 1.25rem; color: var(--error);"></p>
+                </div>
+                <div class="form-group" style="margin-bottom: 1rem;">
+                    <label>Payment Amount *</label>
+                    <input type="number" id="vendorPaymentAmount" required min="1" step="0.01"
+                        placeholder="Enter amount">
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Payment Method *</label>
+                        <select id="vendorPaymentMethod" required>
+                            <option value="cash">Cash</option>
+                            <option value="bank_transfer">Bank Transfer</option>
+                            <option value="upi">UPI</option>
+                            <option value="cheque">Cheque</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Date *</label>
+                        <input type="date" id="vendorPaymentDate" required>
+                    </div>
+                </div>
+                <div class="form-group" style="margin-bottom: 1rem;">
+                    <label>Notes</label>
+                    <input type="text" id="vendorPaymentNotes" placeholder="Optional notes">
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn btn-secondary"
+                        onclick="ProjectApp.closeAllModals()">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Record Payment</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Add Phase Modal -->
+    <div id="phaseModal" class="modal-overlay hidden">
+        <div class="modal-content" style="max-width: 500px;">
+            <div class="modal-header">
+                <h3 id="phaseModalTitle"><i class="fas fa-stream"></i> Add Phase</h3>
+                <button class="close-btn" onclick="ProjectApp.closeAllModals()"><i class="fas fa-times"></i></button>
+            </div>
+            <form id="phaseForm" class="modal-form">
+                <input type="hidden" id="phaseId">
+                <div class="form-group">
+                    <label>Phase Name *</label>
+                    <input type="text" id="phaseName" required placeholder="e.g., Foundation, Framing, Roofing">
+                </div>
+                <div class="form-group">
+                    <label>Description</label>
+                    <textarea id="phaseDescription" rows="2" placeholder="Brief description of this phase"></textarea>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Planned Start Date</label>
+                        <input type="date" id="phasePlannedStart">
+                    </div>
+                    <div class="form-group">
+                        <label>Planned End Date</label>
+                        <input type="date" id="phasePlannedEnd">
+                    </div>
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn btn-secondary"
+                        onclick="ProjectApp.closeAllModals()">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save Phase</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Add Checklist Item Modal -->
+    <div id="checklistItemModal" class="modal-overlay hidden">
+        <div class="modal-content" style="max-width: 450px;">
+            <div class="modal-header">
+                <h3><i class="fas fa-check-square"></i> Add Checklist Item</h3>
+                <button class="close-btn" onclick="ProjectApp.closeAllModals()"><i class="fas fa-times"></i></button>
+            </div>
+            <form id="checklistItemForm" class="modal-form">
+                <input type="hidden" id="checklistPhaseId">
+                <input type="hidden" id="checklistItemId">
+                <div class="form-group">
+                    <label>Item Name *</label>
+                    <input type="text" id="checklistItemName" required placeholder="e.g., Pour concrete, Install rebar">
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Category</label>
+                        <select id="checklistItemCategory">
+                            <option value="features">Features</option>
+                            <option value="safety">Safety</option>
+                            <option value="quality">Quality</option>
+                            <option value="materials">Materials</option>
+                            <option value="approval">Approval</option>
+                            <option value="custom">Custom</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Required?</label>
+                        <select id="checklistItemRequired">
+                            <option value="false">Optional</option>
+                            <option value="true">Required (blocks completion)</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn btn-secondary"
+                        onclick="ProjectApp.closeAllModals()">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Add Item</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Assign Worker to Phase Modal -->
+    <div id="phaseWorkerModal" class="modal-overlay hidden">
+        <div class="modal-content" style="max-width: 500px;">
+            <div class="modal-header">
+                <h3><i class="fas fa-hard-hat"></i> Assign Worker to Phase</h3>
+                <button class="close-btn" onclick="ProjectApp.closeAllModals()"><i class="fas fa-times"></i></button>
+            </div>
+            <form id="phaseWorkerForm" class="modal-form">
+                <input type="hidden" id="phaseWorkerPhaseId">
+                <input type="hidden" id="phaseWorkerAssignmentId">
+                <div class="form-group">
+                    <label>Select Worker *</label>
+                    <select id="phaseWorkerSelect" required>
+                        <option value="">-- Select Worker --</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Work Type *</label>
+                    <select id="phaseWorkerWorkType" required>
+                        <option value="Mason">Mason</option>
+                        <option value="Helper">Helper</option>
+                        <option value="Carpenter">Carpenter</option>
+                        <option value="Electrician">Electrician</option>
+                        <option value="Plumber">Plumber</option>
+                        <option value="Painter">Painter</option>
+                        <option value="Welder">Welder</option>
+                        <option value="Supervisor">Supervisor</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Start Date</label>
+                        <input type="date" id="phaseWorkerStartDate">
+                    </div>
+                    <div class="form-group">
+                        <label>End Date</label>
+                        <input type="date" id="phaseWorkerEndDate">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Notes</label>
+                    <input type="text" id="phaseWorkerNotes" placeholder="Optional notes">
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn btn-secondary"
+                        onclick="ProjectApp.closeAllModals()">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Assign Worker</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Phase Completion Modal -->
+    <div id="phaseCompleteModal" class="modal-overlay hidden">
+        <div class="modal-content" style="max-width: 450px;">
+            <div class="modal-header">
+                <h3><i class="fas fa-check-circle"></i> Complete Phase</h3>
+                <button class="close-btn" onclick="ProjectApp.closeAllModals()"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-form">
+                <input type="hidden" id="completePhaseId">
+                <div id="phaseBlockers" class="hidden"
+                    style="background: var(--warning-light); padding: 1rem; border-radius: 8px; margin-bottom: 1rem;">
+                    <p style="font-weight: 600; color: var(--warning); margin-bottom: 0.5rem;"><i
+                            class="fas fa-exclamation-triangle"></i> Incomplete Required Items:</p>
+                    <ul id="phaseBlockersList"
+                        style="margin: 0; padding-left: 1.25rem; font-size: 0.8125rem; color: var(--dark);"></ul>
+                </div>
+                <div class="form-group">
+                    <label>Completion Reason (required if items incomplete)</label>
+                    <textarea id="phaseCompleteReason" rows="3"
+                        placeholder="Explain why this phase is being marked complete..."></textarea>
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn btn-secondary"
+                        onclick="ProjectApp.closeAllModals()">Cancel</button>
+                    <button type="button" id="confirmCompletePhaseBtn" class="btn btn-primary"
+                        onclick="PhaseUI.confirmCompletePhase()">Complete Phase</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { auth, onAuthStateChanged, signOut } from './js/firebase-config.js';
+        import Storage from './js/firebase-storage.js';
+        import FundManagement from './js/fund-management.js';
+        import WorkerManagement from './js/worker-management.js';
+        import VendorManagement from './js/vendor-management.js';
+        import { ProjectApp } from './js/project.js?v=4';
+        import UserPreferences from './js/user-preferences.js';
+        import PhaseManager, { PhaseStatus, ChecklistCategory } from './js/phase-management.js';
+
+        window.Storage = Storage;
+        window.FundManagement = FundManagement;
+        window.WorkerManagement = WorkerManagement;
+        window.VendorManagement = VendorManagement;
+        window.ProjectApp = ProjectApp;
+
+        // Phase UI Module
+        const PhaseUI = {
+            currentPhaseId: null,
+            projectId: null,
+
+            async init(projectId) {
+                this.projectId = projectId;
+                this.setupEventListeners();
+                await this.loadPhases();
+            },
+
+            setupEventListeners() {
+                // Add Phase button
+                document.getElementById('addPhaseBtn')?.addEventListener('click', () => this.openPhaseModal());
+
+                // Phase form submit
+                document.getElementById('phaseForm')?.addEventListener('submit', (e) => this.handlePhaseSubmit(e));
+
+                // Checklist item form submit
+                document.getElementById('checklistItemForm')?.addEventListener('submit', (e) => this.handleChecklistSubmit(e));
+
+                // Phase worker form submit
+                document.getElementById('phaseWorkerForm')?.addEventListener('submit', (e) => this.handleWorkerAssignSubmit(e));
+
+                // Close phase details button
+                document.getElementById('closePhaseDetailsBtn')?.addEventListener('click', () => this.closePhaseDetails());
+
+                // Add checklist item button
+                document.getElementById('addChecklistItemBtn')?.addEventListener('click', () => this.openChecklistModal());
+
+                // Assign worker button
+                document.getElementById('assignWorkerBtn')?.addEventListener('click', () => this.openWorkerAssignModal());
+
+                // Start phase button
+                document.getElementById('startPhaseBtn')?.addEventListener('click', () => this.startPhase());
+
+                // Complete phase button
+                document.getElementById('completePhaseBtn')?.addEventListener('click', () => this.openCompleteModal());
+            },
+
+            async loadPhases() {
+                if (!this.projectId) return;
+
+                try {
+                    const phases = await PhaseManager.getPhases(this.projectId);
+                    this.renderTimeline(phases);
+                } catch (error) {
+                    console.error('[PhaseUI] Error loading phases:', error);
+                }
+            },
+
+            renderTimeline(phases) {
+                const container = document.getElementById('phasesTimeline');
+                const emptyState = document.getElementById('timelineEmpty');
+
+                if (!phases || phases.length === 0) {
+                    container.innerHTML = '';
+                    emptyState?.classList.remove('hidden');
+                    return;
+                }
+
+                emptyState?.classList.add('hidden');
+
+                container.innerHTML = phases.map((phase, index) => `
+                    <div class="phase-card ${phase.status}" data-phase-id="${phase.id}" data-order="${index}"
+                         draggable="true"
+                         ondragstart="PhaseUI.handleDragStart(event)"
+                         ondragover="PhaseUI.handleDragOver(event)"
+                         ondrop="PhaseUI.handleDrop(event)"
+                         ondragend="PhaseUI.handleDragEnd(event)"
+                         onclick="PhaseUI.openPhaseDetails('${phase.id}')">
+                        <div class="phase-drag-handle" onmousedown="event.stopPropagation()">
+                            <i class="fas fa-grip-vertical"></i>
+                        </div>
+                        <div class="phase-order">${index + 1}</div>
+                        <div class="phase-card-content">
+                            <div class="phase-card-header">
+                                <span class="phase-card-name">${this.escapeHtml(phase.name)}</span>
+                                <span class="phase-status-badge ${phase.status}">${this.formatStatus(phase.status)}</span>
+                            </div>
+                            <div class="phase-card-meta">
+                                ${phase.plannedStartDate ? `<span><i class="fas fa-calendar"></i> ${this.formatDate(phase.plannedStartDate)}</span>` : ''}
+                                ${phase.description ? `<span>${this.escapeHtml(phase.description.substring(0, 50))}${phase.description.length > 50 ? '...' : ''}</span>` : ''}
+                            </div>
+                        </div>
+                        <div class="phase-card-progress">
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width: ${phase.completionPercentage || 0}%;"></div>
+                            </div>
+                            <div class="phase-card-progress-text">${phase.completionPercentage || 0}% complete</div>
+                        </div>
+                        <div class="phase-card-actions">
+                            <button class="action-btn edit" onclick="event.stopPropagation(); PhaseUI.editPhase('${phase.id}')" title="Edit">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="action-btn delete" onclick="event.stopPropagation(); PhaseUI.deletePhase('${phase.id}')" title="Delete">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                `).join('');
+            },
+
+            // Drag and drop handlers
+            draggedElement: null,
+
+            handleDragStart(e) {
+                this.draggedElement = e.target.closest('.phase-card');
+                if (this.draggedElement) {
+                    this.draggedElement.classList.add('dragging');
+                    e.dataTransfer.effectAllowed = 'move';
+                    e.dataTransfer.setData('text/plain', this.draggedElement.dataset.phaseId);
+                }
+            },
+
+            handleDragOver(e) {
+                e.preventDefault();
+                e.dataTransfer.dropEffect = 'move';
+
+                const target = e.target.closest('.phase-card');
+                if (target && target !== this.draggedElement) {
+                    const container = document.getElementById('phasesTimeline');
+                    const cards = [...container.querySelectorAll('.phase-card:not(.dragging)')];
+                    const targetIndex = cards.indexOf(target);
+                    const draggedIndex = [...container.querySelectorAll('.phase-card')].indexOf(this.draggedElement);
+
+                    if (targetIndex !== -1) {
+                        target.classList.add('drag-over');
+                    }
+                }
+            },
+
+            handleDrop(e) {
+                e.preventDefault();
+                const target = e.target.closest('.phase-card');
+
+                if (target && this.draggedElement && target !== this.draggedElement) {
+                    const container = document.getElementById('phasesTimeline');
+                    const cards = [...container.querySelectorAll('.phase-card')];
+                    const draggedIndex = cards.indexOf(this.draggedElement);
+                    const targetIndex = cards.indexOf(target);
+
+                    if (draggedIndex < targetIndex) {
+                        target.parentNode.insertBefore(this.draggedElement, target.nextSibling);
+                    } else {
+                        target.parentNode.insertBefore(this.draggedElement, target);
+                    }
+
+                    // Save new order
+                    this.saveNewOrder();
+                }
+
+                document.querySelectorAll('.phase-card').forEach(card => {
+                    card.classList.remove('drag-over');
+                });
+            },
+
+            handleDragEnd(e) {
+                if (this.draggedElement) {
+                    this.draggedElement.classList.remove('dragging');
+                }
+                document.querySelectorAll('.phase-card').forEach(card => {
+                    card.classList.remove('drag-over');
+                });
+                this.draggedElement = null;
+            },
+
+            async saveNewOrder() {
+                const container = document.getElementById('phasesTimeline');
+                const cards = [...container.querySelectorAll('.phase-card')];
+                const newOrder = cards.map(card => card.dataset.phaseId);
+
+                try {
+                    await PhaseManager.reorderPhases(this.projectId, newOrder);
+
+                    // Update order numbers in UI
+                    cards.forEach((card, index) => {
+                        const orderEl = card.querySelector('.phase-order');
+                        if (orderEl) orderEl.textContent = index + 1;
+                    });
+
+                    ProjectApp.showToast('Phase order updated', 'success');
+                } catch (error) {
+                    console.error('[PhaseUI] Error saving order:', error);
+                    ProjectApp.showToast('Error saving order', 'error');
+                    await this.loadPhases(); // Reload to restore original order
+                }
+            },
+
+            async openPhaseDetails(phaseId) {
+                this.currentPhaseId = phaseId;
+                const panel = document.getElementById('phaseDetailsPanel');
+
+                try {
+                    const phase = await PhaseManager.getPhaseById(phaseId);
+                    if (!phase) return;
+
+                    // Update title
+                    document.getElementById('phaseDetailTitle').innerHTML = `<i class="fas fa-tasks"></i> ${this.escapeHtml(phase.name)}`;
+
+                    // Update status badge
+                    document.getElementById('phaseStatus').className = `phase-status-badge ${phase.status}`;
+                    document.getElementById('phaseStatus').textContent = this.formatStatus(phase.status);
+
+                    // Update progress
+                    document.getElementById('phaseProgressBar').style.width = `${phase.completionPercentage || 0}%`;
+                    document.getElementById('phaseProgressText').textContent = `${phase.completionPercentage || 0}%`;
+
+                    // Update dates
+                    document.getElementById('phasePlannedDuration').textContent =
+                        phase.plannedStartDate && phase.plannedEndDate
+                            ? `${this.formatDate(phase.plannedStartDate)} - ${this.formatDate(phase.plannedEndDate)}`
+                            : '-';
+                    document.getElementById('phaseActualDuration').textContent =
+                        phase.actualStartDate
+                            ? `${this.formatDate(phase.actualStartDate)}${phase.actualEndDate ? ' - ' + this.formatDate(phase.actualEndDate) : ' - ongoing'}`
+                            : '-';
+
+                    // Show/hide action buttons based on status
+                    const startBtn = document.getElementById('startPhaseBtn');
+                    const completeBtn = document.getElementById('completePhaseBtn');
+
+                    startBtn.classList.toggle('hidden', phase.status !== 'not_started');
+                    completeBtn.classList.toggle('hidden', phase.status === 'completed');
+
+                    // Load checklist and workers
+                    await this.loadChecklist(phaseId);
+                    await this.loadPhaseWorkers(phaseId);
+
+                    // Show panel
+                    panel.classList.remove('hidden');
+
+                    // Highlight active phase card
+                    document.querySelectorAll('.phase-card').forEach(card => card.classList.remove('active'));
+                    document.querySelector(`.phase-card[data-phase-id="${phaseId}"]`)?.classList.add('active');
+
+                } catch (error) {
+                    console.error('[PhaseUI] Error opening phase details:', error);
+                    ProjectApp.showToast('Error loading phase details', 'error');
+                }
+            },
+
+            closePhaseDetails() {
+                document.getElementById('phaseDetailsPanel').classList.add('hidden');
+                document.querySelectorAll('.phase-card').forEach(card => card.classList.remove('active'));
+                this.currentPhaseId = null;
+            },
+
+            async loadChecklist(phaseId) {
+                const container = document.getElementById('phaseChecklist');
+                const emptyState = document.getElementById('checklistEmpty');
+
+                try {
+                    const items = await PhaseManager.getChecklistItems(this.projectId, phaseId);
+
+                    if (!items || items.length === 0) {
+                        container.innerHTML = '';
+                        emptyState?.classList.remove('hidden');
+                        return;
+                    }
+
+                    emptyState?.classList.add('hidden');
+
+                    container.innerHTML = items.map(item => `
+                        <div class="checklist-item ${item.isCompleted ? 'completed' : ''}" data-item-id="${item.id}">
+                            <div class="checklist-checkbox ${item.isCompleted ? 'checked' : ''}" 
+                                 onclick="PhaseUI.toggleChecklistItem('${phaseId}', '${item.id}')">
+                                ${item.isCompleted ? '<i class="fas fa-check"></i>' : ''}
+                            </div>
+                            <div class="checklist-item-content">
+                                <div class="checklist-item-name">${this.escapeHtml(item.name)}</div>
+                                <div class="checklist-item-meta">
+                                    <span class="checklist-category">${item.category}</span>
+                                    ${item.isRequired ? '<span class="checklist-required">Required</span>' : ''}
+                                    ${item.completedAt ? `<span>Completed ${this.formatDate(item.completedAt)}</span>` : ''}
+                                </div>
+                            </div>
+                            <button class="action-btn delete" onclick="PhaseUI.deleteChecklistItem('${phaseId}', '${item.id}')" title="Delete">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    `).join('');
+
+                } catch (error) {
+                    console.error('[PhaseUI] Error loading checklist:', error);
+                }
+            },
+
+            async loadPhaseWorkers(phaseId) {
+                const container = document.getElementById('phaseWorkers');
+                const emptyState = document.getElementById('workersEmpty');
+
+                try {
+                    const assignments = await PhaseManager.getPhaseWorkers(this.projectId, phaseId);
+
+                    if (!assignments || assignments.length === 0) {
+                        container.innerHTML = '';
+                        emptyState?.classList.remove('hidden');
+                        return;
+                    }
+
+                    emptyState?.classList.add('hidden');
+
+                    container.innerHTML = assignments.map(a => `
+                        <div class="phase-worker-item" data-assignment-id="${a.id}">
+                            <div class="phase-worker-avatar">${this.getInitials(a.workerName)}</div>
+                            <div class="phase-worker-info">
+                                <div class="phase-worker-name">${this.escapeHtml(a.workerName)}</div>
+                                <div class="phase-worker-meta">
+                                    ${a.workType} ${a.startDate ? `• Started ${this.formatDate(a.startDate)}` : ''}
+                                </div>
+                            </div>
+                            <button class="action-btn delete" onclick="PhaseUI.removeWorkerAssignment('${phaseId}', '${a.id}')" title="Remove">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                    `).join('');
+
+                } catch (error) {
+                    console.error('[PhaseUI] Error loading phase workers:', error);
+                }
+            },
+
+            // Modal handlers
+            openPhaseModal(phaseId = null) {
+                const modal = document.getElementById('phaseModal');
+                const title = document.getElementById('phaseModalTitle');
+                const form = document.getElementById('phaseForm');
+
+                form.reset();
+                document.getElementById('phaseId').value = phaseId || '';
+                title.innerHTML = phaseId ? '<i class="fas fa-stream"></i> Edit Phase' : '<i class="fas fa-stream"></i> Add Phase';
+
+                modal.classList.remove('hidden');
+                modal.classList.add('active');
+            },
+
+            async editPhase(phaseId) {
+                const phase = await PhaseManager.getPhaseById(phaseId);
+                if (!phase) return;
+
+                document.getElementById('phaseId').value = phase.id;
+                document.getElementById('phaseName').value = phase.name;
+                document.getElementById('phaseDescription').value = phase.description || '';
+                document.getElementById('phasePlannedStart').value = phase.plannedStartDate ? phase.plannedStartDate.split('T')[0] : '';
+                document.getElementById('phasePlannedEnd').value = phase.plannedEndDate ? phase.plannedEndDate.split('T')[0] : '';
+
+                this.openPhaseModal(phaseId);
+            },
+
+            async handlePhaseSubmit(e) {
+                e.preventDefault();
+
+                const phaseId = document.getElementById('phaseId').value;
+                const phaseData = {
+                    name: document.getElementById('phaseName').value,
+                    description: document.getElementById('phaseDescription').value,
+                    plannedStartDate: document.getElementById('phasePlannedStart').value || null,
+                    plannedEndDate: document.getElementById('phasePlannedEnd').value || null
+                };
+
+                try {
+                    if (phaseId) {
+                        await PhaseManager.updatePhase(this.projectId, phaseId, phaseData);
+                        ProjectApp.showToast('Phase updated', 'success');
+                    } else {
+                        await PhaseManager.createPhase(this.projectId, phaseData);
+                        ProjectApp.showToast('Phase created', 'success');
+                    }
+
+                    ProjectApp.closeAllModals();
+                    await this.loadPhases();
+
+                    if (this.currentPhaseId === phaseId) {
+                        await this.openPhaseDetails(phaseId);
+                    }
+                } catch (error) {
+                    console.error('[PhaseUI] Error saving phase:', error);
+                    ProjectApp.showToast('Error saving phase', 'error');
+                }
+            },
+
+            async deletePhase(phaseId) {
+                if (!confirm('Delete this phase? This will also delete all checklist items and worker assignments.')) return;
+
+                try {
+                    await PhaseManager.deletePhase(this.projectId, phaseId);
+                    ProjectApp.showToast('Phase deleted', 'success');
+
+                    if (this.currentPhaseId === phaseId) {
+                        this.closePhaseDetails();
+                    }
+
+                    await this.loadPhases();
+                } catch (error) {
+                    console.error('[PhaseUI] Error deleting phase:', error);
+                    ProjectApp.showToast('Error deleting phase', 'error');
+                }
+            },
+
+            // Checklist handlers
+            openChecklistModal() {
+                if (!this.currentPhaseId) return;
+
+                const modal = document.getElementById('checklistItemModal');
+                document.getElementById('checklistItemForm').reset();
+                document.getElementById('checklistPhaseId').value = this.currentPhaseId;
+                document.getElementById('checklistItemId').value = '';
+
+                modal.classList.remove('hidden');
+                modal.classList.add('active');
+            },
+
+            async handleChecklistSubmit(e) {
+                e.preventDefault();
+
+                const phaseId = document.getElementById('checklistPhaseId').value;
+                const itemData = {
+                    name: document.getElementById('checklistItemName').value,
+                    category: document.getElementById('checklistItemCategory').value,
+                    isRequired: document.getElementById('checklistItemRequired').value === 'true'
+                };
+
+                try {
+                    await PhaseManager.addChecklistItem(this.projectId, phaseId, itemData);
+                    ProjectApp.showToast('Checklist item added', 'success');
+                    ProjectApp.closeAllModals();
+                    await this.loadChecklist(phaseId);
+                    await this.loadPhases(); // Refresh to update completion percentage
+                } catch (error) {
+                    console.error('[PhaseUI] Error adding checklist item:', error);
+                    ProjectApp.showToast('Error adding item', 'error');
+                }
+            },
+
+            async toggleChecklistItem(phaseId, itemId) {
+                try {
+                    await PhaseManager.toggleChecklistItem(this.projectId, phaseId, itemId);
+                    await this.loadChecklist(phaseId);
+                    await this.loadPhases();
+
+                    // Update progress in details panel
+                    const phase = await PhaseManager.getPhaseById(phaseId);
+                    if (phase) {
+                        document.getElementById('phaseProgressBar').style.width = `${phase.completionPercentage || 0}%`;
+                        document.getElementById('phaseProgressText').textContent = `${phase.completionPercentage || 0}%`;
+                    }
+                } catch (error) {
+                    console.error('[PhaseUI] Error toggling checklist item:', error);
+                    ProjectApp.showToast('Error updating item', 'error');
+                }
+            },
+
+            async deleteChecklistItem(phaseId, itemId) {
+                if (!confirm('Delete this checklist item?')) return;
+
+                try {
+                    await PhaseManager.deleteChecklistItem(this.projectId, phaseId, itemId);
+                    ProjectApp.showToast('Item deleted', 'success');
+                    await this.loadChecklist(phaseId);
+                    await this.loadPhases();
+                } catch (error) {
+                    console.error('[PhaseUI] Error deleting checklist item:', error);
+                    ProjectApp.showToast('Error deleting item', 'error');
+                }
+            },
+
+            // Worker assignment handlers
+            async openWorkerAssignModal() {
+                if (!this.currentPhaseId) return;
+
+                const modal = document.getElementById('phaseWorkerModal');
+                const select = document.getElementById('phaseWorkerSelect');
+
+                document.getElementById('phaseWorkerForm').reset();
+                document.getElementById('phaseWorkerPhaseId').value = this.currentPhaseId;
+
+                // Load workers from project
+                try {
+                    const workers = await Storage.getLabour(this.projectId);
+                    select.innerHTML = '<option value="">-- Select Worker --</option>' +
+                        workers.map(w => `<option value="${w.id}" data-name="${this.escapeHtml(w.workerName)}">${this.escapeHtml(w.workerName)} (${w.role})</option>`).join('');
+                } catch (error) {
+                    console.error('[PhaseUI] Error loading workers:', error);
+                }
+
+                modal.classList.remove('hidden');
+                modal.classList.add('active');
+            },
+
+            async handleWorkerAssignSubmit(e) {
+                e.preventDefault();
+
+                const phaseId = document.getElementById('phaseWorkerPhaseId').value;
+                const select = document.getElementById('phaseWorkerSelect');
+                const selectedOption = select.options[select.selectedIndex];
+
+                const assignmentData = {
+                    workerId: select.value,
+                    workerName: selectedOption.dataset.name || selectedOption.text.split(' (')[0],
+                    workType: document.getElementById('phaseWorkerWorkType').value,
+                    startDate: document.getElementById('phaseWorkerStartDate').value || null,
+                    endDate: document.getElementById('phaseWorkerEndDate').value || null,
+                    notes: document.getElementById('phaseWorkerNotes').value
+                };
+
+                try {
+                    await PhaseManager.assignWorker(this.projectId, phaseId, assignmentData);
+                    ProjectApp.showToast('Worker assigned', 'success');
+                    ProjectApp.closeAllModals();
+                    await this.loadPhaseWorkers(phaseId);
+                } catch (error) {
+                    console.error('[PhaseUI] Error assigning worker:', error);
+                    ProjectApp.showToast('Error assigning worker', 'error');
+                }
+            },
+
+            async removeWorkerAssignment(phaseId, assignmentId) {
+                if (!confirm('Remove this worker from the phase?')) return;
+
+                try {
+                    await PhaseManager.removeWorkerAssignment(this.projectId, phaseId, assignmentId);
+                    ProjectApp.showToast('Worker removed', 'success');
+                    await this.loadPhaseWorkers(phaseId);
+                } catch (error) {
+                    console.error('[PhaseUI] Error removing worker:', error);
+                    ProjectApp.showToast('Error removing worker', 'error');
+                }
+            },
+
+            // Phase status handlers
+            async startPhase() {
+                if (!this.currentPhaseId) return;
+
+                try {
+                    await PhaseManager.startPhase(this.projectId, this.currentPhaseId);
+                    ProjectApp.showToast('Phase started', 'success');
+                    await this.loadPhases();
+                    await this.openPhaseDetails(this.currentPhaseId);
+                } catch (error) {
+                    console.error('[PhaseUI] Error starting phase:', error);
+                    ProjectApp.showToast('Error starting phase', 'error');
+                }
+            },
+
+            async openCompleteModal() {
+                if (!this.currentPhaseId) return;
+
+                const modal = document.getElementById('phaseCompleteModal');
+                const blockersDiv = document.getElementById('phaseBlockers');
+                const blockersList = document.getElementById('phaseBlockersList');
+
+                document.getElementById('completePhaseId').value = this.currentPhaseId;
+                document.getElementById('phaseCompleteReason').value = '';
+
+                try {
+                    const { canComplete, blockers } = await PhaseManager.canCompletePhase(this.projectId, this.currentPhaseId);
+
+                    if (!canComplete && blockers.length > 0) {
+                        blockersList.innerHTML = blockers.map(b => `<li>${this.escapeHtml(b)}</li>`).join('');
+                        blockersDiv.classList.remove('hidden');
+                    } else {
+                        blockersDiv.classList.add('hidden');
+                    }
+
+                    modal.classList.remove('hidden');
+                    modal.classList.add('active');
+                } catch (error) {
+                    console.error('[PhaseUI] Error checking completion:', error);
+                    ProjectApp.showToast('Error checking completion status', 'error');
+                }
+            },
+
+            async confirmCompletePhase() {
+                const phaseId = document.getElementById('completePhaseId').value;
+                const reason = document.getElementById('phaseCompleteReason').value;
+
+                try {
+                    await PhaseManager.completePhase(this.projectId, phaseId, reason || null);
+                    ProjectApp.showToast('Phase completed', 'success');
+                    ProjectApp.closeAllModals();
+                    await this.loadPhases();
+                    await this.openPhaseDetails(phaseId);
+                } catch (error) {
+                    console.error('[PhaseUI] Error completing phase:', error);
+                    ProjectApp.showToast(error.message || 'Error completing phase', 'error');
+                }
+            },
+
+            // Utility functions
+            escapeHtml(str) {
+                if (!str) return '';
+                const div = document.createElement('div');
+                div.textContent = str;
+                return div.innerHTML;
+            },
+
+            formatStatus(status) {
+                const statusMap = {
+                    'not_started': 'Not Started',
+                    'in_progress': 'In Progress',
+                    'completed': 'Completed',
+                    'on_hold': 'On Hold'
+                };
+                return statusMap[status] || status;
+            },
+
+            formatDate(dateStr) {
+                if (!dateStr) return '-';
+                const date = new Date(dateStr);
+                return date.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+            },
+
+            getInitials(name) {
+                if (!name) return '?';
+                return name.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2);
+            }
+        };
+
+        window.PhaseUI = PhaseUI;
+
+        // Dashboard Dropdown Functions
+        function toggleDashboardDropdown(event) {
+            event.preventDefault();
+            event.stopPropagation();
+            const dropdown = document.getElementById('dashboardDropdown');
+            dropdown.classList.toggle('open');
+        }
+
+        async function loadSidebarProjects() {
+            try {
+                const projects = await Storage.projects.getAll();
+                const container = document.getElementById('sidebarProjectsList');
+                const currentProjectId = new URLSearchParams(window.location.search).get('id');
+
+                if (!projects || projects.length === 0) {
+                    container.innerHTML = '<div class="nav-dropdown-item" style="color: var(--gray-light);">No projects yet</div>';
+                    return;
+                }
+
+                container.innerHTML = projects.slice(0, 10).map(p => `
+                    <a href="project.html?id=${p.id}" class="nav-dropdown-item ${p.id === currentProjectId ? 'active' : ''}">
+                        <i class="fas fa-building"></i>
+                        <span>${escapeHtml(p.name || 'Unnamed Project')}</span>
+                    </a>
+                `).join('');
+
+                if (projects.length > 10) {
+                    container.innerHTML += '<a href="index.html" class="nav-dropdown-item"><i class="fas fa-ellipsis-h"></i> <span>View all...</span></a>';
+                }
+            } catch (error) {
+                console.error('Error loading sidebar projects:', error);
+            }
+        }
+
+        function escapeHtml(str) {
+            if (!str) return '';
+            const div = document.createElement('div');
+            div.textContent = str;
+            return div.innerHTML;
+        }
+
+        window.toggleDashboardDropdown = toggleDashboardDropdown;
+
+        onAuthStateChanged(auth, async (user) => {
+            if (!user) { window.location.href = 'login.html'; return; }
+
+            UserPreferences.trackActivity('project.html', new URLSearchParams(window.location.search).get('id'), 'project');
+
+            try {
+                await ProjectApp.init();
+                await loadSidebarProjects();
+                document.getElementById('pageLoader').classList.add('hidden');
+            } catch (error) {
+                console.error('Error initializing project:', error);
+                document.getElementById('pageLoader').classList.add('hidden');
+            }
+        });
+
+        document.getElementById('logoutBtn')?.addEventListener('click', async () => {
+            await signOut(auth);
+            window.location.href = 'login.html';
+        });
+
+        // Worker Payment Form Handler (if modal exists)
+        const workerPaymentForm = document.getElementById('workerPaymentForm');
+        if (workerPaymentForm) {
+            workerPaymentForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const projectId = new URLSearchParams(window.location.search).get('id');
+                try {
+                    await WorkerManagement.handleWorkerPaymentSubmit(e, projectId);
+                    ProjectApp.closeAllModals();
+                    await WorkerManagement.renderLabour(projectId);
+                    await ProjectApp.renderOverview();
+                    ProjectApp.showToast('Payment recorded successfully', 'success');
+                } catch (error) {
+                    console.error('Error recording payment:', error);
+                    ProjectApp.showToast('Error recording payment', 'error');
+                }
+            });
+        }
+
+        // Vendor Payment Form Handler
+        const vendorPaymentForm = document.getElementById('vendorPaymentForm');
+        if (vendorPaymentForm) {
+            vendorPaymentForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const projectId = new URLSearchParams(window.location.search).get('id');
+                try {
+                    await VendorManagement.handleVendorPaymentSubmit(e, projectId);
+                    ProjectApp.closeAllModals();
+                    await VendorManagement.renderVendors(projectId);
+                    await ProjectApp.renderOverview();
+                    ProjectApp.showToast('Payment recorded successfully', 'success');
+                } catch (error) {
+                    console.error('Error recording payment:', error);
+                    ProjectApp.showToast('Error recording payment', 'error');
+                }
+            });
+        }
+
+        // Attendance date change handler (if element exists)
+        const attendanceDateInput = document.getElementById('attendanceDateInput');
+        if (attendanceDateInput) {
+            attendanceDateInput.addEventListener('change', async (e) => {
+                const projectId = new URLSearchParams(window.location.search).get('id');
+                await WorkerManagement.loadAttendanceForDate(e.target.value, projectId);
+            });
+        }
+
+        // Tab navigation
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.addEventListener('click', async () => {
+                const tab = btn.dataset.tab;
+                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+                document.getElementById(tab + 'Tab').classList.add('active');
+
+                // Call appropriate render function for the tab
+                if (tab === 'summary') await ProjectApp.renderSummary();
+                if (tab === 'funds') await ProjectApp.renderFundStatus();
+                if (tab === 'vendors') await ProjectApp.renderVendors();
+                if (tab === 'floorplans') await ProjectApp.renderFloorPlans();
+                if (tab === 'timeline') {
+                    const projectId = new URLSearchParams(window.location.search).get('id');
+                    await PhaseUI.init(projectId);
+                }
+            });
+        });
+
+        // Mobile Toggle Logic
+        document.getElementById('mobileSidebarToggle')?.addEventListener('click', () => {
+            document.querySelector('.sidebar').classList.add('open');
+            document.getElementById('sidebarOverlay').classList.add('active');
+        });
+
+        document.getElementById('sidebarOverlay')?.addEventListener('click', () => {
+            document.querySelector('.sidebar').classList.remove('open');
+            document.getElementById('sidebarOverlay').classList.remove('active');
+        });
+
+        // Close sidebar on link click (for mobile)
+        document.querySelectorAll('.sidebar .nav-item, .sidebar .nav-dropdown-item').forEach(link => {
+            link.addEventListener('click', (e) => {
+                // Don't close if it's the dropdown toggle itself
+                if (link.getAttribute('onclick')?.includes('toggleDashboardDropdown')) return;
+
+                if (window.innerWidth <= 768) {
+                    document.querySelector('.sidebar').classList.remove('open');
+                    document.getElementById('sidebarOverlay').classList.remove('active');
+                }
+            });
+        });
+    </script>
+</body>
+
+</html>
