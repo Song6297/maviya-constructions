@@ -1,4 +1,4 @@
-# Maviya Constructions - Construction Management System
+# B&B - Bricks & Bits | Smart Construction Management
 
 A comprehensive web-based construction project management application designed for contractors and construction companies to manage projects, materials, labour, expenses, and client payments efficiently.
 
@@ -28,7 +28,7 @@ A comprehensive web-based construction project management application designed f
 - **Category Organization**: Organize materials by Structural, Finishing, Electrical, Plumbing, Hardware, etc.
 - **Real-time Calculation**: Automatic total and balance calculation in material forms
 
-### Labour Calendar System (NEW)
+### Labour Calendar System
 - **Calendar View**: Visual calendar for tracking daily work entries
 - **Attendance Marking**: Mark Present/Half-Day/Absent for multiple workers at once
 - **Work Entry Tracking**: Record daily work with automatic earnings calculation
@@ -57,7 +57,7 @@ A comprehensive web-based construction project management application designed f
 - **Preview**: View images and PDFs directly in the app
 - **Notes**: Add notes to each document
 
-### Company Branding (NEW)
+### Company Branding
 - **Company Logo**: Upload and display company logo across the app
 - **Logo on Banners**: Logo appears on Hub, Dashboard, and Labour Calendar
 - **Auto-Compression**: Images automatically compressed to fit storage limits
@@ -95,17 +95,17 @@ A comprehensive web-based construction project management application designed f
 - **Document Storage**: Extended document storage
 - **Priority Support**: Faster response times
 
-## 🎨 Design
+## 🎨 Design & Branding (NEW v3.0)
 
-- **Modern UI**: Clean, professional interface with blue/teal theme
-- **Responsive Design**: Works seamlessly on desktop, tablet, and mobile devices
-- **Light Theme**: Easy on the eyes with sky-blue accent colors (#0EA5E9, #0284C7)
-- **Intuitive Navigation**: Tab-based interface for easy access to all features
-- **Visual Feedback**: Color-coded status indicators and progress bars
+- **Construction Theme**: A bold, high-contrast palette of Construction Yellow (#F7B500) and Deep Black (#1A1A1A).
+- **Modern UI**: Clean, card-based professional interface inspired by industrial design.
+- **Responsive Design**: Works seamlessly on desktop, tablet, and mobile devices.
+- **Interactive Animations**: Smooth transitions, loading animations (Brick & Bits loader), and hover states.
+- **Visual Feedback**: Real-time color-coded status indicators and dynamic progress bars.
 
 ## 💾 Technology Stack
 
-- **Frontend**: HTML5, CSS3 (Tailwind CSS), JavaScript (ES6+)
+- **Frontend**: HTML5, CSS3 (Vanilla CSS + Tailwind CSS utilities), JavaScript (ES6+)
 - **Backend**: Firebase (Authentication & Firestore Database)
 - **Authentication**: Email/Password via Firebase Auth
 - **Database**: Cloud Firestore (real-time NoSQL database)
@@ -114,23 +114,12 @@ A comprehensive web-based construction project management application designed f
 - **Icons**: Font Awesome 6.4.0
 - **Deployment**: Vercel (static hosting)
 
-## 🔐 Authentication
-
-The application uses Firebase Authentication with email/password:
-
-1. **Sign Up**: Create a new account with email and password
-2. **Login**: Access your account with credentials
-3. **Password Reset**: Reset password via email
-4. **Logout**: Securely sign out from the dashboard
-
-All data is stored per-user in Firebase Firestore, ensuring data privacy and security.
-
 ## 📦 Installation
 
 ### Local Development
 
 1. Clone or download the repository
-2. Start a local HTTP server (required for ES6 modules):
+2. Start a local HTTP server:
    ```bash
    # Using Python 3
    python3 -m http.server 8000
@@ -138,10 +127,9 @@ All data is stored per-user in Firebase Firestore, ensuring data privacy and sec
    # Or using Node.js
    npx serve
    ```
-3. Open `http://localhost:8000` in your browser
-4. Create an account or login to start using the app
+3. Open `http://localhost:8000` in your browser. (The app starts at the landing page, `index.html`)
 
-**Note**: The app requires an HTTP server due to ES6 module imports. Opening `index.html` directly will not work.
+**Note**: The app requires an HTTP server due to ES6 module imports. 
 
 ### Deployment to Vercel
 
@@ -161,24 +149,20 @@ All data is stored per-user in Firebase Firestore, ensuring data privacy and sec
 
 ```
 maviya-constructions/
-├── index.html              # Main dashboard (requires auth)
+├── index.html              # Main Landing Page (v3.0)
+├── dashboard.html          # App Dashboard (requires auth)
 ├── login.html              # Login/Signup page
 ├── project.html            # Project detail page
 ├── materials.html          # Material stock management
 ├── payments.html           # Payment tracking
-├── compare.html            # Project comparison
-├── migrate.html            # Data migration tool
-├── vercel.json            # Vercel configuration
+├── hub.html                # Workspace Hub
 ├── css/
-│   ├── styles.css         # Main styles
-│   ├── styles-sidebar.css # Sidebar styles
-│   ├── styles-professional.css # Professional theme
-│   ├── styles-construction.css # Construction theme
-│   ├── settings.css       # Settings page styles
-│   └── logo-loader.css    # Logo loader animation
+│   ├── styles-professional.css # Main Construction Professional Theme
+│   ├── styles-construction.css  # Alternate Construction styling
+│   └── logo-loader.css    # Custom Brick & Bits loader animation
 ├── js/
-│   ├── app.js             # Dashboard logic (Firebase)
-│   ├── project.js         # Project detail logic (Firebase)
+│   ├── app.js             # Dashboard logic
+│   ├── project.js         # Project detail logic
 │   ├── firebase-config.js # Firebase configuration
 │   ├── firebase-storage.js# Firebase Firestore adapter
 │   ├── auth.js            # Authentication logic
@@ -263,13 +247,13 @@ const DOC_CATEGORIES = ['Agreement', 'Drawing', 'Bill', 'BOQ', 'Invoice', 'Recei
 4. View payment summary with total received and pending
 
 ### Generating Reports
-1. Click "Export" dropdown in project header
-2. Choose report type:
-   - **Full Report**: Complete PDF with all project data
-   - **Materials CSV**: Export materials data
-   - **Labour CSV**: Export labour records
-   - **Expenses CSV**: Export expenses
-3. Or generate specific invoices from each tab
+11. Click "Export" dropdown in project header
+12. Choose report type:
+    - **Full Report**: Complete PDF with all project data
+    - **Materials CSV**: Export materials data
+    - **Labour CSV**: Export labour records
+    - **Expenses CSV**: Export expenses
+13. Or generate specific invoices from each tab
 
 ### Completing a Project
 1. Edit project details
@@ -386,59 +370,28 @@ For issues, questions, or feature requests, please contact the development team.
 
 ## 📈 Version History
 
-### v2.1.0 (January 2026) - Latest
+### v3.0.0 (February 2026) - Current Release
+**Construction Rebranding & Landing Page**
+- **New Brand Identity**: Rebranded as **B&B - Bricks & Bits** with a full Construction Yellow/Black theme.
+- **Landing Page Redesign**: Commercially focused `index.html` with hero, features, testimonials, and company info.
+- **Structural Update**: `index.html` is now the landing page; the old dashboard is now `dashboard.html`.
+- **Green Purge**: Removed all remnants of the previous green theme across HTML, CSS, and JS.
+- **UI Consistency**: Standardized cards, loaders, and status indicators globally.
+
+### v2.1.0 (January 2026)
 **Labour Calendar System**
-- Calendar-centric labour management with daily work tracking
-- Mark attendance (Present/Half-Day/Absent) for multiple workers at once
-- Track work entries by date with automatic earnings calculation
-- Labour payments with FIFO-based paid/unpaid date tracking
-- Meeting scheduler for site meetings
-- Work type rates configuration
-- Project-wise labour summary with paid/unpaid dates breakdown
-
-**Company Branding**
-- Company logo upload in Settings
-- Logo displayed on Hub, Dashboard, and Labour Calendar banners
-- Auto-compression for images (200x200px, max 500KB)
-- Warning toasts for image compression status
-
-**Enhanced Project Features**
-- Phase Management with customizable project phases
-- Vendor Management for project-specific services
-- Financial Calculator for advanced calculations
-- Improved sidebar navigation with project dropdown
-
-**Premium Features**
-- Premium subscription system (₹199/month)
-- Fund Management across multiple projects
-- Floor Plans viewer
-- Document storage
-- Admin panel for payment verification
-
-**UI/UX Improvements**
-- New professional theme with construction styling
-- Responsive sidebar with hover expansion
-- Logo loader animation
-- Settings page with comprehensive account management
-- Status page for system diagnostics
+- Calendar-centric labour management with daily work tracking.
+- Mark attendance (Present/Half-Day/Absent) for multiple workers at once.
+- Labour payments with FIFO-based paid/unpaid date tracking.
+- Meeting scheduler for site meetings.
 
 ### v2.0.0 (2024)
-- Firebase migration from localStorage
-- Multi-user authentication
-- Cloud data sync across devices
-- Real-time updates
+- Firebase migration from localStorage.
+- Multi-user authentication.
+- Cloud data sync across devices.
 
 ### v1.0.0 (Initial)
-- Initial release
-- Complete project management system
-- Material, labour, and expense tracking
-- Client payment management
-- Document management
-- PDF and CSV export
-- Invoice generation
-- Budget tracking and alerts
-- Daily site logs
-- Multi-project comparison
+- Initial release with complete project management system.
 
 ---
 
