@@ -1,97 +1,342 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>B&B - Payments | Bricks & Bits</title>
     <script>
         // Apply saved theme immediately to prevent flash
-        (function() {
+        (function () {
             const theme = localStorage.getItem('bb_theme') || 'light';
-            const accent = localStorage.getItem('bb_accent') || 'green';
+            const accent = localStorage.getItem('bb_accent') || 'yellow';
             if (theme === 'dark') document.documentElement.setAttribute('data-theme', 'dark');
             else if (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches) {
                 document.documentElement.setAttribute('data-theme', 'dark');
             }
-            if (accent !== 'green') document.documentElement.setAttribute('data-accent', accent);
+            if (accent !== 'yellow') document.documentElement.setAttribute('data-accent', accent);
         })();
     </script>
-    <link rel="icon" type="image/png" href="B&B.png">
+    <link rel="icon" type="image/svg+xml" href="logo.svg">
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link href="css/styles-professional.css" rel="stylesheet">
     <style>
-        body { font-family: 'Inter', sans-serif; }
-        .app-wrapper { display: flex; min-height: 100vh; }
-        
-        .sidebar { width: 64px; background: var(--white); padding: 1rem 0.5rem; display: flex; flex-direction: column; position: fixed; left: 0; top: 0; bottom: 0; border-right: 1px solid var(--border); z-index: 100; transition: width 0.3s ease; overflow: hidden; }
-        .sidebar:hover { width: 200px; }
-        .sidebar:hover .nav-text, .sidebar:hover .logo-text, .sidebar:hover .logout-text { opacity: 1; width: auto; }
-        .nav-text, .logo-text, .logout-text { opacity: 0; width: 0; overflow: hidden; white-space: nowrap; transition: opacity 0.2s ease; }
-        
-        .logo-section { text-align: center; padding: 0.5rem 0 1rem; border-bottom: 1px solid var(--border); margin-bottom: 1rem; }
-        .logo-link { text-decoration: none; display: flex; flex-direction: column; align-items: center; gap: 0.25rem; }
-        .logo-img { width: 32px; height: 32px; }
-        .logo-text { font-size: 0.875rem; font-weight: 700; color: var(--primary); }
-        
-        .nav-menu { display: flex; flex-direction: column; gap: 0.25rem; flex: 1; }
-        .nav-item { display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem; border-radius: 8px; text-decoration: none; color: var(--gray); font-weight: 600; font-size: 0.8125rem; transition: all 0.2s; }
-        .nav-item:hover { background: var(--primary-muted); color: var(--primary); }
-        .nav-item.active { background: var(--primary); color: white; }
-        .nav-icon { font-size: 1rem; width: 20px; text-align: center; flex-shrink: 0; }
-        .nav-divider { height: 1px; background: var(--border); margin: 0.5rem 0.75rem; }
-        
-        .sidebar-footer { padding-top: 0.75rem; border-top: 1px solid var(--border); }
-        .logout-btn { width: 100%; padding: 0.75rem; background: none; border: none; border-radius: 6px; font-weight: 600; color: var(--gray); cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 0.75rem; font-size: 0.8125rem; }
-        .logout-btn:hover { background: var(--error-light); color: var(--error); }
-        
-        .main-content { flex: 1; margin-left: 64px; padding: 1.5rem 2rem; transition: margin-left 0.3s ease; }
-        .sidebar:hover ~ .main-content { margin-left: 200px; }
-        
-        .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
-        .page-title { font-size: 1.5rem; font-weight: 700; color: var(--dark); }
-        
-        .summary-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; margin-bottom: 1.5rem; }
-        .summary-item { background: var(--white); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 1.25rem; text-align: center; }
-        .summary-label { font-size: 0.6875rem; font-weight: 700; color: var(--gray); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 0.5rem; }
-        .summary-value { font-size: 1.5rem; font-weight: 800; }
-        .summary-value.total { color: var(--primary); }
-        .summary-value.pending { color: var(--warning); }
-        .summary-value.paid { color: var(--success); }
-        .summary-value.overdue { color: var(--error); }
-        
-        .filters-row { display: flex; flex-wrap: wrap; gap: 0.75rem; margin-bottom: 1.5rem; }
-        .filter-select { padding: 0.625rem 1rem; border: 1px solid var(--border); border-radius: var(--radius-md); font-weight: 600; font-size: 0.8125rem; background: var(--white); color: var(--dark); min-width: 140px; }
-        .filter-select:focus { outline: none; border-color: var(--primary); }
-        
-        .section-card { background: var(--white); border: 1px solid var(--border); border-radius: var(--radius-xl); padding: 1.5rem; margin-bottom: 1.5rem; }
-        
-        .data-table { width: 100%; border-collapse: collapse; }
-        .data-table th { padding: 0.75rem 1rem; text-align: left; font-weight: 700; color: var(--gray); font-size: 0.6875rem; text-transform: uppercase; letter-spacing: 0.5px; background: var(--bg-light); border-bottom: 1px solid var(--border); }
-        .data-table td { padding: 0.875rem 1rem; font-size: 0.8125rem; color: var(--dark); border-bottom: 1px solid var(--border); }
-        .data-table tr:hover td { background: var(--bg-card); }
-        
-        .overflow-x-auto { overflow-x: auto; }
-        
-        @media (max-width: 1024px) { .summary-grid { grid-template-columns: repeat(2, 1fr); } }
-        @media (max-width: 768px) { .sidebar { display: none; } .main-content { margin-left: 0; padding: 1rem; } }
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+
+        .app-wrapper {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        .sidebar {
+            width: 64px;
+            background: var(--white);
+            padding: 1rem 0.5rem;
+            display: flex;
+            flex-direction: column;
+            position: fixed;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            border-right: 1px solid var(--border);
+            z-index: 100;
+            transition: width 0.3s ease;
+            overflow: hidden;
+        }
+
+        .sidebar:hover {
+            width: 200px;
+        }
+
+        .sidebar:hover .nav-text,
+        .sidebar:hover .logo-text,
+        .sidebar:hover .logout-text {
+            opacity: 1;
+            width: auto;
+        }
+
+        .nav-text,
+        .logo-text,
+        .logout-text {
+            opacity: 0;
+            width: 0;
+            overflow: hidden;
+            white-space: nowrap;
+            transition: opacity 0.2s ease;
+        }
+
+        .logo-section {
+            text-align: center;
+            padding: 0.5rem 0 1rem;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 1rem;
+        }
+
+        .logo-link {
+            text-decoration: none;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.25rem;
+        }
+
+        .logo-img {
+            width: 32px;
+            height: 32px;
+        }
+
+        .logo-text {
+            font-size: 0.875rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .nav-menu {
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+            flex: 1;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem;
+            border-radius: 8px;
+            text-decoration: none;
+            color: var(--gray);
+            font-weight: 600;
+            font-size: 0.8125rem;
+            transition: all 0.2s;
+        }
+
+        .nav-item:hover {
+            background: var(--primary-muted);
+            color: var(--primary);
+        }
+
+        .nav-item.active {
+            background: var(--primary);
+            color: white;
+        }
+
+        .nav-icon {
+            font-size: 1rem;
+            width: 20px;
+            text-align: center;
+            flex-shrink: 0;
+        }
+
+        .nav-divider {
+            height: 1px;
+            background: var(--border);
+            margin: 0.5rem 0.75rem;
+        }
+
+        .sidebar-footer {
+            padding-top: 0.75rem;
+            border-top: 1px solid var(--border);
+        }
+
+        .logout-btn {
+            width: 100%;
+            padding: 0.75rem;
+            background: none;
+            border: none;
+            border-radius: 6px;
+            font-weight: 600;
+            color: var(--gray);
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-size: 0.8125rem;
+        }
+
+        .logout-btn:hover {
+            background: var(--error-light);
+            color: var(--error);
+        }
+
+        .main-content {
+            flex: 1;
+            margin-left: 64px;
+            padding: 1.5rem 2rem;
+            transition: margin-left 0.3s ease;
+        }
+
+        .sidebar:hover~.main-content {
+            margin-left: 200px;
+        }
+
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .page-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--dark);
+        }
+
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .summary-item {
+            background: var(--white);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 1.5rem;
+            text-align: center;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
+            transition: all 0.3s ease;
+        }
+
+        .summary-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+        }
+
+        .summary-label {
+            font-size: 0.6875rem;
+            font-weight: 700;
+            color: var(--gray);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 0.5rem;
+        }
+
+        .summary-value {
+            font-size: 1.5rem;
+            font-weight: 800;
+        }
+
+        .summary-value.total {
+            color: var(--primary);
+        }
+
+        .summary-value.pending {
+            color: var(--warning);
+        }
+
+        .summary-value.paid {
+            color: var(--success);
+        }
+
+        .summary-value.overdue {
+            color: var(--error);
+        }
+
+        .filters-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .filter-select {
+            padding: 0.625rem 1rem;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            font-weight: 600;
+            font-size: 0.8125rem;
+            background: var(--white);
+            color: var(--dark);
+            min-width: 140px;
+        }
+
+        .filter-select:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .section-card {
+            background: var(--white);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .data-table th {
+            padding: 0.75rem 1rem;
+            text-align: left;
+            font-weight: 700;
+            color: var(--gray);
+            font-size: 0.6875rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            background: var(--bg-light);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .data-table td {
+            padding: 0.875rem 1rem;
+            font-size: 0.8125rem;
+            color: var(--dark);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .data-table tr:hover td {
+            background: var(--bg-card);
+        }
+
+        .overflow-x-auto {
+            overflow-x: auto;
+        }
+
+        @media (max-width: 1024px) {
+            .summary-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                display: none;
+            }
+
+            .main-content {
+                margin-left: 0;
+                padding: 1rem;
+            }
+        }
     </style>
 </head>
+
 <body>
     <link href="css/logo-loader.css" rel="stylesheet">
     <div id="pageLoader" class="loading-overlay">
         <svg class="logo-loader" width="120" height="110" viewBox="0 0 200 160" xmlns="http://www.w3.org/2000/svg">
-            <rect class="brick bit b1" x="20" y="100" width="24" height="24" rx="3"/>
-            <rect class="brick" x="48" y="100" width="24" height="24" rx="3"/>
-            <rect class="brick bit b2" x="76" y="100" width="24" height="24" rx="3"/>
-            <rect class="brick" x="104" y="100" width="24" height="24" rx="3"/>
-            <rect class="brick bit b3" x="132" y="100" width="24" height="24" rx="3"/>
-            <rect class="brick" x="48" y="72" width="24" height="24" rx="3"/>
-            <rect class="brick bit b4" x="76" y="72" width="24" height="24" rx="3"/>
-            <rect class="brick" x="104" y="72" width="24" height="24" rx="3"/>
-            <rect class="brick bit b5" x="76" y="44" width="24" height="24" rx="3"/>
-            <rect class="brick" x="104" y="44" width="24" height="24" rx="3"/>
+            <rect class="brick bit b1" x="20" y="100" width="24" height="24" rx="3" />
+            <rect class="brick" x="48" y="100" width="24" height="24" rx="3" />
+            <rect class="brick bit b2" x="76" y="100" width="24" height="24" rx="3" />
+            <rect class="brick" x="104" y="100" width="24" height="24" rx="3" />
+            <rect class="brick bit b3" x="132" y="100" width="24" height="24" rx="3" />
+            <rect class="brick" x="48" y="72" width="24" height="24" rx="3" />
+            <rect class="brick bit b4" x="76" y="72" width="24" height="24" rx="3" />
+            <rect class="brick" x="104" y="72" width="24" height="24" rx="3" />
+            <rect class="brick bit b5" x="76" y="44" width="24" height="24" rx="3" />
+            <rect class="brick" x="104" y="44" width="24" height="24" rx="3" />
         </svg>
         <p class="loading-text">Loading payments...</p>
     </div>
@@ -100,17 +345,28 @@
         <aside class="sidebar">
             <div class="logo-section">
                 <a href="hub.html" class="logo-link">
-                    <svg class="logo-img" viewBox="0 0 140 110" xmlns="http://www.w3.org/2000/svg" style="width:32px;height:32px;">
-                        <rect x="0" y="56" width="17" height="17" rx="2" fill="#2f2f2f" stroke="#000" stroke-width="1.5"/>
-                        <rect x="20" y="56" width="17" height="17" rx="2" fill="#b7c8b8" stroke="#000" stroke-width="1.5"/>
-                        <rect x="40" y="56" width="17" height="17" rx="2" fill="#2f2f2f" stroke="#000" stroke-width="1.5"/>
-                        <rect x="60" y="56" width="17" height="17" rx="2" fill="#b7c8b8" stroke="#000" stroke-width="1.5"/>
-                        <rect x="80" y="56" width="17" height="17" rx="2" fill="#2f2f2f" stroke="#000" stroke-width="1.5"/>
-                        <rect x="20" y="36" width="17" height="17" rx="2" fill="#b7c8b8" stroke="#000" stroke-width="1.5"/>
-                        <rect x="40" y="36" width="17" height="17" rx="2" fill="#2f2f2f" stroke="#000" stroke-width="1.5"/>
-                        <rect x="60" y="36" width="17" height="17" rx="2" fill="#b7c8b8" stroke="#000" stroke-width="1.5"/>
-                        <rect x="40" y="16" width="17" height="17" rx="2" fill="#b7c8b8" stroke="#000" stroke-width="1.5"/>
-                        <rect x="60" y="16" width="17" height="17" rx="2" fill="#b7c8b8" stroke="#000" stroke-width="1.5"/>
+                    <svg class="logo-img" viewBox="0 0 140 110" xmlns="http://www.w3.org/2000/svg"
+                        style="width:32px;height:32px;">
+                        <rect x="0" y="56" width="17" height="17" rx="2" fill="var(--accent)" stroke="#000"
+                            stroke-width="1.5" />
+                        <rect x="20" y="56" width="17" height="17" rx="2" fill="var(--primary)" stroke="#000"
+                            stroke-width="1.5" />
+                        <rect x="40" y="56" width="17" height="17" rx="2" fill="var(--accent)" stroke="#000"
+                            stroke-width="1.5" />
+                        <rect x="60" y="56" width="17" height="17" rx="2" fill="var(--primary)" stroke="#000"
+                            stroke-width="1.5" />
+                        <rect x="80" y="56" width="17" height="17" rx="2" fill="var(--accent)" stroke="#000"
+                            stroke-width="1.5" />
+                        <rect x="20" y="36" width="17" height="17" rx="2" fill="var(--primary)" stroke="#000"
+                            stroke-width="1.5" />
+                        <rect x="40" y="36" width="17" height="17" rx="2" fill="var(--accent)" stroke="#000"
+                            stroke-width="1.5" />
+                        <rect x="60" y="36" width="17" height="17" rx="2" fill="var(--primary)" stroke="#000"
+                            stroke-width="1.5" />
+                        <rect x="40" y="16" width="17" height="17" rx="2" fill="var(--primary)" stroke="#000"
+                            stroke-width="1.5" />
+                        <rect x="60" y="16" width="17" height="17" rx="2" fill="var(--primary)" stroke="#000"
+                            stroke-width="1.5" />
                     </svg>
                     <span class="logo-text">B&B</span>
                 </a>
@@ -123,7 +379,7 @@
                         <i class="fas fa-chevron-down nav-caret"></i>
                     </div>
                     <div class="nav-dropdown">
-                        <a href="index.html" class="nav-dropdown-item">
+                        <a href="dashboard.html" class="nav-dropdown-item">
                             <i class="fas fa-tachometer-alt"></i>
                             <span>Go to Dashboard</span>
                         </a>
@@ -136,18 +392,26 @@
                         </div>
                     </div>
                 </div>
-                <a href="compare.html" class="nav-item" title="Compare"><i class="fas fa-chart-bar nav-icon"></i><span class="nav-text">Compare</span></a>
-                <a href="payments.html" class="nav-item active" title="Payments"><i class="fas fa-credit-card nav-icon"></i><span class="nav-text">Payments</span></a>
-                <a href="funds.html" class="nav-item" title="Funds"><i class="fas fa-wallet nav-icon"></i><span class="nav-text">Funds</span></a>
-                <a href="materials.html" class="nav-item" title="Materials"><i class="fas fa-boxes nav-icon"></i><span class="nav-text">Materials</span></a>
+                <a href="compare.html" class="nav-item" title="Compare"><i class="fas fa-chart-bar nav-icon"></i><span
+                        class="nav-text">Compare</span></a>
+                <a href="payments.html" class="nav-item active" title="Payments"><i
+                        class="fas fa-credit-card nav-icon"></i><span class="nav-text">Payments</span></a>
+                <a href="funds.html" class="nav-item" title="Funds"><i class="fas fa-wallet nav-icon"></i><span
+                        class="nav-text">Funds</span></a>
+                <a href="materials.html" class="nav-item" title="Materials"><i class="fas fa-boxes nav-icon"></i><span
+                        class="nav-text">Materials</span></a>
                 <div class="nav-divider"></div>
-                <a href="hub.html" class="nav-item" title="Hub"><i class="fas fa-home nav-icon"></i><span class="nav-text">Hub</span></a>
+                <a href="hub.html" class="nav-item" title="Hub"><i class="fas fa-home nav-icon"></i><span
+                        class="nav-text">Hub</span></a>
                 <div class="nav-divider"></div>
-                <a href="about.html" class="nav-item" title="Help"><i class="fas fa-life-ring nav-icon"></i><span class="nav-text">Help</span></a>
-                <a href="settings.html" class="nav-item" title="Settings"><i class="fas fa-cog nav-icon"></i><span class="nav-text">Settings</span></a>
+                <a href="about.html" class="nav-item" title="Help"><i class="fas fa-life-ring nav-icon"></i><span
+                        class="nav-text">Help</span></a>
+                <a href="settings.html" class="nav-item" title="Settings"><i class="fas fa-cog nav-icon"></i><span
+                        class="nav-text">Settings</span></a>
             </nav>
             <div class="sidebar-footer">
-                <button id="logoutBtn" class="logout-btn" title="Logout"><i class="fas fa-sign-out-alt"></i><span class="logout-text">Logout</span></button>
+                <button id="logoutBtn" class="logout-btn" title="Logout"><i class="fas fa-sign-out-alt"></i><span
+                        class="logout-text">Logout</span></button>
             </div>
         </aside>
 
@@ -158,10 +422,22 @@
             </div>
 
             <div class="summary-grid">
-                <div class="summary-item"><p class="summary-label">Total Payable</p><p class="summary-value total" id="totalPayable">₹0</p></div>
-                <div class="summary-item"><p class="summary-label">Pending</p><p class="summary-value pending" id="totalPending">₹0</p></div>
-                <div class="summary-item"><p class="summary-label">Paid</p><p class="summary-value paid" id="totalPaid">₹0</p></div>
-                <div class="summary-item"><p class="summary-label">Overdue</p><p class="summary-value overdue" id="totalOverdue">₹0</p></div>
+                <div class="summary-item">
+                    <p class="summary-label">Total Payable</p>
+                    <p class="summary-value total" id="totalPayable">₹0</p>
+                </div>
+                <div class="summary-item">
+                    <p class="summary-label">Pending</p>
+                    <p class="summary-value pending" id="totalPending">₹0</p>
+                </div>
+                <div class="summary-item">
+                    <p class="summary-label">Paid</p>
+                    <p class="summary-value paid" id="totalPaid">₹0</p>
+                </div>
+                <div class="summary-item">
+                    <p class="summary-label">Overdue</p>
+                    <p class="summary-value overdue" id="totalOverdue">₹0</p>
+                </div>
             </div>
 
             <div class="filters-row">
@@ -187,27 +463,42 @@
                 <div class="overflow-x-auto">
                     <table class="data-table">
                         <thead>
-                            <tr><th>Vendor/Payee</th><th>Type</th><th>Project</th><th>Amount</th><th>Due Date</th><th>Status</th><th>Actions</th></tr>
+                            <tr>
+                                <th>Vendor/Payee</th>
+                                <th>Type</th>
+                                <th>Project</th>
+                                <th>Amount</th>
+                                <th>Due Date</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
                         </thead>
                         <tbody id="paymentsTableBody"></tbody>
                     </table>
                 </div>
-                <div id="emptyState" class="empty-state hidden"><i class="fas fa-wallet"></i><p>No payments recorded</p></div>
+                <div id="emptyState" class="empty-state hidden"><i class="fas fa-wallet"></i>
+                    <p>No payments recorded</p>
+                </div>
             </div>
         </main>
     </div>
 
     <!-- Payment Modal -->
     <div id="paymentModal" class="modal-overlay hidden">
-        <div class="modal-content" style="max-width: 550px; border-radius: var(--radius-xl); overflow: hidden; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);">
-            <div class="modal-header" style="background: linear-gradient(135deg, var(--primary), var(--primary-dark, #3D6B4A)); padding: 1.5rem; display: flex; justify-content: space-between; align-items: center;">
+        <div class="modal-content"
+            style="max-width: 550px; border-radius: var(--radius-xl); overflow: hidden; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);">
+            <div class="modal-header"
+                style="background: linear-gradient(135deg, var(--primary), var(--primary-dark, var(--primary-dark))); padding: 1.5rem; display: flex; justify-content: space-between; align-items: center;">
                 <div style="display: flex; align-items: center; gap: 0.75rem;">
-                    <div style="width: 40px; height: 40px; background: rgba(255,255,255,0.2); border-radius: 10px; display: flex; align-items: center; justify-content: center;">
+                    <div
+                        style="width: 40px; height: 40px; background: rgba(255,255,255,0.2); border-radius: 10px; display: flex; align-items: center; justify-content: center;">
                         <i class="fas fa-credit-card" style="color: white; font-size: 1.25rem;"></i>
                     </div>
-                    <h3 id="modalTitle" style="color: white; font-size: 1.25rem; font-weight: 700; margin: 0;">Add Payment</h3>
+                    <h3 id="modalTitle" style="color: white; font-size: 1.25rem; font-weight: 700; margin: 0;">Add
+                        Payment</h3>
                 </div>
-                <button class="close-modal" style="background: rgba(255,255,255,0.2); border: none; width: 36px; height: 36px; border-radius: 8px; cursor: pointer; color: white; font-size: 1rem; transition: all 0.2s;">
+                <button class="close-modal"
+                    style="background: rgba(255,255,255,0.2); border: none; width: 36px; height: 36px; border-radius: 8px; cursor: pointer; color: white; font-size: 1rem; transition: all 0.2s;">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
@@ -215,16 +506,20 @@
                 <input type="hidden" id="paymentId">
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.25rem;">
                     <div class="form-group">
-                        <label class="form-label" style="font-weight: 600; color: var(--dark); margin-bottom: 0.5rem; display: block; font-size: 0.875rem;">
+                        <label class="form-label"
+                            style="font-weight: 600; color: var(--dark); margin-bottom: 0.5rem; display: block; font-size: 0.875rem;">
                             <i class="fas fa-user text-primary mr-1"></i> Vendor/Payee Name *
                         </label>
-                        <input type="text" id="vendorName" required class="form-input" placeholder="Enter name" style="padding: 0.75rem 1rem; border-radius: var(--radius-md); border: 1px solid var(--border); width: 100%; font-size: 0.9375rem;">
+                        <input type="text" id="vendorName" required class="form-input" placeholder="Enter name"
+                            style="padding: 0.75rem 1rem; border-radius: var(--radius-md); border: 1px solid var(--border); width: 100%; font-size: 0.9375rem;">
                     </div>
                     <div class="form-group">
-                        <label class="form-label" style="font-weight: 600; color: var(--dark); margin-bottom: 0.5rem; display: block; font-size: 0.875rem;">
+                        <label class="form-label"
+                            style="font-weight: 600; color: var(--dark); margin-bottom: 0.5rem; display: block; font-size: 0.875rem;">
                             <i class="fas fa-tag text-primary mr-1"></i> Type *
                         </label>
-                        <select id="paymentType" required class="form-input form-select" style="padding: 0.75rem 1rem; border-radius: var(--radius-md); border: 1px solid var(--border); width: 100%; font-size: 0.9375rem; background: white;">
+                        <select id="paymentType" required class="form-input form-select"
+                            style="padding: 0.75rem 1rem; border-radius: var(--radius-md); border: 1px solid var(--border); width: 100%; font-size: 0.9375rem; background: white;">
                             <option value="Vendor">Vendor</option>
                             <option value="Labour">Labour</option>
                             <option value="Contractor">Contractor</option>
@@ -234,50 +529,66 @@
                 </div>
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.25rem;">
                     <div class="form-group">
-                        <label class="form-label" style="font-weight: 600; color: var(--dark); margin-bottom: 0.5rem; display: block; font-size: 0.875rem;">
+                        <label class="form-label"
+                            style="font-weight: 600; color: var(--dark); margin-bottom: 0.5rem; display: block; font-size: 0.875rem;">
                             <i class="fas fa-building text-primary mr-1"></i> Project
                         </label>
-                        <select id="paymentProject" class="form-input form-select" style="padding: 0.75rem 1rem; border-radius: var(--radius-md); border: 1px solid var(--border); width: 100%; font-size: 0.9375rem; background: white;"></select>
+                        <select id="paymentProject" class="form-input form-select"
+                            style="padding: 0.75rem 1rem; border-radius: var(--radius-md); border: 1px solid var(--border); width: 100%; font-size: 0.9375rem; background: white;"></select>
                     </div>
                     <div class="form-group">
-                        <label class="form-label" style="font-weight: 600; color: var(--dark); margin-bottom: 0.5rem; display: block; font-size: 0.875rem;">
+                        <label class="form-label"
+                            style="font-weight: 600; color: var(--dark); margin-bottom: 0.5rem; display: block; font-size: 0.875rem;">
                             <i class="fas fa-rupee-sign text-primary mr-1"></i> Amount (₹) *
                         </label>
-                        <input type="number" id="paymentAmount" required min="1" class="form-input" placeholder="0" style="padding: 0.75rem 1rem; border-radius: var(--radius-md); border: 1px solid var(--border); width: 100%; font-size: 0.9375rem;">
+                        <input type="number" id="paymentAmount" required min="1" class="form-input" placeholder="0"
+                            style="padding: 0.75rem 1rem; border-radius: var(--radius-md); border: 1px solid var(--border); width: 100%; font-size: 0.9375rem;">
                     </div>
                 </div>
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.25rem;">
                     <div class="form-group">
-                        <label class="form-label" style="font-weight: 600; color: var(--dark); margin-bottom: 0.5rem; display: block; font-size: 0.875rem;">
+                        <label class="form-label"
+                            style="font-weight: 600; color: var(--dark); margin-bottom: 0.5rem; display: block; font-size: 0.875rem;">
                             <i class="fas fa-calendar text-primary mr-1"></i> Due Date *
                         </label>
-                        <input type="date" id="dueDate" required class="form-input" style="padding: 0.75rem 1rem; border-radius: var(--radius-md); border: 1px solid var(--border); width: 100%; font-size: 0.9375rem;">
+                        <input type="date" id="dueDate" required class="form-input"
+                            style="padding: 0.75rem 1rem; border-radius: var(--radius-md); border: 1px solid var(--border); width: 100%; font-size: 0.9375rem;">
                     </div>
                     <div class="form-group">
-                        <label class="form-label" style="font-weight: 600; color: var(--dark); margin-bottom: 0.5rem; display: block; font-size: 0.875rem;">
+                        <label class="form-label"
+                            style="font-weight: 600; color: var(--dark); margin-bottom: 0.5rem; display: block; font-size: 0.875rem;">
                             <i class="fas fa-sticky-note text-primary mr-1"></i> Description
                         </label>
-                        <input type="text" id="paymentDesc" class="form-input" placeholder="Optional notes" style="padding: 0.75rem 1rem; border-radius: var(--radius-md); border: 1px solid var(--border); width: 100%; font-size: 0.9375rem;">
+                        <input type="text" id="paymentDesc" class="form-input" placeholder="Optional notes"
+                            style="padding: 0.75rem 1rem; border-radius: var(--radius-md); border: 1px solid var(--border); width: 100%; font-size: 0.9375rem;">
                     </div>
                 </div>
-                <div style="background: var(--bg-light); padding: 1rem; border-radius: var(--radius-md); margin-bottom: 1rem;">
+                <div
+                    style="background: var(--bg-light); padding: 1rem; border-radius: var(--radius-md); margin-bottom: 1rem;">
                     <label style="display: flex; align-items: center; gap: 0.75rem; cursor: pointer;">
-                        <input type="checkbox" id="isPaid" style="width: 20px; height: 20px; accent-color: var(--success); cursor: pointer;">
+                        <input type="checkbox" id="isPaid"
+                            style="width: 20px; height: 20px; accent-color: var(--success); cursor: pointer;">
                         <span style="font-weight: 600; color: var(--dark);">
-                            <i class="fas fa-check-circle text-success mr-1"></i> Mark as Paid
+                            <i class="fas fa-check-circle text-primary mr-1"></i> Mark as Paid
                         </span>
                     </label>
                 </div>
-                <div id="paidDateDiv" class="hidden" style="margin-bottom: 1rem; padding: 1rem; background: var(--success-light, #E8F5E9); border-radius: var(--radius-md); border: 1px solid var(--success);">
-                    <label class="form-label" style="font-weight: 600; color: var(--success); margin-bottom: 0.5rem; display: block; font-size: 0.875rem;">
+                <div id="paidDateDiv" class="hidden"
+                    style="margin-bottom: 1rem; padding: 1rem; background: var(--success-light, #FFF8E1); border-radius: var(--radius-md); border: 1px solid var(--success);">
+                    <label class="form-label"
+                        style="font-weight: 600; color: var(--success); margin-bottom: 0.5rem; display: block; font-size: 0.875rem;">
                         <i class="fas fa-calendar-check mr-1"></i> Paid Date
                     </label>
-                    <input type="date" id="paidDate" class="form-input" style="padding: 0.75rem 1rem; border-radius: var(--radius-md); border: 1px solid var(--success); width: 100%; font-size: 0.9375rem;">
+                    <input type="date" id="paidDate" class="form-input"
+                        style="padding: 0.75rem 1rem; border-radius: var(--radius-md); border: 1px solid var(--success); width: 100%; font-size: 0.9375rem;">
                 </div>
             </form>
-            <div class="modal-footer" style="padding: 1rem 1.5rem; background: var(--bg-light); border-top: 1px solid var(--border); display: flex; gap: 1rem; justify-content: flex-end;">
-                <button type="button" class="cancel-modal btn btn-secondary" style="padding: 0.75rem 1.5rem; border-radius: var(--radius-md); font-weight: 600;">Cancel</button>
-                <button type="submit" form="paymentForm" class="btn btn-primary" style="padding: 0.75rem 1.5rem; border-radius: var(--radius-md); font-weight: 600;">
+            <div class="modal-footer"
+                style="padding: 1rem 1.5rem; background: var(--bg-light); border-top: 1px solid var(--border); display: flex; gap: 1rem; justify-content: flex-end;">
+                <button type="button" class="cancel-modal btn btn-secondary"
+                    style="padding: 0.75rem 1.5rem; border-radius: var(--radius-md); font-weight: 600;">Cancel</button>
+                <button type="submit" form="paymentForm" class="btn btn-primary"
+                    style="padding: 0.75rem 1.5rem; border-radius: var(--radius-md); font-weight: 600;">
                     <i class="fas fa-save mr-1"></i> Save Payment
                 </button>
             </div>
@@ -287,7 +598,10 @@
     <!-- Delete Modal -->
     <div id="deleteModal" class="modal-overlay hidden">
         <div class="modal-content" style="max-width:400px;text-align:center;padding:2rem;">
-            <div style="width:64px;height:64px;background:var(--error-light);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 1rem;"><i class="fas fa-exclamation-triangle" style="font-size:1.5rem;color:var(--error);"></i></div>
+            <div
+                style="width:64px;height:64px;background:var(--error-light);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 1rem;">
+                <i class="fas fa-exclamation-triangle" style="font-size:1.5rem;color:var(--error);"></i>
+            </div>
             <h3 style="font-size:1.25rem;font-weight:700;color:var(--dark);margin-bottom:0.5rem;">Delete Payment?</h3>
             <p style="color:var(--gray);font-size:0.875rem;margin-bottom:1.5rem;">This action cannot be undone.</p>
             <div style="display:flex;gap:1rem;">
@@ -302,13 +616,13 @@
         import Storage from './js/firebase-storage.js';
         import { PaymentsApp } from './js/payments.js?v=2';
         import { initSidebarDropdown, toggleDashboardDropdown } from './js/sidebar-dropdown.js';
-        
+
         window.Storage = Storage;
         window.PaymentsApp = PaymentsApp;
         window.toggleDashboardDropdown = toggleDashboardDropdown;
-        
+
         initSidebarDropdown();
-        
+
         onAuthStateChanged(auth, async (user) => {
             if (!user) { window.location.href = 'login.html'; return; }
             try {
@@ -319,11 +633,12 @@
                 document.getElementById('pageLoader').classList.add('hidden');
             }
         });
-        
+
         document.getElementById('logoutBtn').addEventListener('click', async () => {
             await signOut(auth);
             window.location.href = 'login.html';
         });
     </script>
 </body>
+
 </html>

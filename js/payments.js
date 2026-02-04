@@ -52,7 +52,7 @@ const Utils = window.Utils || {
      */
     getPaymentStatus(dueDate, isPaid) {
         // If paid, always return paid status regardless of date (Requirement 4.3)
-        if (isPaid) return { class: 'text-green-500 bg-green-500/10', text: 'Paid', isOverdue: false };
+        if (isPaid) return { class: 'text-green-500 bg-primary/10', text: 'Paid', isOverdue: false };
         
         const days = this.getDaysRemaining(dueDate);
         

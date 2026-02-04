@@ -239,10 +239,10 @@ const GuidedTour = {
             .tour-btn-back { background: #F3F4F6; border: none; color: #374151; }
             .tour-btn-back:hover { background: #E5E7EB; }
             .tour-btn-back:disabled { opacity: 0.5; cursor: not-allowed; }
-            .tour-btn-next { background: #4A7C59; border: none; color: white; }
-            .tour-btn-next:hover { background: #3D6B4A; }
+            .tour-btn-next { background: #F7B500; border: none; color: white; }
+            .tour-btn-next:hover { background: #D9A000; }
             .tour-progress { height: 4px; background: #E5E7EB; border-radius: 2px; margin-top: 1rem; overflow: hidden; }
-            .tour-progress-bar { height: 100%; background: linear-gradient(90deg, #4A7C59, #6B9B7A); border-radius: 2px; transition: width 0.3s; }
+            .tour-progress-bar { height: 100%; background: linear-gradient(90deg, #F7B500, #FFCC33); border-radius: 2px; transition: width 0.3s; }
             
             @keyframes tour-pulse {
                 0%, 100% { box-shadow: 0 0 0 9999px rgba(0,0,0,0.7), 0 0 20px rgba(74,124,89,0.5); }
@@ -450,7 +450,7 @@ const GuidedTour = {
             position: fixed;
             bottom: 2rem;
             right: 2rem;
-            background: linear-gradient(135deg, #4A7C59, #6B9B7A);
+            background: linear-gradient(135deg, #F7B500, #FFCC33);
             color: white;
             padding: 1rem 1.5rem;
             border-radius: 12px;

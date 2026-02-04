@@ -49,7 +49,7 @@ const Utils = window.Utils || {
         return { percent, status: 'ok', color: 'green' };
     },
     getDeadlineStatus(endDate, status) {
-        if (status === 'Completed') return { class: 'text-green-500 bg-green-500/10', text: 'Completed', priority: 0 };
+        if (status === 'Completed') return { class: 'text-green-500 bg-primary/10', text: 'Completed', priority: 0 };
         const days = this.getDaysRemaining(endDate);
         if (days < 0) return { class: 'text-red-500 bg-red-500/20 animate-pulse', text: `${Math.abs(days)}d overdue`, priority: 4 };
         if (days === 0) return { class: 'text-red-500 bg-red-500/10', text: 'Due today', priority: 3 };
@@ -81,13 +81,13 @@ const ProjectApp = {
     async init() {
         console.log('ProjectApp.init() starting...');
         this.projectId = new URLSearchParams(window.location.search).get('id');
-        if (!this.projectId) { window.location.href = 'index.html'; return; }
+        if (!this.projectId) { window.location.href = 'dashboard.html'; return; }
         
         this.showLoading(true);
         
         try {
             this.project = await Storage.projects.getById(this.projectId);
-            if (!this.project) { window.location.href = 'index.html'; return; }
+            if (!this.project) { window.location.href = 'dashboard.html'; return; }
             
             this.populateDropdowns();
             this.renderHeader();
@@ -963,7 +963,7 @@ const ProjectApp = {
             const colors = {
                 primary: [47, 47, 47],
                 secondary: [183, 200, 184],
-                accent: [74, 124, 89],
+                accent: [247, 181, 0],
                 dark: [44, 62, 80],
                 light: [241, 245, 249],
                 white: [255, 255, 255]
@@ -1160,7 +1160,7 @@ const ProjectApp = {
             const colors = {
                 primary: [47, 47, 47],
                 secondary: [183, 200, 184],
-                accent: [74, 124, 89],
+                accent: [247, 181, 0],
                 dark: [44, 62, 80],
                 light: [241, 245, 249],
                 white: [255, 255, 255]
@@ -2318,7 +2318,7 @@ const ProjectApp = {
                         <p class="text-xs text-slate-500">${Utils.formatDate(p.date)} • ${p.method}</p>
                         ${p.from ? `<p class="text-xs text-slate-600">From: ${Utils.escapeHtml(p.from)}</p>` : ''}
                         ${p.receivedBy ? `<p class="text-xs text-slate-600">Received by: ${Utils.escapeHtml(p.receivedBy)}</p>` : ''}
-                        ${isAllocated ? '<p class="text-xs text-green-600 mt-1"><i class="fas fa-wallet mr-1"></i>Auto-allocated to project virtual wallet</p>' : ''}
+                        ${isAllocated ? '<p class="text-xs text-primary-dark mt-1"><i class="fas fa-wallet mr-1"></i>Auto-allocated to project virtual wallet</p>' : ''}
                     </div>
                     <button type="button" class="action-btn delete text-xs" onclick="ProjectApp.deleteClientPayment('${p.id}')"><i class="fas fa-trash"></i></button>
                 </div>
@@ -2440,7 +2440,7 @@ const ProjectApp = {
         if (this.charts.expense) this.charts.expense.destroy();
         this.charts.expense = new Chart(document.getElementById('expenseChart'), {
             type: 'doughnut',
-            data: { labels: ['Materials', 'Labour', 'Vendors', 'Expenses'], datasets: [{ data: [matCost, labCost, venCost, expCost], backgroundColor: ['#F59E0B', '#10B981', '#F97316', '#8B5CF6'], borderWidth: 0 }] },
+            data: { labels: ['Materials', 'Labour', 'Vendors', 'Expenses'], datasets: [{ data: [matCost, labCost, venCost, expCost], backgroundColor: ['#F59E0B', '#F7B500', '#F97316', '#8B5CF6'], borderWidth: 0 }] },
             options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { color: '#9CA3AF' } } } }
         });
 
@@ -2451,7 +2451,7 @@ const ProjectApp = {
         
         this.charts.budget = new Chart(document.getElementById('budgetChart'), {
             type: 'bar',
-            data: { labels: ['Budget', 'Spent'], datasets: [{ data: [budget, spent], backgroundColor: ['#3B82F6', health.isOverBudget ? '#DC2626' : '#10B981'], borderRadius: 8 }] },
+            data: { labels: ['Budget', 'Spent'], datasets: [{ data: [budget, spent], backgroundColor: ['#3B82F6', health.isOverBudget ? '#DC2626' : '#F7B500'], borderRadius: 8 }] },
             options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { ticks: { color: '#9CA3AF', callback: v => '₹' + (v/1000) + 'K' }, grid: { color: '#3a3a3a' } }, x: { ticks: { color: '#9CA3AF' }, grid: { display: false } } } }
         });
     },
@@ -3444,7 +3444,7 @@ const ProjectApp = {
             const colors = {
                 primary: [47, 47, 47],
                 secondary: [183, 200, 184],
-                accent: [74, 124, 89],
+                accent: [247, 181, 0],
                 success: [16, 185, 129],
                 warning: [245, 158, 11],
                 danger: [239, 68, 68],
@@ -3796,7 +3796,7 @@ const ProjectApp = {
             const colors = {
                 primary: [47, 47, 47],         // Dark charcoal
                 secondary: [183, 200, 184],    // Sage green
-                accent: [74, 124, 89],         // Forest green
+                accent: [247, 181, 0],         // Forest green
                 success: [16, 185, 129],       // Emerald
                 warning: [245, 158, 11],       // Amber
                 danger: [239, 68, 68],         // Red

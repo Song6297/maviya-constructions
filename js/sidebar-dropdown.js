@@ -57,7 +57,7 @@ async function loadSidebarProjects() {
         
         if (projects.length > 10) {
             container.innerHTML += `
-                <a href="index.html" class="nav-dropdown-item" style="color: var(--primary, #4A7C59); font-weight: 600;">
+                <a href="dashboard.html" class="nav-dropdown-item" style="color: var(--primary, #F7B500); font-weight: 600;">
                     <i class="fas fa-ellipsis-h"></i>
                     <span>View all ${projects.length} projects...</span>
                 </a>`;

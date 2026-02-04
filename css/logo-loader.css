@@ -26,13 +26,13 @@
 }
 
 .logo-loader .brick {
-    fill: #b7c8b8;
+    fill: var(--primary);
     stroke: #1e1e1e;
     stroke-width: 2;
 }
 
 .logo-loader .bit {
-    fill: #2f2f2f;
+    fill: var(--accent);
     animation: bitPulse 1.6s infinite ease-in-out;
     opacity: 0.25;
 }

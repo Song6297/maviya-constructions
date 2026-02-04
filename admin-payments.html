@@ -1,20 +1,34 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>B&B Admin - Payment Verification</title>
-    <link rel="icon" type="image/png" href="B&B.png">
+    <link rel="icon" type="image/svg+xml" href="logo.svg">
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
     <link href="css/styles-sidebar.css?v=10" rel="stylesheet">
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Nunito', sans-serif; background: linear-gradient(180deg, #FFF9E6 0%, #E6F7FF 50%, #F0FFF4 100%); min-height: 100vh; }
-        
-        .container { max-width: 1200px; margin: 0 auto; padding: 2rem; }
-        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Nunito', sans-serif;
+            background: linear-gradient(180deg, #FFF9E6 0%, #E6F7FF 50%, #F0FFF4 100%);
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
         .header {
             display: flex;
             justify-content: space-between;
@@ -23,9 +37,18 @@
             flex-wrap: wrap;
             gap: 1rem;
         }
-        .header h1 { font-size: 1.75rem; font-weight: 900; color: var(--text); }
-        .header-actions { display: flex; gap: 0.75rem; }
-        
+
+        .header h1 {
+            font-size: 1.75rem;
+            font-weight: 900;
+            color: var(--text);
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 0.75rem;
+        }
+
         .btn {
             padding: 0.75rem 1.25rem;
             border-radius: 12px;
@@ -39,10 +62,21 @@
             align-items: center;
             gap: 0.5rem;
         }
-        .btn-primary { background: var(--blueprint-blue); color: white; }
-        .btn-secondary { background: #E8F4F8; color: var(--blueprint-blue); }
-        .btn:hover { transform: translateY(-2px); }
-        
+
+        .btn-primary {
+            background: var(--blueprint-blue);
+            color: white;
+        }
+
+        .btn-secondary {
+            background: #E8F4F8;
+            color: var(--blueprint-blue);
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+
         /* Stats */
         .stats-grid {
             display: grid;
@@ -50,18 +84,38 @@
             gap: 1rem;
             margin-bottom: 2rem;
         }
+
         .stat-card {
             background: white;
             border-radius: 16px;
             padding: 1.5rem;
             border: 3px solid #E8F4F8;
         }
-        .stat-card.pending { border-color: #FFB74D; }
-        .stat-card.approved { border-color: #81C784; }
-        .stat-card.rejected { border-color: #E57373; }
-        .stat-value { font-size: 2rem; font-weight: 900; color: var(--text); }
-        .stat-label { color: var(--text-light); font-weight: 600; font-size: 0.875rem; }
-        
+
+        .stat-card.pending {
+            border-color: #FFB74D;
+        }
+
+        .stat-card.approved {
+            border-color: #81C784;
+        }
+
+        .stat-card.rejected {
+            border-color: #E57373;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 900;
+            color: var(--text);
+        }
+
+        .stat-label {
+            color: var(--text-light);
+            font-weight: 600;
+            font-size: 0.875rem;
+        }
+
         /* Tabs */
         .tabs {
             display: flex;
@@ -69,6 +123,7 @@
             margin-bottom: 1.5rem;
             flex-wrap: wrap;
         }
+
         .tab {
             padding: 0.75rem 1.5rem;
             border-radius: 12px;
@@ -79,11 +134,24 @@
             color: var(--text-light);
             transition: all 0.3s;
         }
-        .tab.active { border-color: var(--blueprint-blue); color: var(--blueprint-blue); background: var(--soft-blue); }
-        .tab:hover { border-color: var(--blueprint-blue); }
-        
+
+        .tab.active {
+            border-color: var(--blueprint-blue);
+            color: var(--blueprint-blue);
+            background: var(--soft-blue);
+        }
+
+        .tab:hover {
+            border-color: var(--blueprint-blue);
+        }
+
         /* Payment Cards */
-        .payments-list { display: flex; flex-direction: column; gap: 1rem; }
+        .payments-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
         .payment-card {
             background: white;
             border-radius: 16px;
@@ -91,11 +159,23 @@
             border: 3px solid #E8F4F8;
             transition: all 0.3s;
         }
-        .payment-card:hover { border-color: var(--blueprint-blue); }
-        .payment-card.pending { border-left: 6px solid #FFB74D; }
-        .payment-card.approved { border-left: 6px solid #4CAF50; }
-        .payment-card.rejected { border-left: 6px solid #F44336; }
-        
+
+        .payment-card:hover {
+            border-color: var(--blueprint-blue);
+        }
+
+        .payment-card.pending {
+            border-left: 6px solid #FFB74D;
+        }
+
+        .payment-card.approved {
+            border-left: 6px solid #F7B500;
+        }
+
+        .payment-card.rejected {
+            border-left: 6px solid #F44336;
+        }
+
         .payment-header {
             display: flex;
             justify-content: space-between;
@@ -104,9 +184,18 @@
             flex-wrap: wrap;
             gap: 0.5rem;
         }
-        .payment-user h3 { font-weight: 800; color: var(--text); font-size: 1.125rem; }
-        .payment-user p { color: var(--text-light); font-size: 0.875rem; }
-        
+
+        .payment-user h3 {
+            font-weight: 800;
+            color: var(--text);
+            font-size: 1.125rem;
+        }
+
+        .payment-user p {
+            color: var(--text-light);
+            font-size: 0.875rem;
+        }
+
         .payment-status {
             padding: 0.375rem 0.875rem;
             border-radius: 50px;
@@ -114,10 +203,22 @@
             font-weight: 800;
             text-transform: uppercase;
         }
-        .payment-status.pending { background: #FFF3E0; color: #E65100; }
-        .payment-status.approved { background: #E8F5E9; color: #2E7D32; }
-        .payment-status.rejected { background: #FFEBEE; color: #C62828; }
-        
+
+        .payment-status.pending {
+            background: #FFF3E0;
+            color: #E65100;
+        }
+
+        .payment-status.approved {
+            background: #FFF8E1;
+            color: #F7B500;
+        }
+
+        .payment-status.rejected {
+            background: #FFEBEE;
+            color: #C62828;
+        }
+
         .payment-details {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
@@ -127,15 +228,32 @@
             background: #F8F9FA;
             border-radius: 12px;
         }
-        .detail-item label { display: block; font-size: 0.6875rem; color: var(--text-light); text-transform: uppercase; font-weight: 700; }
-        .detail-item span { font-weight: 800; color: var(--text); font-size: 0.9375rem; }
-        .detail-item.utr span { font-family: monospace; color: var(--blueprint-blue); }
-        
+
+        .detail-item label {
+            display: block;
+            font-size: 0.6875rem;
+            color: var(--text-light);
+            text-transform: uppercase;
+            font-weight: 700;
+        }
+
+        .detail-item span {
+            font-weight: 800;
+            color: var(--text);
+            font-size: 0.9375rem;
+        }
+
+        .detail-item.utr span {
+            font-family: monospace;
+            color: var(--blueprint-blue);
+        }
+
         .payment-actions {
             display: flex;
             gap: 0.75rem;
             flex-wrap: wrap;
         }
+
         .action-btn {
             padding: 0.625rem 1.25rem;
             border-radius: 10px;
@@ -148,20 +266,45 @@
             align-items: center;
             gap: 0.5rem;
         }
-        .action-btn.approve { background: #4CAF50; color: white; }
-        .action-btn.reject { background: #F44336; color: white; }
-        .action-btn:hover { transform: translateY(-2px); }
-        .action-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
-        
+
+        .action-btn.approve {
+            background: #F7B500;
+            color: white;
+        }
+
+        .action-btn.reject {
+            background: #F44336;
+            color: white;
+        }
+
+        .action-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .action-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
         /* Empty State */
         .empty-state {
             text-align: center;
             padding: 3rem;
             color: var(--text-light);
         }
-        .empty-state i { font-size: 3rem; margin-bottom: 1rem; opacity: 0.5; }
-        .empty-state h3 { font-weight: 800; margin-bottom: 0.5rem; }
-        
+
+        .empty-state i {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            opacity: 0.5;
+        }
+
+        .empty-state h3 {
+            font-weight: 800;
+            margin-bottom: 0.5rem;
+        }
+
         /* Admin Check */
         .admin-check {
             background: #FFEBEE;
@@ -171,17 +314,40 @@
             text-align: center;
             margin: 2rem 0;
         }
-        .admin-check i { font-size: 3rem; color: #F44336; margin-bottom: 1rem; }
-        .admin-check h2 { color: #C62828; font-weight: 800; margin-bottom: 0.5rem; }
-        .admin-check p { color: #D32F2F; }
-        
+
+        .admin-check i {
+            font-size: 3rem;
+            color: #F44336;
+            margin-bottom: 1rem;
+        }
+
+        .admin-check h2 {
+            color: #C62828;
+            font-weight: 800;
+            margin-bottom: 0.5rem;
+        }
+
+        .admin-check p {
+            color: #D32F2F;
+        }
+
         @media (max-width: 768px) {
-            .container { padding: 1rem; }
-            .header { flex-direction: column; align-items: flex-start; }
-            .payment-details { grid-template-columns: 1fr 1fr; }
+            .container {
+                padding: 1rem;
+            }
+
+            .header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .payment-details {
+                grid-template-columns: 1fr 1fr;
+            }
         }
     </style>
 </head>
+
 <body>
     <div class="container">
         <div class="header">
@@ -191,7 +357,7 @@
                 <button class="btn btn-primary" onclick="loadPayments()"><i class="fas fa-sync"></i> Refresh</button>
             </div>
         </div>
-        
+
         <!-- Admin Check Message -->
         <div id="adminCheck" class="admin-check" style="display: none;">
             <i class="fas fa-lock"></i>
@@ -199,7 +365,7 @@
             <p>You don't have admin privileges to access this page.</p>
             <a href="hub.html" class="btn btn-primary" style="margin-top: 1rem;">Go to Dashboard</a>
         </div>
-        
+
         <!-- Admin Content -->
         <div id="adminContent" style="display: none;">
             <!-- Stats -->
@@ -221,7 +387,7 @@
                     <div class="stat-label">💰 Total Revenue</div>
                 </div>
             </div>
-            
+
             <!-- Tabs -->
             <div class="tabs">
                 <div class="tab active" data-status="PENDING">⏳ Pending</div>
@@ -229,7 +395,7 @@
                 <div class="tab" data-status="REJECTED">❌ Rejected</div>
                 <div class="tab" data-status="ALL">📋 All</div>
             </div>
-            
+
             <!-- Payments List -->
             <div class="payments-list" id="paymentsList">
                 <div class="empty-state">
@@ -239,37 +405,37 @@
             </div>
         </div>
     </div>
-    
+
     <script type="module">
         import { auth, db } from './js/firebase-config.js';
         import { onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
         import { collection, query, orderBy, getDocs, doc, updateDoc, getDoc, serverTimestamp, Timestamp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
-        
+
         // Admin emails - ADD YOUR EMAIL HERE
         const ADMIN_EMAILS = ['sulaimaansong6297@gmail.com'];
-        
+
         let currentUser = null;
         let allPayments = [];
         let currentFilter = 'PENDING';
-        
+
         onAuthStateChanged(auth, async (user) => {
             if (!user) {
                 window.location.href = 'login.html';
                 return;
             }
-            
+
             currentUser = user;
-            
+
             // Check if admin
             if (!ADMIN_EMAILS.includes(user.email)) {
                 document.getElementById('adminCheck').style.display = 'block';
                 return;
             }
-            
+
             document.getElementById('adminContent').style.display = 'block';
             loadPayments();
         });
-        
+
         // Tab switching
         document.querySelectorAll('.tab').forEach(tab => {
             tab.addEventListener('click', () => {
@@ -279,18 +445,18 @@
                 renderPayments();
             });
         });
-        
+
         // Load payments
-        window.loadPayments = async function() {
+        window.loadPayments = async function () {
             try {
                 const q = query(collection(db, 'premiumPayments'), orderBy('submittedAt', 'desc'));
                 const snapshot = await getDocs(q);
-                
+
                 allPayments = [];
                 snapshot.forEach(doc => {
                     allPayments.push({ id: doc.id, ...doc.data() });
                 });
-                
+
                 updateStats();
                 renderPayments();
             } catch (error) {
@@ -304,24 +470,24 @@
                 `;
             }
         };
-        
+
         function updateStats() {
             const pending = allPayments.filter(p => p.status === 'PENDING').length;
             const approved = allPayments.filter(p => p.status === 'APPROVED').length;
             const rejected = allPayments.filter(p => p.status === 'REJECTED').length;
             const revenue = allPayments.filter(p => p.status === 'APPROVED').reduce((sum, p) => sum + (p.amount || 199), 0);
-            
+
             document.getElementById('pendingCount').textContent = pending;
             document.getElementById('approvedCount').textContent = approved;
             document.getElementById('rejectedCount').textContent = rejected;
             document.getElementById('totalRevenue').textContent = `₹${revenue.toLocaleString()}`;
         }
-        
+
         function renderPayments() {
-            const filtered = currentFilter === 'ALL' 
-                ? allPayments 
+            const filtered = currentFilter === 'ALL'
+                ? allPayments
                 : allPayments.filter(p => p.status === currentFilter);
-            
+
             if (filtered.length === 0) {
                 document.getElementById('paymentsList').innerHTML = `
                     <div class="empty-state">
@@ -332,12 +498,12 @@
                 `;
                 return;
             }
-            
+
             document.getElementById('paymentsList').innerHTML = filtered.map(payment => {
-                const submittedDate = payment.submittedAt?.toDate?.() 
+                const submittedDate = payment.submittedAt?.toDate?.()
                     ? payment.submittedAt.toDate().toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })
                     : 'Unknown';
-                
+
                 return `
                     <div class="payment-card ${payment.status.toLowerCase()}">
                         <div class="payment-header">
@@ -389,15 +555,15 @@
                 `;
             }).join('');
         }
-        
+
         // Approve payment
-        window.approvePayment = async function(paymentId, userId) {
+        window.approvePayment = async function (paymentId, userId) {
             if (!confirm('Are you sure you want to APPROVE this payment and activate premium for 30 days?')) return;
-            
+
             try {
                 const now = new Date();
                 const endDate = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000); // 30 days
-                
+
                 // Update payment status
                 await updateDoc(doc(db, 'premiumPayments', paymentId), {
                     status: 'APPROVED',
@@ -407,14 +573,14 @@
                     premiumStart: Timestamp.fromDate(now),
                     premiumEnd: Timestamp.fromDate(endDate)
                 });
-                
+
                 // Update user's premium status
                 await updateDoc(doc(db, 'users', userId), {
                     premiumStatus: 'PREMIUM',
                     premiumStart: Timestamp.fromDate(now),
                     premiumEnd: Timestamp.fromDate(endDate)
                 });
-                
+
                 alert('✅ Payment approved! User now has premium access for 30 days.');
                 loadPayments();
             } catch (error) {
@@ -422,12 +588,12 @@
                 alert('Error: ' + error.message);
             }
         };
-        
+
         // Reject payment
-        window.rejectPayment = async function(paymentId) {
+        window.rejectPayment = async function (paymentId) {
             const reason = prompt('Enter rejection reason (optional):');
             if (reason === null) return; // Cancelled
-            
+
             try {
                 await updateDoc(doc(db, 'premiumPayments', paymentId), {
                     status: 'REJECTED',
@@ -436,7 +602,7 @@
                     verifiedBy: currentUser.email,
                     rejectionReason: reason || 'Payment could not be verified'
                 });
-                
+
                 alert('❌ Payment rejected.');
                 loadPayments();
             } catch (error) {
@@ -446,4 +612,5 @@
         };
     </script>
 </body>
+
 </html>

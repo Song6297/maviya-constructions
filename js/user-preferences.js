@@ -11,7 +11,7 @@ const ROLE_CONFIG = {
         color: '#FFB84D',
         emphasis: ['projects', 'finance', 'vendors'],
         primaryActions: [
-            { label: 'Open Dashboard', href: 'index.html', icon: 'fa-th-large', color: 'blueprint' },
+            { label: 'Open Dashboard', href: 'dashboard.html', icon: 'fa-th-large', color: 'blueprint' },
             { label: 'View Finance', href: 'funds.html', icon: 'fa-wallet', color: 'mint' },
             { label: 'Compare Projects', href: 'compare.html', icon: 'fa-chart-bar', color: 'orange' }
         ],
@@ -23,8 +23,8 @@ const ROLE_CONFIG = {
         color: '#5B9BD5',
         emphasis: ['projects', 'materials'],
         primaryActions: [
-            { label: 'View Projects', href: 'index.html', icon: 'fa-clipboard-list', color: 'blueprint' },
-            { label: 'Update Project', href: 'index.html', icon: 'fa-edit', color: 'orange' },
+            { label: 'View Projects', href: 'dashboard.html', icon: 'fa-clipboard-list', color: 'blueprint' },
+            { label: 'Update Project', href: 'dashboard.html', icon: 'fa-edit', color: 'orange' },
             { label: 'View Materials', href: 'materials.html', icon: 'fa-boxes', color: 'mint' }
         ],
         quickStats: ['activeProjects', 'materialsUsed', 'pendingTasks']
@@ -47,7 +47,7 @@ const ROLE_CONFIG = {
         color: '#FF8C61',
         emphasis: ['labour', 'materials', 'attendance'],
         primaryActions: [
-            { label: 'View Projects', href: 'index.html', icon: 'fa-hard-hat', color: 'orange' },
+            { label: 'View Projects', href: 'dashboard.html', icon: 'fa-hard-hat', color: 'orange' },
             { label: 'Add Material', href: 'materials.html', icon: 'fa-plus-circle', color: 'mint' },
             { label: 'Track Stock', href: 'materials.html', icon: 'fa-boxes', color: 'blueprint' }
         ],

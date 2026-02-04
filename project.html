@@ -9,15 +9,15 @@
         // Apply saved theme immediately to prevent flash
         (function () {
             const theme = localStorage.getItem('bb_theme') || 'light';
-            const accent = localStorage.getItem('bb_accent') || 'green';
+            const accent = localStorage.getItem('bb_accent') || 'yellow';
             if (theme === 'dark') document.documentElement.setAttribute('data-theme', 'dark');
             else if (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches) {
                 document.documentElement.setAttribute('data-theme', 'dark');
             }
-            if (accent !== 'green') document.documentElement.setAttribute('data-accent', accent);
+            if (accent !== 'yellow') document.documentElement.setAttribute('data-accent', accent);
         })();
     </script>
-    <link rel="icon" type="image/png" href="B&B.png">
+    <link rel="icon" type="image/svg+xml" href="logo.svg">
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -276,19 +276,42 @@
             color: var(--dark);
         }
 
-        /* Progress Bar */
+        /* Progress Bar - Modern Gradient Style */
         .progress-bar {
-            height: 6px;
+            height: 8px;
             background: var(--border);
-            border-radius: 3px;
+            border-radius: 10px;
             overflow: hidden;
+            position: relative;
         }
 
         .progress-fill {
             height: 100%;
-            background: var(--primary);
-            border-radius: 3px;
-            transition: width 0.3s ease;
+            background: linear-gradient(135deg, #A855F7 0%, #6366F1 100%);
+            border-radius: 10px;
+            transition: width 0.6s ease;
+            position: relative;
+        }
+
+        .progress-fill::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.3) 50%, transparent 100%);
+            animation: shimmer 2s infinite;
+        }
+
+        @keyframes shimmer {
+            0% {
+                transform: translateX(-100%);
+            }
+
+            100% {
+                transform: translateX(100%);
+            }
         }
 
         /* Health Meter */
@@ -360,7 +383,7 @@
             background: var(--primary);
             color: white;
             border-color: var(--primary);
-            box-shadow: 0 2px 4px rgba(74, 124, 89, 0.2);
+            box-shadow: 0 2px 4px rgba(247, 181, 0, 0.2);
         }
 
         .tab-content {
@@ -373,11 +396,16 @@
 
         .section-card {
             background: var(--white);
-            border-radius: var(--radius-xl, 12px);
+            border-radius: 20px;
             padding: 1.5rem;
             border: 1px solid var(--border);
             margin-bottom: 1.5rem;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
+            transition: all 0.3s ease;
+        }
+
+        .section-card:hover {
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
         }
 
         .section-header {
@@ -640,12 +668,12 @@
         .btn-primary {
             background: var(--primary);
             color: white;
-            box-shadow: 0 2px 4px rgba(74, 124, 89, 0.2);
+            box-shadow: 0 2px 4px rgba(247, 181, 0, 0.2);
         }
 
         .btn-primary:hover {
             background: var(--primary-dark);
-            box-shadow: 0 4px 8px rgba(74, 124, 89, 0.3);
+            box-shadow: 0 4px 8px rgba(247, 181, 0, 0.3);
         }
 
         /* Attendance Button Styles */
@@ -697,12 +725,12 @@
             gap: 0.5rem;
             font-size: 0.8125rem;
             transition: all 0.2s ease;
-            box-shadow: 0 2px 4px rgba(74, 124, 89, 0.2);
+            box-shadow: 0 2px 4px rgba(247, 181, 0, 0.2);
         }
 
         .btn-add:hover {
             background: var(--primary-dark);
-            box-shadow: 0 4px 8px rgba(74, 124, 89, 0.3);
+            box-shadow: 0 4px 8px rgba(247, 181, 0, 0.3);
             transform: translateY(-1px);
         }
 
@@ -730,7 +758,7 @@
         }
 
         .btn-whatsapp:hover {
-            background: #1DA851;
+            background: #F7B500;
         }
 
         /* Action Buttons in Tables/Cards */
@@ -1324,7 +1352,7 @@
         }
 
         .text-emerald-600 {
-            color: #059669;
+            color: #D9A000;
         }
 
         .text-rose-600 {
@@ -1359,7 +1387,7 @@
             color: #0284c7;
         }
 
-        .text-green-600 {
+        .text-primary-dark {
             color: var(--success);
         }
 
@@ -1999,25 +2027,25 @@
                 <a href="hub.html" class="logo-link">
                     <svg class="logo-img" viewBox="0 0 140 110" xmlns="http://www.w3.org/2000/svg"
                         style="width:32px;height:32px;">
-                        <rect x="0" y="56" width="17" height="17" rx="2" fill="#2f2f2f" stroke="#000"
+                        <rect x="0" y="56" width="17" height="17" rx="2" fill="var(--accent)" stroke="#000"
                             stroke-width="1.5" />
-                        <rect x="20" y="56" width="17" height="17" rx="2" fill="#b7c8b8" stroke="#000"
+                        <rect x="20" y="56" width="17" height="17" rx="2" fill="var(--primary)" stroke="#000"
                             stroke-width="1.5" />
-                        <rect x="40" y="56" width="17" height="17" rx="2" fill="#2f2f2f" stroke="#000"
+                        <rect x="40" y="56" width="17" height="17" rx="2" fill="var(--accent)" stroke="#000"
                             stroke-width="1.5" />
-                        <rect x="60" y="56" width="17" height="17" rx="2" fill="#b7c8b8" stroke="#000"
+                        <rect x="60" y="56" width="17" height="17" rx="2" fill="var(--primary)" stroke="#000"
                             stroke-width="1.5" />
-                        <rect x="80" y="56" width="17" height="17" rx="2" fill="#2f2f2f" stroke="#000"
+                        <rect x="80" y="56" width="17" height="17" rx="2" fill="var(--accent)" stroke="#000"
                             stroke-width="1.5" />
-                        <rect x="20" y="36" width="17" height="17" rx="2" fill="#b7c8b8" stroke="#000"
+                        <rect x="20" y="36" width="17" height="17" rx="2" fill="var(--primary)" stroke="#000"
                             stroke-width="1.5" />
-                        <rect x="40" y="36" width="17" height="17" rx="2" fill="#2f2f2f" stroke="#000"
+                        <rect x="40" y="36" width="17" height="17" rx="2" fill="var(--accent)" stroke="#000"
                             stroke-width="1.5" />
-                        <rect x="60" y="36" width="17" height="17" rx="2" fill="#b7c8b8" stroke="#000"
+                        <rect x="60" y="36" width="17" height="17" rx="2" fill="var(--primary)" stroke="#000"
                             stroke-width="1.5" />
-                        <rect x="40" y="16" width="17" height="17" rx="2" fill="#b7c8b8" stroke="#000"
+                        <rect x="40" y="16" width="17" height="17" rx="2" fill="var(--primary)" stroke="#000"
                             stroke-width="1.5" />
-                        <rect x="60" y="16" width="17" height="17" rx="2" fill="#b7c8b8" stroke="#000"
+                        <rect x="60" y="16" width="17" height="17" rx="2" fill="var(--primary)" stroke="#000"
                             stroke-width="1.5" />
                     </svg>
                     <span class="logo-text">B&B</span>
@@ -2031,7 +2059,7 @@
                         <i class="fas fa-chevron-down nav-caret"></i>
                     </div>
                     <div class="nav-dropdown">
-                        <a href="index.html" class="nav-dropdown-item">
+                        <a href="dashboard.html" class="nav-dropdown-item">
                             <i class="fas fa-tachometer-alt"></i>
                             <span>Go to Dashboard</span>
                         </a>
@@ -2073,7 +2101,7 @@
                     <button class="mobile-toggle" id="mobileSidebarToggle">
                         <i class="fas fa-bars"></i>
                     </button>
-                    <a href="index.html" class="btn btn-secondary" style="padding: 0.625rem 0.875rem;"><i
+                    <a href="dashboard.html" class="btn btn-secondary" style="padding: 0.625rem 0.875rem;"><i
                             class="fas fa-arrow-left"></i></a>
                     <h1 id="projectTitle" class="project-title"><i class="fas fa-clipboard-list"></i> Loading...</h1>
                     <div id="projectStatus" class="project-status planning">Loading</div>
@@ -3755,7 +3783,7 @@
                 `).join('');
 
                 if (projects.length > 10) {
-                    container.innerHTML += '<a href="index.html" class="nav-dropdown-item"><i class="fas fa-ellipsis-h"></i> <span>View all...</span></a>';
+                    container.innerHTML += '<a href="dashboard.html" class="nav-dropdown-item"><i class="fas fa-ellipsis-h"></i> <span>View all...</span></a>';
                 }
             } catch (error) {
                 console.error('Error loading sidebar projects:', error);

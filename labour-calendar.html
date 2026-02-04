@@ -1,238 +1,1121 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>B&B - Labour Calendar</title>
     <script>
-        (function() {
+        (function () {
             const theme = localStorage.getItem('bb_theme') || 'light';
-            const accent = localStorage.getItem('bb_accent') || 'green';
+            const accent = localStorage.getItem('bb_accent') || 'yellow';
             if (theme === 'dark') document.documentElement.setAttribute('data-theme', 'dark');
             else if (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches) {
                 document.documentElement.setAttribute('data-theme', 'dark');
             }
-            if (accent !== 'green') document.documentElement.setAttribute('data-accent', accent);
+            if (accent !== 'yellow') document.documentElement.setAttribute('data-accent', accent);
         })();
     </script>
-    <link rel="icon" type="image/png" href="B&B.png">
+    <link rel="icon" type="image/svg+xml" href="logo.svg">
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link href="css/styles-professional.css" rel="stylesheet">
     <style>
-        body { font-family: 'Inter', sans-serif; background: var(--bg-light); display: flex; min-height: 100vh; }
-        
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg-light);
+            display: flex;
+            min-height: 100vh;
+        }
+
         /* Sidebar */
-        .sidebar { width: 64px; background: var(--white); padding: 1rem 0.5rem; display: flex; flex-direction: column; position: fixed; left: 0; top: 0; bottom: 0; border-right: 1px solid var(--border); z-index: 100; transition: width 0.3s ease; overflow: hidden; }
-        .sidebar:hover { width: 200px; }
-        .sidebar:hover .nav-text, .sidebar:hover .logo-text { opacity: 1; width: auto; }
-        .nav-text, .logo-text { opacity: 0; width: 0; overflow: hidden; white-space: nowrap; transition: opacity 0.2s ease; }
-        .logo-section { text-align: center; padding: 0.5rem 0 1rem; border-bottom: 1px solid var(--border); margin-bottom: 1rem; }
-        .logo-link { text-decoration: none; display: flex; flex-direction: column; align-items: center; gap: 0.25rem; }
-        .logo-img { width: 32px; height: 32px; }
-        .logo-text { font-size: 0.875rem; font-weight: 700; color: var(--primary); }
-        .nav-menu { display: flex; flex-direction: column; gap: 0.25rem; flex: 1; }
-        .nav-item { display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem; border-radius: 8px; text-decoration: none; color: var(--gray); font-weight: 600; font-size: 0.8125rem; transition: all 0.2s; }
-        .nav-item:hover { background: var(--primary-muted); color: var(--primary); }
-        .nav-item.active { background: var(--primary); color: white; }
-        .nav-icon { font-size: 1rem; width: 20px; text-align: center; flex-shrink: 0; }
-        .sidebar-footer { padding-top: 0.75rem; border-top: 1px solid var(--border); }
-        
+        .sidebar {
+            width: 64px;
+            background: var(--white);
+            padding: 1rem 0.5rem;
+            display: flex;
+            flex-direction: column;
+            position: fixed;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            border-right: 1px solid var(--border);
+            z-index: 100;
+            transition: width 0.3s ease;
+            overflow: hidden;
+        }
+
+        .sidebar:hover {
+            width: 200px;
+        }
+
+        .sidebar:hover .nav-text,
+        .sidebar:hover .logo-text {
+            opacity: 1;
+            width: auto;
+        }
+
+        .nav-text,
+        .logo-text {
+            opacity: 0;
+            width: 0;
+            overflow: hidden;
+            white-space: nowrap;
+            transition: opacity 0.2s ease;
+        }
+
+        .logo-section {
+            text-align: center;
+            padding: 0.5rem 0 1rem;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 1rem;
+        }
+
+        .logo-link {
+            text-decoration: none;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.25rem;
+        }
+
+        .logo-img {
+            width: 32px;
+            height: 32px;
+        }
+
+        .logo-text {
+            font-size: 0.875rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .nav-menu {
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+            flex: 1;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem;
+            border-radius: 8px;
+            text-decoration: none;
+            color: var(--gray);
+            font-weight: 600;
+            font-size: 0.8125rem;
+            transition: all 0.2s;
+        }
+
+        .nav-item:hover {
+            background: var(--primary-muted);
+            color: var(--primary);
+        }
+
+        .nav-item.active {
+            background: var(--primary);
+            color: white;
+        }
+
+        .nav-icon {
+            font-size: 1rem;
+            width: 20px;
+            text-align: center;
+            flex-shrink: 0;
+        }
+
+        .sidebar-footer {
+            padding-top: 0.75rem;
+            border-top: 1px solid var(--border);
+        }
+
         /* Main Content */
-        .main-content { flex: 1; margin-left: 64px; padding: 1.5rem 2rem; transition: margin-left 0.3s ease; }
-        .sidebar:hover ~ .main-content { margin-left: 200px; }
-        
+        .main-content {
+            flex: 1;
+            margin-left: 64px;
+            padding: 1.5rem 2rem;
+            transition: margin-left 0.3s ease;
+        }
+
+        .sidebar:hover~.main-content {
+            margin-left: 200px;
+        }
+
         /* Page Header */
-        .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem; }
-        .page-title { font-size: 1.5rem; font-weight: 700; color: var(--dark); display: flex; align-items: center; gap: 0.75rem; }
-        .page-title i { color: var(--primary); }
-        
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .page-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--dark);
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .page-title i {
+            color: var(--primary);
+        }
+
         /* Calendar Navigation */
-        .calendar-nav { display: flex; align-items: center; gap: 1rem; background: var(--white); padding: 0.75rem 1rem; border-radius: var(--radius-lg); border: 1px solid var(--border); }
-        .nav-btn { width: 36px; height: 36px; border-radius: var(--radius-md); border: 1px solid var(--border); background: var(--white); cursor: pointer; display: flex; align-items: center; justify-content: center; color: var(--gray); transition: all 0.2s; }
-        .nav-btn:hover { border-color: var(--primary); color: var(--primary); background: var(--primary-muted); }
-        .month-display { font-size: 1.125rem; font-weight: 700; color: var(--dark); min-width: 180px; text-align: center; }
-        .today-btn { padding: 0.5rem 1rem; border-radius: var(--radius-md); border: 1px solid var(--primary); background: var(--primary-muted); color: var(--primary); font-weight: 600; font-size: 0.8125rem; cursor: pointer; transition: all 0.2s; }
-        .today-btn:hover { background: var(--primary); color: white; }
-        
+        .calendar-nav {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            background: var(--white);
+            padding: 0.75rem 1rem;
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--border);
+        }
+
+        .nav-btn {
+            width: 36px;
+            height: 36px;
+            border-radius: var(--radius-md);
+            border: 1px solid var(--border);
+            background: var(--white);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--gray);
+            transition: all 0.2s;
+        }
+
+        .nav-btn:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+            background: var(--primary-muted);
+        }
+
+        .month-display {
+            font-size: 1.125rem;
+            font-weight: 700;
+            color: var(--dark);
+            min-width: 180px;
+            text-align: center;
+        }
+
+        .today-btn {
+            padding: 0.5rem 1rem;
+            border-radius: var(--radius-md);
+            border: 1px solid var(--primary);
+            background: var(--primary-muted);
+            color: var(--primary);
+            font-weight: 600;
+            font-size: 0.8125rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .today-btn:hover {
+            background: var(--primary);
+            color: white;
+        }
+
         /* Calendar Grid */
-        .calendar-container { background: var(--white); border-radius: var(--radius-xl); border: 1px solid var(--border); overflow: hidden; margin-bottom: 1.5rem; }
-        .calendar-header { display: grid; grid-template-columns: repeat(7, 1fr); background: var(--bg-light); border-bottom: 1px solid var(--border); }
-        .calendar-header-cell { padding: 0.75rem; text-align: center; font-size: 0.75rem; font-weight: 700; color: var(--gray); text-transform: uppercase; letter-spacing: 0.5px; }
-        .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); }
-        .calendar-cell { min-height: 100px; border-right: 1px solid var(--border); border-bottom: 1px solid var(--border); padding: 0.5rem; cursor: pointer; transition: all 0.15s; position: relative; }
-        .calendar-cell:nth-child(7n) { border-right: none; }
-        .calendar-cell:hover { background: var(--primary-muted); }
-        .calendar-cell.other-month { background: var(--bg-light); opacity: 0.5; }
-        .calendar-cell.today { background: var(--primary-muted); }
-        .calendar-cell.selected { background: var(--primary); }
-        .calendar-cell.selected .day-number { color: white; }
-        .calendar-cell.selected .day-summary { color: rgba(255,255,255,0.9); }
-        .day-number { font-size: 0.875rem; font-weight: 600; color: var(--dark); margin-bottom: 0.25rem; }
-        .day-summary { font-size: 0.6875rem; color: var(--gray); }
-        .day-badges { display: flex; flex-wrap: wrap; gap: 0.25rem; margin-top: 0.25rem; }
-        .day-badge { padding: 0.125rem 0.375rem; border-radius: 4px; font-size: 0.625rem; font-weight: 600; }
-        .badge-labour { background: var(--info-light); color: var(--info); }
-        .badge-payment { background: var(--success-light); color: var(--success); }
-        .badge-meeting { background: var(--warning-light); color: var(--warning); }
-        .work-type-icons { display: flex; gap: 0.25rem; margin-top: 0.25rem; }
-        .work-type-icon { width: 18px; height: 18px; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 0.625rem; color: white; }
-        .wt-mason { background: #8B4513; }
-        .wt-helper { background: #6B7280; }
-        .wt-carpenter { background: #D97706; }
-        .wt-electrician { background: #FBBF24; color: #78350F; }
-        .wt-plumber { background: #3B82F6; }
-        .wt-painter { background: #EC4899; }
-        
+        .calendar-container {
+            background: var(--white);
+            border-radius: 20px;
+            border: 1px solid var(--border);
+            overflow: hidden;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
+        }
+
+        .calendar-header {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            background: var(--bg-light);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .calendar-header-cell {
+            padding: 0.75rem;
+            text-align: center;
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: var(--gray);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+        }
+
+        .calendar-cell {
+            min-height: 100px;
+            border-right: 1px solid var(--border);
+            border-bottom: 1px solid var(--border);
+            padding: 0.5rem;
+            cursor: pointer;
+            transition: all 0.15s;
+            position: relative;
+        }
+
+        .calendar-cell:nth-child(7n) {
+            border-right: none;
+        }
+
+        .calendar-cell:hover {
+            background: var(--primary-muted);
+        }
+
+        .calendar-cell.other-month {
+            background: var(--bg-light);
+            opacity: 0.5;
+        }
+
+        .calendar-cell.today {
+            background: var(--primary-muted);
+        }
+
+        .calendar-cell.selected {
+            background: var(--primary);
+        }
+
+        .calendar-cell.selected .day-number {
+            color: white;
+        }
+
+        .calendar-cell.selected .day-summary {
+            color: rgba(255, 255, 255, 0.9);
+        }
+
+        .day-number {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--dark);
+            margin-bottom: 0.25rem;
+        }
+
+        .day-summary {
+            font-size: 0.6875rem;
+            color: var(--gray);
+        }
+
+        .day-badges {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.25rem;
+            margin-top: 0.25rem;
+        }
+
+        .day-badge {
+            padding: 0.125rem 0.375rem;
+            border-radius: 4px;
+            font-size: 0.625rem;
+            font-weight: 600;
+        }
+
+        .badge-labour {
+            background: var(--info-light);
+            color: var(--info);
+        }
+
+        .badge-payment {
+            background: var(--success-light);
+            color: var(--success);
+        }
+
+        .badge-meeting {
+            background: var(--warning-light);
+            color: var(--warning);
+        }
+
+        .work-type-icons {
+            display: flex;
+            gap: 0.25rem;
+            margin-top: 0.25rem;
+        }
+
+        .work-type-icon {
+            width: 18px;
+            height: 18px;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.625rem;
+            color: white;
+        }
+
+        .wt-mason {
+            background: #8B4513;
+        }
+
+        .wt-helper {
+            background: #6B7280;
+        }
+
+        .wt-carpenter {
+            background: #D97706;
+        }
+
+        .wt-electrician {
+            background: #FBBF24;
+            color: #78350F;
+        }
+
+        .wt-plumber {
+            background: #3B82F6;
+        }
+
+        .wt-painter {
+            background: #EC4899;
+        }
+
         /* Day Detail Panel */
-        .day-detail-panel { background: var(--white); border-radius: var(--radius-xl); border: 1px solid var(--border); padding: 1.5rem; }
-        .panel-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border); }
-        .panel-title { font-size: 1.125rem; font-weight: 700; color: var(--dark); }
-        .panel-date { font-size: 0.875rem; color: var(--gray); }
-        .panel-actions { display: flex; gap: 0.5rem; }
-        
+        .day-detail-panel {
+            background: var(--white);
+            border-radius: var(--radius-xl);
+            border: 1px solid var(--border);
+            padding: 1.5rem;
+        }
+
+        .panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .panel-title {
+            font-size: 1.125rem;
+            font-weight: 700;
+            color: var(--dark);
+        }
+
+        .panel-date {
+            font-size: 0.875rem;
+            color: var(--gray);
+        }
+
+        .panel-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
         /* Summary Cards */
-        .summary-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; margin-bottom: 1.5rem; }
-        .summary-card { background: var(--bg-light); border-radius: var(--radius-lg); padding: 1rem; text-align: center; }
-        .summary-value { font-size: 1.5rem; font-weight: 800; color: var(--dark); }
-        .summary-label { font-size: 0.75rem; color: var(--gray); margin-top: 0.25rem; }
-        .summary-card.earned .summary-value { color: var(--info); }
-        .summary-card.paid .summary-value { color: var(--success); }
-        .summary-card.due .summary-value { color: var(--error); }
-        
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .summary-card {
+            background: var(--bg-light);
+            border-radius: 16px;
+            padding: 1.25rem;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .summary-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        }
+
+        .summary-value {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: var(--dark);
+        }
+
+        .summary-label {
+            font-size: 0.75rem;
+            color: var(--gray);
+            margin-top: 0.25rem;
+        }
+
+        .summary-card.earned .summary-value {
+            color: var(--info);
+        }
+
+        .summary-card.paid .summary-value {
+            color: var(--success);
+        }
+
+        .summary-card.due .summary-value {
+            color: var(--error);
+        }
+
         /* Timeline Section */
-        .timeline-section { margin-bottom: 1.5rem; }
-        .section-title { font-size: 0.875rem; font-weight: 700; color: var(--dark); margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.5rem; }
-        .section-title i { color: var(--primary); }
-        .timeline-list { display: flex; flex-direction: column; gap: 0.75rem; }
-        .timeline-item { background: var(--bg-light); border-radius: var(--radius-lg); padding: 1rem; }
-        .timeline-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; }
-        .timeline-name { font-weight: 600; color: var(--dark); }
-        .timeline-total { font-size: 0.875rem; color: var(--primary); font-weight: 600; }
-        .time-blocks { display: flex; flex-wrap: wrap; gap: 0.5rem; }
-        .time-block { padding: 0.375rem 0.625rem; border-radius: var(--radius-md); font-size: 0.75rem; background: var(--white); border: 1px solid var(--border); }
-        .time-block.work { border-left: 3px solid var(--primary); }
-        .time-block.meeting { border-left: 3px solid var(--warning); background: var(--warning-light); }
-        
+        .timeline-section {
+            margin-bottom: 1.5rem;
+        }
+
+        .section-title {
+            font-size: 0.875rem;
+            font-weight: 700;
+            color: var(--dark);
+            margin-bottom: 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .section-title i {
+            color: var(--primary);
+        }
+
+        .timeline-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .timeline-item {
+            background: var(--bg-light);
+            border-radius: var(--radius-lg);
+            padding: 1rem;
+        }
+
+        .timeline-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+
+        .timeline-name {
+            font-weight: 600;
+            color: var(--dark);
+        }
+
+        .timeline-total {
+            font-size: 0.875rem;
+            color: var(--primary);
+            font-weight: 600;
+        }
+
+        .time-blocks {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+
+        .time-block {
+            padding: 0.375rem 0.625rem;
+            border-radius: var(--radius-md);
+            font-size: 0.75rem;
+            background: var(--white);
+            border: 1px solid var(--border);
+        }
+
+        .time-block.work {
+            border-left: 3px solid var(--primary);
+        }
+
+        .time-block.meeting {
+            border-left: 3px solid var(--warning);
+            background: var(--warning-light);
+        }
+
         /* Project Breakdown */
-        .project-list { display: flex; flex-direction: column; gap: 0.5rem; }
-        .project-item { display: flex; justify-content: space-between; align-items: center; padding: 0.75rem; background: var(--bg-light); border-radius: var(--radius-md); }
-        .project-name { font-weight: 600; color: var(--dark); font-size: 0.875rem; }
-        .project-stats { display: flex; gap: 1rem; font-size: 0.75rem; color: var(--gray); }
-        
+        .project-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .project-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem;
+            background: var(--bg-light);
+            border-radius: var(--radius-md);
+        }
+
+        .project-name {
+            font-weight: 600;
+            color: var(--dark);
+            font-size: 0.875rem;
+        }
+
+        .project-stats {
+            display: flex;
+            gap: 1rem;
+            font-size: 0.75rem;
+            color: var(--gray);
+        }
+
         /* Buttons */
-        .btn { padding: 0.625rem 1rem; border-radius: var(--radius-md); font-weight: 600; font-size: 0.8125rem; cursor: pointer; transition: all 0.2s; border: none; display: inline-flex; align-items: center; gap: 0.5rem; }
-        .btn-primary { background: var(--primary); color: white; }
-        .btn-primary:hover { background: var(--primary-dark); }
-        .btn-secondary { background: var(--white); color: var(--gray); border: 1px solid var(--border); }
-        .btn-secondary:hover { border-color: var(--primary); color: var(--primary); }
-        
+        .btn {
+            padding: 0.625rem 1rem;
+            border-radius: var(--radius-md);
+            font-weight: 600;
+            font-size: 0.8125rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-dark);
+        }
+
+        .btn-secondary {
+            background: var(--white);
+            color: var(--gray);
+            border: 1px solid var(--border);
+        }
+
+        .btn-secondary:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+
         /* Empty State */
-        .empty-state { text-align: center; padding: 3rem; color: var(--gray); }
-        .empty-state i { font-size: 3rem; opacity: 0.3; margin-bottom: 1rem; }
-        .empty-state p { font-size: 0.875rem; }
+        .empty-state {
+            text-align: center;
+            padding: 3rem;
+            color: var(--gray);
+        }
+
+        .empty-state i {
+            font-size: 3rem;
+            opacity: 0.3;
+            margin-bottom: 1rem;
+        }
+
+        .empty-state p {
+            font-size: 0.875rem;
+        }
 
         /* Modal Styles */
-        .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.6); display: flex; align-items: center; justify-content: center; z-index: 1000; padding: 1rem; opacity: 0; visibility: hidden; transition: all 0.3s ease; }
-        .modal-overlay.active { opacity: 1; visibility: visible; }
-        .modal-content { background: var(--white); border-radius: var(--radius-xl); width: 100%; max-width: 500px; max-height: 90vh; overflow-y: auto; }
-        .modal-header { display: flex; justify-content: space-between; align-items: center; padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--border); }
-        .modal-header h3 { font-size: 1.125rem; font-weight: 700; color: var(--dark); }
-        .close-btn { width: 32px; height: 32px; border-radius: var(--radius-md); border: 1px solid var(--border); background: var(--white); cursor: pointer; display: flex; align-items: center; justify-content: center; color: var(--gray); }
-        .close-btn:hover { border-color: var(--error); color: var(--error); }
-        .modal-form { padding: 1.5rem; }
-        .form-group { margin-bottom: 1rem; }
-        .form-group label { display: block; font-size: 0.8125rem; font-weight: 600; color: var(--gray); margin-bottom: 0.375rem; }
-        .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 0.75rem; border: 1px solid var(--border); border-radius: var(--radius-md); font-size: 0.875rem; }
-        .form-group input:focus, .form-group select:focus { outline: none; border-color: var(--primary); }
-        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
-        .form-actions { display: flex; justify-content: flex-end; gap: 0.75rem; padding-top: 1rem; border-top: 1px solid var(--border); margin-top: 1rem; }
-        
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.6);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            padding: 1rem;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .modal-content {
+            background: var(--white);
+            border-radius: var(--radius-xl);
+            width: 100%;
+            max-width: 500px;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1.25rem 1.5rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .modal-header h3 {
+            font-size: 1.125rem;
+            font-weight: 700;
+            color: var(--dark);
+        }
+
+        .close-btn {
+            width: 32px;
+            height: 32px;
+            border-radius: var(--radius-md);
+            border: 1px solid var(--border);
+            background: var(--white);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--gray);
+        }
+
+        .close-btn:hover {
+            border-color: var(--error);
+            color: var(--error);
+        }
+
+        .modal-form {
+            padding: 1.5rem;
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 0.8125rem;
+            font-weight: 600;
+            color: var(--gray);
+            margin-bottom: 0.375rem;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            font-size: 0.875rem;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+
+        .form-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 0.75rem;
+            padding-top: 1rem;
+            border-top: 1px solid var(--border);
+            margin-top: 1rem;
+        }
+
         /* Toast */
-        .toast { position: fixed; bottom: 2rem; right: 2rem; padding: 1rem 1.5rem; border-radius: var(--radius-lg); color: white; font-weight: 600; z-index: 10000; animation: slideIn 0.3s ease; }
-        .toast.success { background: var(--success); }
-        .toast.error { background: var(--error); }
-        @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
-        
+        .toast {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            padding: 1rem 1.5rem;
+            border-radius: var(--radius-lg);
+            color: white;
+            font-weight: 600;
+            z-index: 10000;
+            animation: slideIn 0.3s ease;
+        }
+
+        .toast.success {
+            background: var(--success);
+        }
+
+        .toast.error {
+            background: var(--error);
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
         /* Labourers Panel */
-        .labourers-panel { background: var(--white); border-radius: var(--radius-xl); border: 1px solid var(--border); margin-bottom: 1.5rem; overflow: hidden; }
-        .labourers-header { background: linear-gradient(135deg, var(--primary), var(--primary-dark)); color: white; padding: 1.25rem 1.5rem; display: flex; justify-content: space-between; align-items: center; }
-        .company-info { display: flex; align-items: center; gap: 1rem; }
-        .company-logo { width: 48px; height: 48px; background: rgba(255,255,255,0.2); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; }
-        .company-name { font-size: 1.125rem; font-weight: 700; }
-        .company-subtitle { font-size: 0.75rem; opacity: 0.9; }
-        .labourer-count { background: rgba(255,255,255,0.2); padding: 0.5rem 1rem; border-radius: var(--radius-lg); font-weight: 700; font-size: 1.25rem; }
-        .labourer-count span { font-size: 0.75rem; font-weight: 500; display: block; }
-        .labourers-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 1rem; padding: 1.5rem; }
-        .labourer-card { background: var(--bg-light); border-radius: var(--radius-lg); padding: 1rem; border: 1px solid var(--border); transition: all 0.2s; }
-        .labourer-card:hover { border-color: var(--primary); box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
-        .labourer-card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.75rem; }
-        .labourer-avatar { width: 44px; height: 44px; border-radius: 50%; background: var(--primary); color: white; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 1rem; }
-        .labourer-info { flex: 1; margin-left: 0.75rem; }
-        .labourer-name { font-weight: 700; color: var(--dark); font-size: 0.9375rem; }
-        .labourer-role { font-size: 0.75rem; color: var(--gray); background: var(--white); padding: 0.125rem 0.5rem; border-radius: 4px; display: inline-block; margin-top: 0.25rem; }
-        .labourer-status { padding: 0.25rem 0.625rem; border-radius: var(--radius-md); font-size: 0.6875rem; font-weight: 700; text-transform: uppercase; }
-        .status-paid { background: var(--success-light); color: var(--success); }
-        .status-unpaid { background: var(--error-light); color: var(--error); }
-        .status-partial { background: var(--warning-light); color: var(--warning); }
-        .labourer-details { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; margin-bottom: 0.75rem; font-size: 0.75rem; }
-        .labourer-detail { display: flex; align-items: center; gap: 0.375rem; color: var(--gray); }
-        .labourer-detail i { width: 14px; color: var(--primary); }
-        .labourer-stats { display: flex; gap: 1rem; padding: 0.75rem; background: var(--white); border-radius: var(--radius-md); margin-bottom: 0.75rem; }
-        .labourer-stat { flex: 1; text-align: center; }
-        .labourer-stat-value { font-weight: 700; color: var(--dark); font-size: 0.875rem; }
-        .labourer-stat-label { font-size: 0.625rem; color: var(--gray); text-transform: uppercase; }
-        .labourer-actions { display: flex; gap: 0.5rem; flex-wrap: wrap; }
-        .labourer-action { padding: 0.375rem 0.625rem; border-radius: var(--radius-md); font-size: 0.6875rem; font-weight: 600; cursor: pointer; border: 1px solid var(--border); background: var(--white); color: var(--gray); transition: all 0.2s; display: flex; align-items: center; gap: 0.25rem; }
-        .labourer-action:hover { border-color: var(--primary); color: var(--primary); }
-        .labourer-action.pay { border-color: var(--success); color: var(--success); }
-        .labourer-action.pay:hover { background: var(--success); color: white; }
-        .labourer-action.assign { border-color: var(--info); color: var(--info); }
-        .labourer-action.assign:hover { background: var(--info); color: white; }
-        .labourer-action.delete { border-color: var(--error); color: var(--error); }
-        .labourer-action.delete:hover { background: var(--error); color: white; }
-        .labourers-empty { text-align: center; padding: 3rem; color: var(--gray); }
-        .labourers-empty i { font-size: 3rem; opacity: 0.3; margin-bottom: 1rem; }
-        .toggle-panel { display: flex; align-items: center; gap: 0.5rem; background: rgba(255,255,255,0.2); padding: 0.5rem 1rem; border-radius: var(--radius-md); cursor: pointer; font-size: 0.8125rem; font-weight: 600; border: none; color: white; }
-        .toggle-panel:hover { background: rgba(255,255,255,0.3); }
-        .labourers-content { max-height: 500px; overflow-y: auto; }
-        .labourers-content.collapsed { display: none; }
-        
+        .labourers-panel {
+            background: var(--white);
+            border-radius: var(--radius-xl);
+            border: 1px solid var(--border);
+            margin-bottom: 1.5rem;
+            overflow: hidden;
+        }
+
+        .labourers-header {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            padding: 1.25rem 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .company-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .company-logo {
+            width: 48px;
+            height: 48px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+        }
+
+        .company-name {
+            font-size: 1.125rem;
+            font-weight: 700;
+        }
+
+        .company-subtitle {
+            font-size: 0.75rem;
+            opacity: 0.9;
+        }
+
+        .labourer-count {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 0.5rem 1rem;
+            border-radius: var(--radius-lg);
+            font-weight: 700;
+            font-size: 1.25rem;
+        }
+
+        .labourer-count span {
+            font-size: 0.75rem;
+            font-weight: 500;
+            display: block;
+        }
+
+        .labourers-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 1rem;
+            padding: 1.5rem;
+        }
+
+        .labourer-card {
+            background: var(--bg-light);
+            border-radius: var(--radius-lg);
+            padding: 1rem;
+            border: 1px solid var(--border);
+            transition: all 0.2s;
+        }
+
+        .labourer-card:hover {
+            border-color: var(--primary);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        }
+
+        .labourer-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 0.75rem;
+        }
+
+        .labourer-avatar {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: var(--primary);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 1rem;
+        }
+
+        .labourer-info {
+            flex: 1;
+            margin-left: 0.75rem;
+        }
+
+        .labourer-name {
+            font-weight: 700;
+            color: var(--dark);
+            font-size: 0.9375rem;
+        }
+
+        .labourer-role {
+            font-size: 0.75rem;
+            color: var(--gray);
+            background: var(--white);
+            padding: 0.125rem 0.5rem;
+            border-radius: 4px;
+            display: inline-block;
+            margin-top: 0.25rem;
+        }
+
+        .labourer-status {
+            padding: 0.25rem 0.625rem;
+            border-radius: var(--radius-md);
+            font-size: 0.6875rem;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        .status-paid {
+            background: var(--success-light);
+            color: var(--success);
+        }
+
+        .status-unpaid {
+            background: var(--error-light);
+            color: var(--error);
+        }
+
+        .status-partial {
+            background: var(--warning-light);
+            color: var(--warning);
+        }
+
+        .labourer-details {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.5rem;
+            margin-bottom: 0.75rem;
+            font-size: 0.75rem;
+        }
+
+        .labourer-detail {
+            display: flex;
+            align-items: center;
+            gap: 0.375rem;
+            color: var(--gray);
+        }
+
+        .labourer-detail i {
+            width: 14px;
+            color: var(--primary);
+        }
+
+        .labourer-stats {
+            display: flex;
+            gap: 1rem;
+            padding: 0.75rem;
+            background: var(--white);
+            border-radius: var(--radius-md);
+            margin-bottom: 0.75rem;
+        }
+
+        .labourer-stat {
+            flex: 1;
+            text-align: center;
+        }
+
+        .labourer-stat-value {
+            font-weight: 700;
+            color: var(--dark);
+            font-size: 0.875rem;
+        }
+
+        .labourer-stat-label {
+            font-size: 0.625rem;
+            color: var(--gray);
+            text-transform: uppercase;
+        }
+
+        .labourer-actions {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .labourer-action {
+            padding: 0.375rem 0.625rem;
+            border-radius: var(--radius-md);
+            font-size: 0.6875rem;
+            font-weight: 600;
+            cursor: pointer;
+            border: 1px solid var(--border);
+            background: var(--white);
+            color: var(--gray);
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+
+        .labourer-action:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+
+        .labourer-action.pay {
+            border-color: var(--success);
+            color: var(--success);
+        }
+
+        .labourer-action.pay:hover {
+            background: var(--success);
+            color: white;
+        }
+
+        .labourer-action.assign {
+            border-color: var(--info);
+            color: var(--info);
+        }
+
+        .labourer-action.assign:hover {
+            background: var(--info);
+            color: white;
+        }
+
+        .labourer-action.delete {
+            border-color: var(--error);
+            color: var(--error);
+        }
+
+        .labourer-action.delete:hover {
+            background: var(--error);
+            color: white;
+        }
+
+        .labourers-empty {
+            text-align: center;
+            padding: 3rem;
+            color: var(--gray);
+        }
+
+        .labourers-empty i {
+            font-size: 3rem;
+            opacity: 0.3;
+            margin-bottom: 1rem;
+        }
+
+        .toggle-panel {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 0.5rem 1rem;
+            border-radius: var(--radius-md);
+            cursor: pointer;
+            font-size: 0.8125rem;
+            font-weight: 600;
+            border: none;
+            color: white;
+        }
+
+        .toggle-panel:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .labourers-content {
+            max-height: 500px;
+            overflow-y: auto;
+        }
+
+        .labourers-content.collapsed {
+            display: none;
+        }
+
         /* Responsive */
         @media (max-width: 1024px) {
-            .summary-grid { grid-template-columns: repeat(2, 1fr); }
-            .labourers-grid { grid-template-columns: 1fr; }
+            .summary-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .labourers-grid {
+                grid-template-columns: 1fr;
+            }
         }
+
         @media (max-width: 768px) {
-            .main-content { margin-left: 0; padding: 1rem; }
-            .sidebar { display: none; }
-            .calendar-cell { min-height: 60px; }
-            .day-badges, .work-type-icons { display: none; }
-            .summary-grid { grid-template-columns: 1fr 1fr; }
-            .labourers-header { flex-direction: column; gap: 1rem; text-align: center; }
+            .main-content {
+                margin-left: 0;
+                padding: 1rem;
+            }
+
+            .sidebar {
+                display: none;
+            }
+
+            .calendar-cell {
+                min-height: 60px;
+            }
+
+            .day-badges,
+            .work-type-icons {
+                display: none;
+            }
+
+            .summary-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+
+            .labourers-header {
+                flex-direction: column;
+                gap: 1rem;
+                text-align: center;
+            }
         }
     </style>
 </head>
+
 <body>
     <!-- Sidebar -->
     <aside class="sidebar">
         <div class="logo-section">
             <a href="hub.html" class="logo-link">
-                <img src="B&B.png" alt="B&B" class="logo-img">
+                <svg class="logo-img" viewBox="0 0 140 110" xmlns="http://www.w3.org/2000/svg" style="height: auto;">
+                    <rect x="0" y="56" width="17" height="17" rx="2" fill="var(--accent)" stroke="#000" stroke-width="1.5" />
+                    <rect x="20" y="56" width="17" height="17" rx="2" fill="var(--primary)" stroke="#000" stroke-width="1.5" />
+                    <rect x="40" y="56" width="17" height="17" rx="2" fill="var(--accent)" stroke="#000" stroke-width="1.5" />
+                    <rect x="60" y="56" width="17" height="17" rx="2" fill="var(--primary)" stroke="#000" stroke-width="1.5" />
+                    <rect x="80" y="56" width="17" height="17" rx="2" fill="var(--accent)" stroke="#000" stroke-width="1.5" />
+                    <rect x="20" y="36" width="17" height="17" rx="2" fill="var(--primary)" stroke="#000" stroke-width="1.5" />
+                    <rect x="40" y="36" width="17" height="17" rx="2" fill="var(--accent)" stroke="#000" stroke-width="1.5" />
+                    <rect x="60" y="36" width="17" height="17" rx="2" fill="var(--primary)" stroke="#000" stroke-width="1.5" />
+                    <rect x="40" y="16" width="17" height="17" rx="2" fill="var(--primary)" stroke="#000" stroke-width="1.5" />
+                    <rect x="60" y="16" width="17" height="17" rx="2" fill="var(--primary)" stroke="#000" stroke-width="1.5" />
+                </svg>
                 <span class="logo-text">B&B</span>
             </a>
         </div>
         <nav class="nav-menu">
-            <a href="hub.html" class="nav-item"><i class="fas fa-th-large nav-icon"></i><span class="nav-text">Dashboard</span></a>
-            <a href="index.html" class="nav-item"><i class="fas fa-building nav-icon"></i><span class="nav-text">Projects</span></a>
-            <a href="labour-calendar.html" class="nav-item active"><i class="fas fa-calendar-alt nav-icon"></i><span class="nav-text">Labour Calendar</span></a>
-            <a href="funds.html" class="nav-item"><i class="fas fa-wallet nav-icon"></i><span class="nav-text">Funds</span></a>
-            <a href="payments.html" class="nav-item"><i class="fas fa-credit-card nav-icon"></i><span class="nav-text">Payments</span></a>
-            <a href="materials.html" class="nav-item"><i class="fas fa-boxes nav-icon"></i><span class="nav-text">Materials</span></a>
+            <a href="hub.html" class="nav-item"><i class="fas fa-th-large nav-icon"></i><span
+                    class="nav-text">Dashboard</span></a>
+            <a href="dashboard.html" class="nav-item"><i class="fas fa-building nav-icon"></i><span
+                    class="nav-text">Projects</span></a>
+            <a href="labour-calendar.html" class="nav-item active"><i class="fas fa-calendar-alt nav-icon"></i><span
+                    class="nav-text">Labour Calendar</span></a>
+            <a href="funds.html" class="nav-item"><i class="fas fa-wallet nav-icon"></i><span
+                    class="nav-text">Funds</span></a>
+            <a href="payments.html" class="nav-item"><i class="fas fa-credit-card nav-icon"></i><span
+                    class="nav-text">Payments</span></a>
+            <a href="materials.html" class="nav-item"><i class="fas fa-boxes nav-icon"></i><span
+                    class="nav-text">Materials</span></a>
         </nav>
         <div class="sidebar-footer">
-            <a href="settings.html" class="nav-item"><i class="fas fa-cog nav-icon"></i><span class="nav-text">Settings</span></a>
+            <a href="settings.html" class="nav-item"><i class="fas fa-cog nav-icon"></i><span
+                    class="nav-text">Settings</span></a>
         </div>
     </aside>
 
@@ -248,9 +1131,11 @@
                 <button class="today-btn" id="todayBtn">Today</button>
             </div>
             <div class="header-actions">
-                <button class="btn btn-secondary" id="migrateDataBtn" style="display: none;"><i class="fas fa-database"></i> Migrate Old Data</button>
+                <button class="btn btn-secondary" id="migrateDataBtn" style="display: none;"><i
+                        class="fas fa-database"></i> Migrate Old Data</button>
                 <button class="btn btn-secondary" id="addWorkerBtn"><i class="fas fa-user-plus"></i> Add Worker</button>
-                <button class="btn btn-primary" id="markAttendanceBtn" style="background: var(--info);"><i class="fas fa-clipboard-check"></i> Mark Attendance</button>
+                <button class="btn btn-primary" id="markAttendanceBtn" style="background: var(--info);"><i
+                        class="fas fa-clipboard-check"></i> Mark Attendance</button>
                 <button class="btn btn-primary" id="addWorkEntryBtn"><i class="fas fa-plus"></i> Add Work Entry</button>
             </div>
         </div>
@@ -298,7 +1183,8 @@
                 <div class="labourers-empty" id="labourersEmpty" style="display: none;">
                     <i class="fas fa-users"></i>
                     <p>No labourers registered yet</p>
-                    <button class="btn btn-primary" onclick="CalendarApp.openModal('addWorkerModal')" style="margin-top: 1rem;">
+                    <button class="btn btn-primary" onclick="CalendarApp.openModal('addWorkerModal')"
+                        style="margin-top: 1rem;">
                         <i class="fas fa-user-plus"></i> Add First Labourer
                     </button>
                 </div>
@@ -313,8 +1199,10 @@
                     <p class="panel-date" id="panelDate">Click on a date to view details</p>
                 </div>
                 <div class="panel-actions">
-                    <button class="btn btn-secondary" id="addPaymentBtn"><i class="fas fa-money-bill-wave"></i> Record Payment</button>
-                    <button class="btn btn-secondary" id="addMeetingBtn"><i class="fas fa-users"></i> Add Meeting</button>
+                    <button class="btn btn-secondary" id="addPaymentBtn"><i class="fas fa-money-bill-wave"></i> Record
+                        Payment</button>
+                    <button class="btn btn-secondary" id="addMeetingBtn"><i class="fas fa-users"></i> Add
+                        Meeting</button>
                 </div>
             </div>
 
@@ -366,8 +1254,10 @@
     <div id="workEntryModal" class="modal-overlay">
         <div class="modal-content">
             <div class="modal-header">
-                <h3><i class="fas fa-hard-hat" style="color: var(--primary); margin-right: 0.5rem;"></i> Add Work Entry</h3>
-                <button class="close-btn" onclick="CalendarApp.closeModal('workEntryModal')"><i class="fas fa-times"></i></button>
+                <h3><i class="fas fa-hard-hat" style="color: var(--primary); margin-right: 0.5rem;"></i> Add Work Entry
+                </h3>
+                <button class="close-btn" onclick="CalendarApp.closeModal('workEntryModal')"><i
+                        class="fas fa-times"></i></button>
             </div>
             <form id="workEntryForm" class="modal-form">
                 <div class="form-group">
@@ -426,7 +1316,8 @@
                     <textarea id="entryNotes" rows="2" placeholder="Optional notes..."></textarea>
                 </div>
                 <div class="form-actions">
-                    <button type="button" class="btn btn-secondary" onclick="CalendarApp.closeModal('workEntryModal')">Cancel</button>
+                    <button type="button" class="btn btn-secondary"
+                        onclick="CalendarApp.closeModal('workEntryModal')">Cancel</button>
                     <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Save Entry</button>
                 </div>
             </form>
@@ -437,8 +1328,10 @@
     <div id="paymentModal" class="modal-overlay">
         <div class="modal-content">
             <div class="modal-header">
-                <h3><i class="fas fa-money-bill-wave" style="color: var(--success); margin-right: 0.5rem;"></i> Record Payment</h3>
-                <button class="close-btn" onclick="CalendarApp.closeModal('paymentModal')"><i class="fas fa-times"></i></button>
+                <h3><i class="fas fa-money-bill-wave" style="color: var(--success); margin-right: 0.5rem;"></i> Record
+                    Payment</h3>
+                <button class="close-btn" onclick="CalendarApp.closeModal('paymentModal')"><i
+                        class="fas fa-times"></i></button>
             </div>
             <form id="paymentForm" class="modal-form">
                 <div class="form-group">
@@ -456,7 +1349,8 @@
                 <div class="form-row">
                     <div class="form-group">
                         <label>Current Due</label>
-                        <input type="text" id="paymentDue" readonly style="background: var(--bg-light); color: var(--error); font-weight: 600;">
+                        <input type="text" id="paymentDue" readonly
+                            style="background: var(--bg-light); color: var(--error); font-weight: 600;">
                     </div>
                     <div class="form-group">
                         <label>Amount *</label>
@@ -480,11 +1374,13 @@
                     <label>Notes</label>
                     <textarea id="paymentNotes" rows="2" placeholder="Optional notes..."></textarea>
                 </div>
-                <div id="paymentWarning" style="display: none; padding: 0.75rem; background: var(--warning-light); border-radius: var(--radius-md); color: var(--warning); font-size: 0.8125rem; margin-bottom: 1rem;">
+                <div id="paymentWarning"
+                    style="display: none; padding: 0.75rem; background: var(--warning-light); border-radius: var(--radius-md); color: var(--warning); font-size: 0.8125rem; margin-bottom: 1rem;">
                     <i class="fas fa-exclamation-triangle"></i> <span id="paymentWarningText"></span>
                 </div>
                 <div class="form-actions">
-                    <button type="button" class="btn btn-secondary" onclick="CalendarApp.closeModal('paymentModal')">Cancel</button>
+                    <button type="button" class="btn btn-secondary"
+                        onclick="CalendarApp.closeModal('paymentModal')">Cancel</button>
                     <button type="submit" class="btn btn-primary"><i class="fas fa-check"></i> Record Payment</button>
                 </div>
             </form>
@@ -496,7 +1392,8 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h3><i class="fas fa-users" style="color: var(--warning); margin-right: 0.5rem;"></i> Add Meeting</h3>
-                <button class="close-btn" onclick="CalendarApp.closeModal('meetingModal')"><i class="fas fa-times"></i></button>
+                <button class="close-btn" onclick="CalendarApp.closeModal('meetingModal')"><i
+                        class="fas fa-times"></i></button>
             </div>
             <form id="meetingForm" class="modal-form">
                 <div class="form-group">
@@ -528,7 +1425,8 @@
                     <textarea id="meetingOutcome" rows="2" placeholder="What was decided..."></textarea>
                 </div>
                 <div class="form-actions">
-                    <button type="button" class="btn btn-secondary" onclick="CalendarApp.closeModal('meetingModal')">Cancel</button>
+                    <button type="button" class="btn btn-secondary"
+                        onclick="CalendarApp.closeModal('meetingModal')">Cancel</button>
                     <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Save Meeting</button>
                 </div>
             </form>
@@ -539,8 +1437,10 @@
     <div id="addWorkerModal" class="modal-overlay">
         <div class="modal-content">
             <div class="modal-header">
-                <h3><i class="fas fa-user-plus" style="color: var(--primary); margin-right: 0.5rem;"></i> Add New Worker</h3>
-                <button class="close-btn" onclick="CalendarApp.closeModal('addWorkerModal')"><i class="fas fa-times"></i></button>
+                <h3><i class="fas fa-user-plus" style="color: var(--primary); margin-right: 0.5rem;"></i> Add New Worker
+                </h3>
+                <button class="close-btn" onclick="CalendarApp.closeModal('addWorkerModal')"><i
+                        class="fas fa-times"></i></button>
             </div>
             <form id="addWorkerForm" class="modal-form">
                 <div class="form-group">
@@ -577,7 +1477,8 @@
                     <textarea id="newWorkerAddress" rows="2" placeholder="Worker's address (optional)"></textarea>
                 </div>
                 <div class="form-actions">
-                    <button type="button" class="btn btn-secondary" onclick="CalendarApp.closeModal('addWorkerModal')">Cancel</button>
+                    <button type="button" class="btn btn-secondary"
+                        onclick="CalendarApp.closeModal('addWorkerModal')">Cancel</button>
                     <button type="submit" class="btn btn-primary"><i class="fas fa-user-plus"></i> Add Worker</button>
                 </div>
             </form>
@@ -588,8 +1489,10 @@
     <div id="editWorkerModal" class="modal-overlay">
         <div class="modal-content">
             <div class="modal-header">
-                <h3><i class="fas fa-user-edit" style="color: var(--warning); margin-right: 0.5rem;"></i> Edit Worker</h3>
-                <button class="close-btn" onclick="CalendarApp.closeModal('editWorkerModal')"><i class="fas fa-times"></i></button>
+                <h3><i class="fas fa-user-edit" style="color: var(--warning); margin-right: 0.5rem;"></i> Edit Worker
+                </h3>
+                <button class="close-btn" onclick="CalendarApp.closeModal('editWorkerModal')"><i
+                        class="fas fa-times"></i></button>
             </div>
             <form id="editWorkerForm" class="modal-form">
                 <input type="hidden" id="editWorkerId">
@@ -627,7 +1530,8 @@
                     <textarea id="editWorkerAddress" rows="2" placeholder="Worker's address"></textarea>
                 </div>
                 <div class="form-actions">
-                    <button type="button" class="btn btn-secondary" onclick="CalendarApp.closeModal('editWorkerModal')">Cancel</button>
+                    <button type="button" class="btn btn-secondary"
+                        onclick="CalendarApp.closeModal('editWorkerModal')">Cancel</button>
                     <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Save Changes</button>
                 </div>
             </form>
@@ -638,8 +1542,10 @@
     <div id="assignWorkerModal" class="modal-overlay">
         <div class="modal-content">
             <div class="modal-header">
-                <h3><i class="fas fa-project-diagram" style="color: var(--info); margin-right: 0.5rem;"></i> Assign to Project</h3>
-                <button class="close-btn" onclick="CalendarApp.closeModal('assignWorkerModal')"><i class="fas fa-times"></i></button>
+                <h3><i class="fas fa-project-diagram" style="color: var(--info); margin-right: 0.5rem;"></i> Assign to
+                    Project</h3>
+                <button class="close-btn" onclick="CalendarApp.closeModal('assignWorkerModal')"><i
+                        class="fas fa-times"></i></button>
             </div>
             <form id="assignWorkerForm" class="modal-form">
                 <input type="hidden" id="assignWorkerId">
@@ -673,7 +1579,8 @@
                     <input type="number" id="assignDailyWage" min="0" placeholder="Leave empty to use default">
                 </div>
                 <div class="form-actions">
-                    <button type="button" class="btn btn-secondary" onclick="CalendarApp.closeModal('assignWorkerModal')">Cancel</button>
+                    <button type="button" class="btn btn-secondary"
+                        onclick="CalendarApp.closeModal('assignWorkerModal')">Cancel</button>
                     <button type="submit" class="btn btn-primary"><i class="fas fa-link"></i> Assign Worker</button>
                 </div>
             </form>
@@ -684,8 +1591,10 @@
     <div id="quickPayModal" class="modal-overlay">
         <div class="modal-content">
             <div class="modal-header">
-                <h3><i class="fas fa-money-bill-wave" style="color: var(--success); margin-right: 0.5rem;"></i> Pay Worker</h3>
-                <button class="close-btn" onclick="CalendarApp.closeModal('quickPayModal')"><i class="fas fa-times"></i></button>
+                <h3><i class="fas fa-money-bill-wave" style="color: var(--success); margin-right: 0.5rem;"></i> Pay
+                    Worker</h3>
+                <button class="close-btn" onclick="CalendarApp.closeModal('quickPayModal')"><i
+                        class="fas fa-times"></i></button>
             </div>
             <form id="quickPayForm" class="modal-form">
                 <input type="hidden" id="quickPayWorkerId">
@@ -695,7 +1604,8 @@
                 </div>
                 <div class="form-group">
                     <label>Total Due (All Projects)</label>
-                    <input type="text" id="quickPayTotalDue" readonly style="background: var(--bg-light); color: var(--error); font-weight: 600;">
+                    <input type="text" id="quickPayTotalDue" readonly
+                        style="background: var(--bg-light); color: var(--error); font-weight: 600;">
                 </div>
                 <!-- Auto-detected projects info -->
                 <div id="quickPayProjectsInfo" style="display: none;"></div>
@@ -719,8 +1629,10 @@
                     </select>
                 </div>
                 <div class="form-actions">
-                    <button type="button" class="btn btn-secondary" onclick="CalendarApp.closeModal('quickPayModal')">Cancel</button>
-                    <button type="submit" class="btn btn-primary" style="background: var(--success);"><i class="fas fa-check"></i> Pay Now</button>
+                    <button type="button" class="btn btn-secondary"
+                        onclick="CalendarApp.closeModal('quickPayModal')">Cancel</button>
+                    <button type="submit" class="btn btn-primary" style="background: var(--success);"><i
+                            class="fas fa-check"></i> Pay Now</button>
                 </div>
             </form>
         </div>
@@ -730,16 +1642,23 @@
     <div id="deleteWorkerModal" class="modal-overlay">
         <div class="modal-content" style="max-width: 400px;">
             <div class="modal-header">
-                <h3><i class="fas fa-exclamation-triangle" style="color: var(--error); margin-right: 0.5rem;"></i> Delete Worker</h3>
-                <button class="close-btn" onclick="CalendarApp.closeModal('deleteWorkerModal')"><i class="fas fa-times"></i></button>
+                <h3><i class="fas fa-exclamation-triangle" style="color: var(--error); margin-right: 0.5rem;"></i>
+                    Delete Worker</h3>
+                <button class="close-btn" onclick="CalendarApp.closeModal('deleteWorkerModal')"><i
+                        class="fas fa-times"></i></button>
             </div>
             <div class="modal-form">
                 <input type="hidden" id="deleteWorkerId">
-                <p style="color: var(--gray); margin-bottom: 1rem;">Are you sure you want to delete <strong id="deleteWorkerName"></strong>?</p>
-                <p style="color: var(--error); font-size: 0.8125rem; margin-bottom: 1rem;"><i class="fas fa-warning"></i> This action cannot be undone. All work entries and payment records will remain in the system.</p>
+                <p style="color: var(--gray); margin-bottom: 1rem;">Are you sure you want to delete <strong
+                        id="deleteWorkerName"></strong>?</p>
+                <p style="color: var(--error); font-size: 0.8125rem; margin-bottom: 1rem;"><i
+                        class="fas fa-warning"></i> This action cannot be undone. All work entries and payment records
+                    will remain in the system.</p>
                 <div class="form-actions">
-                    <button type="button" class="btn btn-secondary" onclick="CalendarApp.closeModal('deleteWorkerModal')">Cancel</button>
-                    <button type="button" class="btn btn-primary" style="background: var(--error);" onclick="CalendarApp.confirmDeleteWorker()"><i class="fas fa-trash"></i> Delete</button>
+                    <button type="button" class="btn btn-secondary"
+                        onclick="CalendarApp.closeModal('deleteWorkerModal')">Cancel</button>
+                    <button type="button" class="btn btn-primary" style="background: var(--error);"
+                        onclick="CalendarApp.confirmDeleteWorker()"><i class="fas fa-trash"></i> Delete</button>
                 </div>
             </div>
         </div>
@@ -749,8 +1668,10 @@
     <div id="attendanceModal" class="modal-overlay">
         <div class="modal-content" style="max-width: 700px;">
             <div class="modal-header">
-                <h3><i class="fas fa-clipboard-check" style="color: var(--info); margin-right: 0.5rem;"></i> Mark Attendance</h3>
-                <button class="close-btn" onclick="CalendarApp.closeModal('attendanceModal')"><i class="fas fa-times"></i></button>
+                <h3><i class="fas fa-clipboard-check" style="color: var(--info); margin-right: 0.5rem;"></i> Mark
+                    Attendance</h3>
+                <button class="close-btn" onclick="CalendarApp.closeModal('attendanceModal')"><i
+                        class="fas fa-times"></i></button>
             </div>
             <div class="modal-form">
                 <div class="form-row">
@@ -765,37 +1686,46 @@
                         </select>
                     </div>
                 </div>
-                
+
                 <div style="margin-bottom: 1rem;">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+                    <div
+                        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
                         <label style="font-size: 0.875rem; font-weight: 700; color: var(--dark);">Select Workers</label>
                         <div style="display: flex; gap: 0.5rem;">
-                            <button type="button" class="btn btn-secondary" style="padding: 0.375rem 0.75rem; font-size: 0.75rem;" onclick="CalendarApp.selectAllAttendance('present')">
+                            <button type="button" class="btn btn-secondary"
+                                style="padding: 0.375rem 0.75rem; font-size: 0.75rem;"
+                                onclick="CalendarApp.selectAllAttendance('present')">
                                 <i class="fas fa-check-double"></i> All Present
                             </button>
-                            <button type="button" class="btn btn-secondary" style="padding: 0.375rem 0.75rem; font-size: 0.75rem;" onclick="CalendarApp.selectAllAttendance('absent')">
+                            <button type="button" class="btn btn-secondary"
+                                style="padding: 0.375rem 0.75rem; font-size: 0.75rem;"
+                                onclick="CalendarApp.selectAllAttendance('absent')">
                                 <i class="fas fa-times"></i> All Absent
                             </button>
                         </div>
                     </div>
-                    
-                    <div id="attendanceWorkersList" style="max-height: 350px; overflow-y: auto; border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 0.5rem;">
+
+                    <div id="attendanceWorkersList"
+                        style="max-height: 350px; overflow-y: auto; border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 0.5rem;">
                         <p style="text-align: center; color: var(--gray); padding: 2rem;">Loading workers...</p>
                     </div>
                 </div>
-                
-                <div style="background: var(--info-light); padding: 0.75rem; border-radius: var(--radius-md); margin-bottom: 1rem;">
+
+                <div
+                    style="background: var(--info-light); padding: 0.75rem; border-radius: var(--radius-md); margin-bottom: 1rem;">
                     <p style="font-size: 0.75rem; color: var(--info);">
-                        <i class="fas fa-info-circle"></i> 
-                        <strong>Present:</strong> Full day (8 hours) | 
-                        <strong>Half-Day:</strong> 4 hours | 
+                        <i class="fas fa-info-circle"></i>
+                        <strong>Present:</strong> Full day (8 hours) |
+                        <strong>Half-Day:</strong> 4 hours |
                         <strong>Absent:</strong> No work entry
                     </p>
                 </div>
-                
+
                 <div class="form-actions">
-                    <button type="button" class="btn btn-secondary" onclick="CalendarApp.closeModal('attendanceModal')">Cancel</button>
-                    <button type="button" class="btn btn-primary" style="background: var(--info);" onclick="CalendarApp.saveAttendance()">
+                    <button type="button" class="btn btn-secondary"
+                        onclick="CalendarApp.closeModal('attendanceModal')">Cancel</button>
+                    <button type="button" class="btn btn-primary" style="background: var(--info);"
+                        onclick="CalendarApp.saveAttendance()">
                         <i class="fas fa-save"></i> Save Attendance
                     </button>
                 </div>
@@ -816,41 +1746,41 @@
 
             async init() {
                 await Storage.waitForAuth();
-                
+
                 // Load company info
                 await this.loadCompanyInfo();
-                
+
                 // Check and run migration if needed
                 await this.checkAndRunMigration();
-                
+
                 await this.loadData();
                 this.renderCalendar();
                 this.setupEventListeners();
                 this.selectDate(new Date().toISOString().split('T')[0]);
-                
+
                 // Show migrate button if old data exists
                 await this.checkShowMigrateButton();
             },
-            
+
             async loadCompanyInfo() {
                 try {
                     // Try to get from Firebase user_preferences
                     const { db, doc, getDoc, auth } = await import('./js/firebase-config.js');
                     const user = auth.currentUser;
-                    
+
                     if (user) {
                         const docRef = doc(db, 'user_preferences', user.uid);
                         const docSnap = await getDoc(docRef);
-                        
+
                         if (docSnap.exists()) {
                             const prefs = docSnap.data();
-                            
+
                             // Update company name
                             const companyNameEl = document.getElementById('companyName');
                             if (companyNameEl && prefs.companyName) {
                                 companyNameEl.textContent = prefs.companyName;
                             }
-                            
+
                             // Update company logo
                             const companyLogoEl = document.querySelector('.company-logo');
                             if (companyLogoEl && prefs.companyLogo) {
@@ -858,18 +1788,18 @@
                             }
                         }
                     }
-                    
+
                     // Fallback to localStorage
                     const localSettings = localStorage.getItem('bb_settings');
                     if (localSettings) {
                         const settings = JSON.parse(localSettings);
                         const companyNameEl = document.getElementById('companyName');
                         const companyLogoEl = document.querySelector('.company-logo');
-                        
+
                         if (companyNameEl && settings.account?.companyName && companyNameEl.textContent === 'Your Company') {
                             companyNameEl.textContent = settings.account.companyName;
                         }
-                        
+
                         if (companyLogoEl && settings.account?.companyLogo && !companyLogoEl.querySelector('img')) {
                             companyLogoEl.innerHTML = `<img src="${settings.account.companyLogo}" alt="Logo" style="width: 100%; height: 100%; object-fit: cover; border-radius: 12px;">`;
                         }
@@ -883,7 +1813,7 @@
                 try {
                     const oldAttendance = await Storage.workerAttendance.getAll();
                     const oldPayments = await Storage.workerPayments.getAll();
-                    
+
                     if (oldAttendance.length > 0 || oldPayments.length > 0) {
                         const migrateBtn = document.getElementById('migrateDataBtn');
                         if (migrateBtn) {
@@ -934,28 +1864,28 @@
                 const grid = document.getElementById('labourersGrid');
                 const empty = document.getElementById('labourersEmpty');
                 const countEl = document.getElementById('labourerCount');
-                
+
                 // Update count
                 countEl.textContent = this.workers.length;
-                
+
                 if (this.workers.length === 0) {
                     grid.style.display = 'none';
                     empty.style.display = 'block';
                     return;
                 }
-                
+
                 grid.style.display = 'grid';
                 empty.style.display = 'none';
-                
+
                 // Get payment status and projects for each worker
                 const workerCards = await Promise.all(this.workers.map(async (worker) => {
                     const workerData = await LabourCalendar.getWorkerProjects(worker.id);
                     const dueInfo = await LabourCalendar.getLabourDue(worker.id);
                     const statusClass = dueInfo.due <= 0 ? 'status-paid' : (dueInfo.paid > 0 ? 'status-partial' : 'status-unpaid');
                     const statusText = dueInfo.due <= 0 ? 'Paid' : (dueInfo.paid > 0 ? 'Partial' : 'Unpaid');
-                    
+
                     // Build projects list
-                    const projectsHtml = workerData.projects.length > 0 
+                    const projectsHtml = workerData.projects.length > 0
                         ? `<div class="labourer-projects" style="margin-bottom: 0.75rem;">
                             <div style="font-size: 0.6875rem; color: var(--gray); margin-bottom: 0.375rem; font-weight: 600;">
                                 <i class="fas fa-building" style="margin-right: 0.25rem;"></i> 
@@ -977,7 +1907,7 @@
                         : `<div style="font-size: 0.6875rem; color: var(--gray); margin-bottom: 0.75rem; font-style: italic;">
                             <i class="fas fa-info-circle"></i> Not assigned to any project yet
                           </div>`;
-                    
+
                     return `
                         <div class="labourer-card" data-worker-id="${worker.id}">
                             <div class="labourer-card-header">
@@ -1017,7 +1947,7 @@
                         </div>
                     `;
                 }));
-                
+
                 grid.innerHTML = workerCards.join('');
             },
 
@@ -1054,12 +1984,12 @@
 
                 // Build calendar grid
                 let html = '';
-                
+
                 // Previous month days
                 const prevMonth = this.currentMonth === 1 ? 12 : this.currentMonth - 1;
                 const prevYear = this.currentMonth === 1 ? this.currentYear - 1 : this.currentYear;
                 const daysInPrevMonth = new Date(prevYear, prevMonth, 0).getDate();
-                
+
                 for (let i = firstDay - 1; i >= 0; i--) {
                     const day = daysInPrevMonth - i;
                     html += `<div class="calendar-cell other-month"><div class="day-number">${day}</div></div>`;
@@ -1130,7 +2060,7 @@
 
             async selectDate(date) {
                 this.selectedDate = date;
-                
+
                 // Update calendar selection
                 document.querySelectorAll('.calendar-cell').forEach(cell => {
                     cell.classList.remove('selected');
@@ -1168,7 +2098,7 @@
 
             renderTimeline(timeline) {
                 const container = document.getElementById('timelineList');
-                
+
                 if (!timeline || timeline.length === 0) {
                     container.innerHTML = `
                         <div class="empty-state">
@@ -1204,7 +2134,7 @@
 
             renderProjectBreakdown(breakdown) {
                 const container = document.getElementById('projectList');
-                
+
                 if (!breakdown || breakdown.length === 0) {
                     container.innerHTML = `
                         <div class="empty-state">
@@ -1243,10 +2173,10 @@
                 document.getElementById('addMeetingBtn').addEventListener('click', () => this.openModal('meetingModal'));
                 document.getElementById('addWorkerBtn').addEventListener('click', () => this.openModal('addWorkerModal'));
                 document.getElementById('markAttendanceBtn').addEventListener('click', () => this.openAttendanceModal());
-                
+
                 // Toggle labourers panel
                 document.getElementById('toggleLabourersBtn').addEventListener('click', () => this.toggleLabourersPanel());
-                
+
                 // Migrate data button
                 document.getElementById('migrateDataBtn').addEventListener('click', () => this.runForceMigration());
 
@@ -1268,7 +2198,7 @@
                 document.getElementById('paymentLabourId').addEventListener('change', () => this.updatePaymentDue());
                 document.getElementById('paymentProjectId').addEventListener('change', () => this.updatePaymentDue());
             },
-            
+
             toggleLabourersPanel() {
                 const content = document.getElementById('labourersContent');
                 const icon = document.getElementById('toggleIcon');
@@ -1276,21 +2206,21 @@
                 icon.classList.toggle('fa-chevron-up');
                 icon.classList.toggle('fa-chevron-down');
             },
-            
+
             async runForceMigration() {
                 if (!confirm('This will migrate all old labour data to the new calendar format. Continue?')) {
                     return;
                 }
-                
+
                 this.showMigrationBanner();
                 try {
                     const results = await LabourCalendar.forceMigration();
                     this.showToast(`Migration complete: ${results.attendanceMigrated} work entries, ${results.paymentsMigrated} payments migrated`, 'success');
-                    
+
                     // Reload calendar
                     await this.renderCalendar();
                     await this.selectDate(this.selectedDate || new Date().toISOString().split('T')[0]);
-                    
+
                     // Hide migrate button after successful migration
                     document.getElementById('migrateDataBtn').style.display = 'none';
                 } catch (error) {
@@ -1393,7 +2323,7 @@
                     };
 
                     const result = await LabourCalendar.processPaymentWithFundUpdate(payment);
-                    
+
                     if (result.warning) {
                         console.warn(result.warning);
                     }
@@ -1450,7 +2380,7 @@
                     await Storage.workers.add(worker);
                     this.closeModal('addWorkerModal');
                     this.showToast('Worker added successfully', 'success');
-                    
+
                     // Reload workers and update dropdowns
                     await this.loadData();
                     e.target.reset();
@@ -1463,14 +2393,14 @@
             openEditWorker(workerId) {
                 const worker = this.workers.find(w => w.id === workerId);
                 if (!worker) return;
-                
+
                 document.getElementById('editWorkerId').value = worker.id;
                 document.getElementById('editWorkerName').value = worker.name || '';
                 document.getElementById('editWorkerPhone').value = worker.phone || '';
                 document.getElementById('editWorkerRole').value = worker.role || 'General';
                 document.getElementById('editWorkerDailyWage').value = worker.dailyWage || 500;
                 document.getElementById('editWorkerAddress').value = worker.address || '';
-                
+
                 this.openModal('editWorkerModal');
             },
 
@@ -1503,17 +2433,17 @@
             openAssignWorker(workerId) {
                 const worker = this.workers.find(w => w.id === workerId);
                 if (!worker) return;
-                
+
                 document.getElementById('assignWorkerId').value = worker.id;
                 document.getElementById('assignWorkerName').value = worker.name;
                 document.getElementById('assignWorkerRole').value = worker.role || 'General';
                 document.getElementById('assignDailyWage').value = worker.dailyWage || '';
-                
+
                 // Populate projects dropdown
                 const projectSelect = document.getElementById('assignProjectId');
                 projectSelect.innerHTML = '<option value="">Select Project</option>' +
                     this.projects.map(p => `<option value="${p.id}">${p.name}</option>`).join('');
-                
+
                 this.openModal('assignWorkerModal');
             },
 
@@ -1534,7 +2464,7 @@
                     // Check if already assigned
                     const existing = await Storage.workerAssignments.getByProject(assignment.projectId);
                     const alreadyAssigned = existing.find(a => a.workerId === assignment.workerId);
-                    
+
                     if (alreadyAssigned) {
                         throw new Error('Worker is already assigned to this project');
                     }
@@ -1551,29 +2481,29 @@
             async openQuickPay(workerId) {
                 const worker = this.workers.find(w => w.id === workerId);
                 if (!worker) return;
-                
+
                 document.getElementById('quickPayWorkerId').value = worker.id;
                 document.getElementById('quickPayWorkerName').value = worker.name;
-                
+
                 // Get worker's projects (auto-detect)
                 const workerData = await LabourCalendar.getWorkerProjects(workerId);
-                
+
                 // Get total due across all projects
                 document.getElementById('quickPayTotalDue').value = `₹${this.formatNumber(workerData.totalDue)}`;
-                
+
                 // Populate projects dropdown with ONLY projects the worker has worked on
                 const projectSelect = document.getElementById('quickPayProjectId');
-                
+
                 // Show worker's projects with dues info
                 const projectsInfoDiv = document.getElementById('quickPayProjectsInfo');
-                
+
                 if (workerData.projects.length > 0) {
                     // Show only projects worker has worked on, sorted by due amount
                     const projectsWithDues = workerData.projects.filter(p => p.totalDue > 0);
                     const projectsFullyPaid = workerData.projects.filter(p => p.totalDue <= 0);
-                    
+
                     let optionsHtml = '<option value="">Select Project</option>';
-                    
+
                     if (projectsWithDues.length > 0) {
                         optionsHtml += '<optgroup label="Projects with Dues">';
                         projectsWithDues.forEach(p => {
@@ -1581,7 +2511,7 @@
                         });
                         optionsHtml += '</optgroup>';
                     }
-                    
+
                     if (projectsFullyPaid.length > 0) {
                         optionsHtml += '<optgroup label="Fully Paid Projects">';
                         projectsFullyPaid.forEach(p => {
@@ -1589,9 +2519,9 @@
                         });
                         optionsHtml += '</optgroup>';
                     }
-                    
+
                     projectSelect.innerHTML = optionsHtml;
-                    
+
                     // Show projects info
                     if (projectsInfoDiv) {
                         projectsInfoDiv.innerHTML = `
@@ -1612,7 +2542,7 @@
                         `;
                         projectsInfoDiv.style.display = 'block';
                     }
-                    
+
                     // Auto-select first project with dues
                     if (projectsWithDues.length > 0) {
                         projectSelect.value = projectsWithDues[0].projectId;
@@ -1622,7 +2552,7 @@
                     // Worker hasn't worked on any project yet - show all projects
                     projectSelect.innerHTML = '<option value="">Select Project</option>' +
                         this.projects.map(p => `<option value="${p.id}">${p.name}</option>`).join('');
-                    
+
                     if (projectsInfoDiv) {
                         projectsInfoDiv.innerHTML = `
                             <div style="background: var(--warning-light); padding: 0.75rem; border-radius: var(--radius-md); margin-bottom: 1rem;">
@@ -1635,7 +2565,7 @@
                         projectsInfoDiv.style.display = 'block';
                     }
                 }
-                
+
                 this.openModal('quickPayModal');
             },
 
@@ -1661,7 +2591,7 @@
                     await LabourCalendar.processPaymentWithFundUpdate(payment);
                     this.closeModal('quickPayModal');
                     this.showToast('Payment recorded successfully', 'success');
-                    
+
                     // Refresh data
                     await this.renderLabourersPanel();
                     await this.renderCalendar();
@@ -1677,10 +2607,10 @@
             openDeleteWorker(workerId) {
                 const worker = this.workers.find(w => w.id === workerId);
                 if (!worker) return;
-                
+
                 document.getElementById('deleteWorkerId').value = worker.id;
                 document.getElementById('deleteWorkerName').textContent = worker.name;
-                
+
                 this.openModal('deleteWorkerModal');
             },
 
@@ -1697,28 +2627,28 @@
             },
 
             // ==================== ATTENDANCE FUNCTIONS ====================
-            
+
             async openAttendanceModal() {
                 // Set default date to selected date or today
                 const date = this.selectedDate || new Date().toISOString().split('T')[0];
                 document.getElementById('attendanceDate').value = date;
-                
+
                 // Populate projects dropdown
                 const projectSelect = document.getElementById('attendanceProjectId');
                 projectSelect.innerHTML = '<option value="">Select Project</option>' +
                     this.projects.map(p => `<option value="${p.id}">${p.name}</option>`).join('');
-                
+
                 // Render workers list
                 await this.renderAttendanceWorkersList();
-                
+
                 this.openModal('attendanceModal');
             },
-            
+
             async renderAttendanceWorkersList() {
                 const container = document.getElementById('attendanceWorkersList');
                 const date = document.getElementById('attendanceDate').value;
                 const projectId = document.getElementById('attendanceProjectId').value;
-                
+
                 if (this.workers.length === 0) {
                     container.innerHTML = `
                         <div style="text-align: center; padding: 2rem; color: var(--gray);">
@@ -1728,21 +2658,21 @@
                     `;
                     return;
                 }
-                
+
                 // Get existing attendance for this date
                 const existingEntries = date ? await LabourCalendar.getWorkEntriesByDate(date) : [];
-                
+
                 container.innerHTML = this.workers.map(worker => {
                     // Check if worker already has attendance for this date and project
-                    const existingEntry = existingEntries.find(e => 
-                        e.labourId === worker.id && 
+                    const existingEntry = existingEntries.find(e =>
+                        e.labourId === worker.id &&
                         (!projectId || e.projectId === projectId)
                     );
-                    
-                    const currentStatus = existingEntry ? 
-                        (existingEntry.hoursWorked >= 7 ? 'present' : 'half-day') : 
+
+                    const currentStatus = existingEntry ?
+                        (existingEntry.hoursWorked >= 7 ? 'present' : 'half-day') :
                         'none';
-                    
+
                     return `
                         <div class="attendance-worker-row" data-worker-id="${worker.id}" style="display: flex; align-items: center; justify-content: space-between; padding: 0.75rem; border-bottom: 1px solid var(--border);">
                             <div style="display: flex; align-items: center; gap: 0.75rem;">
@@ -1778,16 +2708,16 @@
                     `;
                 }).join('');
             },
-            
+
             setWorkerAttendance(workerId, status, buttonEl) {
                 // Update button styles in the row
                 const row = buttonEl.closest('.attendance-worker-row');
                 const buttons = row.querySelectorAll('.attendance-btn');
-                
+
                 buttons.forEach(btn => {
                     const btnStatus = btn.dataset.status;
                     const isActive = btnStatus === status;
-                    
+
                     if (btnStatus === 'present') {
                         btn.style.background = isActive ? 'var(--success)' : 'var(--white)';
                         btn.style.color = isActive ? 'white' : 'var(--success)';
@@ -1798,14 +2728,14 @@
                         btn.style.background = isActive ? 'var(--gray)' : 'var(--white)';
                         btn.style.color = isActive ? 'white' : 'var(--gray)';
                     }
-                    
+
                     btn.classList.toggle('active', isActive);
                 });
-                
+
                 // Store the selection
                 row.dataset.attendance = status;
             },
-            
+
             selectAllAttendance(status) {
                 const rows = document.querySelectorAll('.attendance-worker-row');
                 rows.forEach(row => {
@@ -1815,47 +2745,47 @@
                     }
                 });
             },
-            
+
             async saveAttendance() {
                 const date = document.getElementById('attendanceDate').value;
                 const projectId = document.getElementById('attendanceProjectId').value;
-                
+
                 if (!date) {
                     this.showToast('Please select a date', 'error');
                     return;
                 }
-                
+
                 if (!projectId) {
                     this.showToast('Please select a project', 'error');
                     return;
                 }
-                
+
                 const project = this.projects.find(p => p.id === projectId);
                 const rows = document.querySelectorAll('.attendance-worker-row');
-                
+
                 let savedCount = 0;
                 let errors = [];
-                
+
                 for (const row of rows) {
                     const workerId = row.dataset.workerId;
                     const attendance = row.dataset.attendance;
-                    
+
                     // Skip if no attendance selected or absent
                     if (!attendance || attendance === 'absent') continue;
-                    
+
                     const worker = this.workers.find(w => w.id === workerId);
                     if (!worker) continue;
-                    
+
                     try {
                         // Calculate hours and times based on attendance
                         const hoursWorked = attendance === 'present' ? 8 : 4;
                         const startTime = '09:00';
                         const endTime = attendance === 'present' ? '17:00' : '13:00';
-                        
+
                         // Get hourly rate
                         const dailyWage = worker.dailyWage || 500;
                         const hourlyRate = dailyWage / 8;
-                        
+
                         // Create work entry
                         await LabourCalendar.createWorkEntry({
                             labourId: workerId,
@@ -1870,18 +2800,18 @@
                             hourlyRate: hourlyRate,
                             notes: `Attendance: ${attendance === 'present' ? 'Full Day' : 'Half Day'}`
                         });
-                        
+
                         savedCount++;
                     } catch (error) {
                         console.error(`Error saving attendance for ${worker.name}:`, error);
                         errors.push(worker.name);
                     }
                 }
-                
+
                 if (savedCount > 0) {
                     this.closeModal('attendanceModal');
                     this.showToast(`Attendance saved for ${savedCount} worker(s)`, 'success');
-                    
+
                     // Refresh calendar and data
                     await this.renderCalendar();
                     await this.renderLabourersPanel();
@@ -1911,4 +2841,5 @@
         CalendarApp.init();
     </script>
 </body>
+
 </html>

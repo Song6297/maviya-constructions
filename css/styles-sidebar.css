@@ -3,7 +3,7 @@
 :root {
     /* Construction Pastel Colors */
     --safety-yellow: #FFB84D;
-    --blueprint-blue: #5B9BD5;
+    --blueprint-blue: #F7B500;
     --brick-orange: #FF8C61;
     --mint-green: #7FD8BE;
     --concrete-gray: #95A5A6;
@@ -17,7 +17,7 @@
     --bg-pattern: #F0F4F8;
     --text: #2C3E50;
     --text-light: #7F8C8D;
-    --sidebar-bg: linear-gradient(180deg, #FFE5B4 0%, #FFD699 30%, #87CEEB 70%, #5B9BD5 100%);
+    --sidebar-bg: linear-gradient(180deg, #FFE5B4 0%, #FFD699 30%, #87CEEB 70%, #F7B500 100%);
     
     /* Shadows */
     --shadow-soft: 0 10px 30px -5px rgba(91, 155, 213, 0.15);
@@ -357,7 +357,7 @@ body::before {
 }
 
 .sidebar-btn.funds .sidebar-btn-icon {
-    background: linear-gradient(135deg, var(--blueprint-blue), #5B9BD5);
+    background: linear-gradient(135deg, var(--blueprint-blue), #F7B500);
     color: var(--white);
 }
 
@@ -1857,13 +1857,13 @@ body::before {
 
 .tag-label.residential {
     background: #D1FAE5;
-    color: #059669;
+    color: #D9A000;
     border-color: #A7F3D0;
 }
 .tag-checkbox input[type="checkbox"]:checked + .tag-label.residential {
-    background: #059669;
+    background: #D9A000;
     color: white;
-    border-color: #059669;
+    border-color: #D9A000;
 }
 
 .tag-label.commercial {
@@ -1911,7 +1911,7 @@ body::before {
 .project-tag.urgent { background: #FEE2E2; color: #DC2626; }
 .project-tag.vip { background: #FEF3C7; color: #D97706; }
 .project-tag.government { background: #DBEAFE; color: #2563EB; }
-.project-tag.residential { background: #D1FAE5; color: #059669; }
+.project-tag.residential { background: #D1FAE5; color: #D9A000; }
 .project-tag.commercial { background: #E0E7FF; color: #4F46E5; }
 .project-tag.renovation { background: #F3E8FF; color: #7C3AED; }
 
@@ -1939,12 +1939,12 @@ body::before {
 }
 
 .nav-item-expandable > .nav-item:hover {
-    background: var(--primary-muted, rgba(74, 124, 89, 0.1));
-    color: var(--primary, #4A7C59);
+    background: var(--primary-muted, rgba(247, 181, 0, 0.1));
+    color: var(--primary, var(--primary));
 }
 
 .nav-item-expandable > .nav-item.active {
-    background: var(--primary, #4A7C59);
+    background: var(--primary, var(--primary));
     color: var(--white, #fff);
 }
 
@@ -1966,13 +1966,13 @@ body::before {
 
 /* When dropdown is open, keep header highlighted */
 .nav-item-expandable.open > .nav-item {
-    background: var(--primary-muted, rgba(74, 124, 89, 0.15));
-    color: var(--primary, #4A7C59);
+    background: var(--primary-muted, rgba(247, 181, 0, 0.15));
+    color: var(--primary, var(--primary));
     border-radius: var(--radius-lg, 12px) var(--radius-lg, 12px) 0 0;
 }
 
 .nav-item-expandable.open > .nav-item.active {
-    background: var(--primary, #4A7C59);
+    background: var(--primary, var(--primary));
     color: var(--white, #fff);
 }
 
@@ -2015,14 +2015,14 @@ body::before {
 }
 
 .nav-dropdown-item:hover {
-    background: var(--primary-muted, rgba(74, 124, 89, 0.1));
-    color: var(--primary, #4A7C59);
+    background: var(--primary-muted, rgba(247, 181, 0, 0.1));
+    color: var(--primary, var(--primary));
 }
 
 .nav-dropdown-item.active {
-    color: var(--primary, #4A7C59);
+    color: var(--primary, var(--primary));
     font-weight: 700;
-    background: var(--primary-muted, rgba(74, 124, 89, 0.08));
+    background: var(--primary-muted, rgba(247, 181, 0, 0.08));
 }
 
 .nav-dropdown-item i {

@@ -9,16 +9,15 @@
         // Apply saved theme immediately to prevent flash
         (function () {
             const theme = localStorage.getItem('bb_theme') || 'light';
-            const accent = localStorage.getItem('bb_accent') || 'green';
+            const accent = localStorage.getItem('bb_accent') || 'yellow';
             if (theme === 'dark') document.documentElement.setAttribute('data-theme', 'dark');
             else if (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches) {
                 document.documentElement.setAttribute('data-theme', 'dark');
             }
-            if (accent !== 'green') document.documentElement.setAttribute('data-accent', accent);
+            if (accent !== 'yellow') document.documentElement.setAttribute('data-accent', accent);
         })();
     </script>
-    <link rel="icon" type="image/png" href="B&B.png">
-    <link rel="icon" type="image/png" href="B&B.png">
+    <link rel="icon" type="image/svg+xml" href="logo.svg">
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <link
@@ -28,10 +27,10 @@
     <style>
         /* Variable aliases for backward compatibility */
         :root {
-            --green-primary: var(--primary);
-            --green-light: var(--primary-light);
-            --green-dark: var(--primary-dark);
-            --green-muted: var(--primary-muted);
+            --primary-primary: var(--primary);
+            --primary-light: var(--primary-light);
+            --primary-dark: var(--primary-dark);
+            --primary-muted: var(--primary-muted);
             --light-gray: var(--border);
             --dark-gray: var(--dark);
             --off-white: var(--bg-light);
@@ -65,25 +64,32 @@
             bottom: 0;
             box-shadow: 2px 0 8px rgba(0, 0, 0, 0.05);
             z-index: 100;
+            overflow: hidden;
+        }
+
+        .sidebar-scroll-container {
+            flex: 1;
             overflow-y: auto;
             overflow-x: hidden;
+            display: flex;
+            flex-direction: column;
         }
 
         /* Scrollbar styling for sidebar */
-        .sidebar::-webkit-scrollbar {
+        .sidebar-scroll-container::-webkit-scrollbar {
             width: 4px;
         }
 
-        .sidebar::-webkit-scrollbar-track {
+        .sidebar-scroll-container::-webkit-scrollbar-track {
             background: transparent;
         }
 
-        .sidebar::-webkit-scrollbar-thumb {
+        .sidebar-scroll-container::-webkit-scrollbar-thumb {
             background: var(--border);
             border-radius: 4px;
         }
 
-        .sidebar::-webkit-scrollbar-thumb:hover {
+        .sidebar-scroll-container::-webkit-scrollbar-thumb:hover {
             background: var(--gray);
         }
 
@@ -257,8 +263,8 @@
         }
 
         .btn-icon:hover {
-            border-color: var(--green-primary);
-            color: var(--green-primary);
+            border-color: var(--primary-primary);
+            color: var(--primary-primary);
         }
 
         .notif-dot {
@@ -289,7 +295,7 @@
             width: 40px;
             height: 40px;
             border-radius: 10px;
-            background: linear-gradient(135deg, var(--green-primary), var(--green-dark));
+            background: linear-gradient(135deg, var(--primary-primary), var(--primary-dark));
             display: flex;
             align-items: center;
             justify-content: center;
@@ -321,7 +327,7 @@
 
         /* Resume Card */
         .resume-card {
-            background: linear-gradient(135deg, var(--green-primary), var(--green-dark));
+            background: linear-gradient(135deg, var(--primary-primary), var(--primary-dark));
             border-radius: 16px;
             padding: 1.25rem 1.5rem;
             color: white;
@@ -335,7 +341,7 @@
 
         .resume-card:hover {
             transform: translateY(-2px);
-            box-shadow: 0 8px 24px rgba(74, 124, 89, 0.3);
+            box-shadow: 0 8px 24px rgba(247, 181, 0, 0.3);
         }
 
         .resume-card.hidden {
@@ -395,7 +401,7 @@
         }
 
         .section-icon.blue {
-            background: var(--green-primary);
+            background: var(--primary-primary);
         }
 
         .section-title {
@@ -404,81 +410,127 @@
             color: var(--dark);
         }
 
-        /* Quick Actions */
+        /* Quick Actions - Modern Design */
         .actions-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-            gap: 1rem;
+            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+            gap: 1.25rem;
         }
 
         .action-card {
             background: var(--white);
             border: 1px solid var(--border);
-            border-radius: 12px;
-            padding: 1.25rem;
+            border-radius: 20px;
+            padding: 1.5rem;
             text-align: center;
             text-decoration: none;
             color: var(--dark);
-            transition: all 0.15s;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .action-card::before {
+            content: '';
+            position: absolute;
+            top: -30px;
+            right: -30px;
+            width: 60px;
+            height: 60px;
+            background: var(--primary-primary);
+            border-radius: 50%;
+            opacity: 0.08;
+            transition: all 0.3s ease;
         }
 
         .action-card:hover {
-            border-color: var(--green-primary);
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+            border-color: var(--primary-primary);
+            transform: translateY(-4px);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+        }
+
+        .action-card:hover::before {
+            transform: scale(2);
+            opacity: 0.12;
         }
 
         .action-icon {
-            width: 48px;
-            height: 48px;
-            border-radius: 12px;
-            margin: 0 auto 0.75rem;
+            width: 56px;
+            height: 56px;
+            border-radius: 16px;
+            margin: 0 auto 1rem;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 1.25rem;
+            font-size: 1.5rem;
             color: white;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
         }
 
         .action-icon.blue {
-            background: var(--green-primary);
+            background: linear-gradient(135deg, var(--primary-primary), var(--primary-dark));
         }
 
         .action-icon.orange {
-            background: var(--brown-light);
+            background: linear-gradient(135deg, var(--brown-light), #8B6914);
         }
 
         .action-icon.green {
-            background: var(--success);
+            background: linear-gradient(135deg, #F7B500, #1A1A1A);
         }
 
         .action-label {
-            font-size: 0.875rem;
-            font-weight: 600;
+            font-size: 0.9375rem;
+            font-weight: 700;
         }
 
-        /* Modules Grid */
+        /* Modules Grid - Modern Design */
         .modules-grid {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
-            gap: 1rem;
+            gap: 1.25rem;
         }
 
         .module-tile {
             background: var(--white);
             border: 1px solid var(--border);
-            border-radius: 12px;
-            padding: 1.25rem 1rem;
-            text-align: center;
+            border-radius: 20px;
+            padding: 1.5rem;
+            text-align: left;
             text-decoration: none;
             color: var(--dark);
-            transition: all 0.15s;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .module-tile::before {
+            content: '';
+            position: absolute;
+            top: -40px;
+            right: -40px;
+            width: 80px;
+            height: 80px;
+            background: var(--primary-primary);
+            border-radius: 50%;
+            opacity: 0.06;
+            transition: all 0.3s ease;
         }
 
         .module-tile:hover {
-            border-color: var(--green-primary);
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+            border-color: var(--primary-primary);
+            transform: translateY(-4px);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+        }
+
+        .module-tile:hover::before {
+            transform: scale(2);
+            opacity: 0.1;
         }
 
         .module-tile.premium {
@@ -486,28 +538,119 @@
             border-color: #FCD34D;
         }
 
+        .module-tile.premium::before {
+            background: #B45309;
+        }
+
         .module-tile.admin {
             background: var(--dark);
             border-color: var(--dark);
+        }
+
+        .module-tile.admin::before {
+            background: #FFD700;
+            opacity: 0.1;
         }
 
         .module-tile.admin .module-name {
             color: white;
         }
 
+        .module-tile.admin .module-description {
+            color: rgba(255, 255, 255, 0.7);
+        }
+
         .module-tile.admin .module-icon {
             color: var(--brown-light);
+        }
+
+        .module-header {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .module-icon-wrapper {
+            width: 48px;
+            height: 48px;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+            color: white;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            flex-shrink: 0;
+        }
+
+        .module-icon-wrapper.green {
+            background: linear-gradient(135deg, var(--primary-primary), var(--primary-dark));
+        }
+
+        .module-icon-wrapper.blue {
+            background: linear-gradient(135deg, #3B82F6, #2563EB);
+        }
+
+        .module-icon-wrapper.purple {
+            background: linear-gradient(135deg, #8B5CF6, #7C3AED);
+        }
+
+        .module-icon-wrapper.orange {
+            background: linear-gradient(135deg, #F59E0B, #D97706);
+        }
+
+        .module-icon-wrapper.pink {
+            background: linear-gradient(135deg, #EC4899, #BE185D);
+        }
+
+        .module-icon-wrapper.gold {
+            background: linear-gradient(135deg, #FFD700, #B45309);
+        }
+
+        .module-icon-wrapper.dark {
+            background: linear-gradient(135deg, #374151, #1F2937);
         }
 
         .module-icon {
             font-size: 1.75rem;
             margin-bottom: 0.5rem;
-            color: var(--green-primary);
+            color: var(--primary-primary);
         }
 
         .module-name {
-            font-size: 0.8125rem;
-            font-weight: 600;
+            font-size: 0.9375rem;
+            font-weight: 700;
+        }
+
+        .module-description {
+            font-size: 0.75rem;
+            color: var(--gray);
+            line-height: 1.4;
+            margin-top: -0.25rem;
+        }
+
+        .module-stats {
+            display: flex;
+            gap: 1rem;
+            margin-top: 0.5rem;
+            padding-top: 0.75rem;
+            border-top: 1px solid var(--border);
+        }
+
+        .module-stat {
+            text-align: center;
+        }
+
+        .module-stat-value {
+            font-size: 1rem;
+            font-weight: 800;
+            color: var(--dark);
+        }
+
+        .module-stat-label {
+            font-size: 0.625rem;
+            color: var(--gray);
+            text-transform: uppercase;
         }
 
         /* Notifications Panel */
@@ -579,12 +722,12 @@
         }
 
         .notif-item:hover {
-            background: var(--green-muted);
+            background: var(--primary-muted);
         }
 
         .notif-item.unread {
-            background: #E8F0EA;
-            border-left: 3px solid var(--green-primary);
+            background: var(--primary-muted);
+            border-left: 3px solid var(--primary-primary);
         }
 
         .notif-item.warning {
@@ -664,13 +807,13 @@
         }
 
         .logo-loader .brick {
-            fill: #b7c8b8;
+            fill: var(--primary);
             stroke: #1e1e1e;
             stroke-width: 2;
         }
 
         .logo-loader .bit {
-            fill: #2f2f2f;
+            fill: var(--accent);
             animation: bitPulse 1.6s infinite ease-in-out;
             opacity: 0.25;
         }
@@ -870,55 +1013,59 @@
     <aside class="sidebar">
         <div class="sidebar-header">
             <svg class="logo-svg" viewBox="0 0 140 110" xmlns="http://www.w3.org/2000/svg">
-                <rect x="0" y="56" width="17" height="17" rx="2" fill="#2f2f2f" stroke="#000" stroke-width="1.5" />
-                <rect x="20" y="56" width="17" height="17" rx="2" fill="#b7c8b8" stroke="#000" stroke-width="1.5" />
-                <rect x="40" y="56" width="17" height="17" rx="2" fill="#2f2f2f" stroke="#000" stroke-width="1.5" />
-                <rect x="60" y="56" width="17" height="17" rx="2" fill="#b7c8b8" stroke="#000" stroke-width="1.5" />
-                <rect x="80" y="56" width="17" height="17" rx="2" fill="#2f2f2f" stroke="#000" stroke-width="1.5" />
-                <rect x="20" y="36" width="17" height="17" rx="2" fill="#b7c8b8" stroke="#000" stroke-width="1.5" />
-                <rect x="40" y="36" width="17" height="17" rx="2" fill="#2f2f2f" stroke="#000" stroke-width="1.5" />
-                <rect x="60" y="36" width="17" height="17" rx="2" fill="#b7c8b8" stroke="#000" stroke-width="1.5" />
-                <rect x="40" y="16" width="17" height="17" rx="2" fill="#b7c8b8" stroke="#000" stroke-width="1.5" />
-                <rect x="60" y="16" width="17" height="17" rx="2" fill="#b7c8b8" stroke="#000" stroke-width="1.5" />
+                <rect x="0" y="56" width="17" height="17" rx="2" fill="var(--accent)" stroke="#000" stroke-width="1.5" />
+                <rect x="20" y="56" width="17" height="17" rx="2" fill="var(--primary)" stroke="#000" stroke-width="1.5" />
+                <rect x="40" y="56" width="17" height="17" rx="2" fill="var(--accent)" stroke="#000" stroke-width="1.5" />
+                <rect x="60" y="56" width="17" height="17" rx="2" fill="var(--primary)" stroke="#000" stroke-width="1.5" />
+                <rect x="80" y="56" width="17" height="17" rx="2" fill="var(--accent)" stroke="#000" stroke-width="1.5" />
+                <rect x="20" y="36" width="17" height="17" rx="2" fill="var(--primary)" stroke="#000" stroke-width="1.5" />
+                <rect x="40" y="36" width="17" height="17" rx="2" fill="var(--accent)" stroke="#000" stroke-width="1.5" />
+                <rect x="60" y="36" width="17" height="17" rx="2" fill="var(--primary)" stroke="#000" stroke-width="1.5" />
+                <rect x="40" y="16" width="17" height="17" rx="2" fill="var(--primary)" stroke="#000" stroke-width="1.5" />
+                <rect x="60" y="16" width="17" height="17" rx="2" fill="var(--primary)" stroke="#000" stroke-width="1.5" />
             </svg>
             <span>B&B</span>
         </div>
 
-        <div class="nav-section">
-            <a href="hub.html" class="nav-item active">
-                <i class="fas fa-th-large"></i>
-                <span class="nav-text">Dashboard</span>
-            </a>
-        </div>
 
-        <div class="nav-section">
-            <div class="nav-label">Finance</div>
-            <a href="funds.html" class="nav-item"><i class="fas fa-wallet"></i><span class="nav-text">Funds</span></a>
-            <a href="payments.html" class="nav-item"><i class="fas fa-credit-card"></i><span
-                    class="nav-text">Payments</span></a>
-        </div>
+        <div class="sidebar-scroll-container">
+            <div class="nav-section">
+                <a href="hub.html" class="nav-item active">
+                    <i class="fas fa-th-large"></i>
+                    <span class="nav-text">Dashboard</span>
+                </a>
+            </div>
 
-        <div class="nav-section">
-            <div class="nav-label">Labour</div>
-            <a href="labour-calendar.html" class="nav-item"><i class="fas fa-calendar-alt"></i><span
-                    class="nav-text">Calendar</span></a>
-        </div>
+            <div class="nav-section">
+                <div class="nav-label">Finance</div>
+                <a href="funds.html" class="nav-item"><i class="fas fa-wallet"></i><span
+                        class="nav-text">Funds</span></a>
+                <a href="payments.html" class="nav-item"><i class="fas fa-credit-card"></i><span
+                        class="nav-text">Payments</span></a>
+            </div>
 
-        <div class="nav-section">
-            <div class="nav-label">Projects</div>
-            <a href="index.html" class="nav-item"><i class="fas fa-building"></i><span class="nav-text">All
-                    Projects</span></a>
-            <a href="compare.html" class="nav-item"><i class="fas fa-chart-bar"></i><span
-                    class="nav-text">Compare</span></a>
-            <a href="#" class="nav-item" id="exportAllProjectsBtn"><i class="fas fa-file-export"></i><span
-                    class="nav-text">Export
-                    All</span></a>
-        </div>
+            <div class="nav-section">
+                <div class="nav-label">Labour</div>
+                <a href="labour-calendar.html" class="nav-item"><i class="fas fa-calendar-alt"></i><span
+                        class="nav-text">Calendar</span></a>
+            </div>
 
-        <div class="nav-section">
-            <div class="nav-label">Modules</div>
-            <a href="materials.html" class="nav-item"><i class="fas fa-boxes"></i><span
-                    class="nav-text">Materials</span></a>
+            <div class="nav-section">
+                <div class="nav-label">Projects</div>
+                <a href="dashboard.html" class="nav-item"><i class="fas fa-building"></i><span class="nav-text">All
+                        Projects</span></a>
+                <a href="compare.html" class="nav-item"><i class="fas fa-chart-bar"></i><span
+                        class="nav-text">Compare</span></a>
+                <a href="#" class="nav-item" id="exportAllProjectsBtn"><i class="fas fa-file-export"></i><span
+                        class="nav-text">Export
+                        All</span></a>
+            </div>
+
+            <div class="nav-section">
+                <div class="nav-label">Modules</div>
+                <a href="materials.html" class="nav-item"><i class="fas fa-boxes"></i><span
+                        class="nav-text">Materials</span></a>
+            </div>
         </div>
 
         <div class="nav-bottom">
@@ -987,7 +1134,7 @@
 
             <!-- Company Banner -->
             <div class="company-banner" id="companyBanner"
-                style="display: none; background: linear-gradient(135deg, var(--primary), var(--primary-dark, #1a5f4a)); border-radius: 16px; padding: 1.25rem 1.5rem; margin-bottom: 1.5rem; color: white; display: flex; align-items: center; gap: 1rem;">
+                style="display: none; background: linear-gradient(135deg, var(--primary), var(--primary-dark, #1A1A1A)); border-radius: 16px; padding: 1.25rem 1.5rem; margin-bottom: 1.5rem; color: white; display: flex; align-items: center; gap: 1rem;">
                 <div class="company-banner-logo" id="companyBannerLogo"
                     style="width: 56px; height: 56px; background: rgba(255,255,255,0.2); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; flex-shrink: 0;">
                     <i class="fas fa-building"></i>
@@ -1010,12 +1157,12 @@
                     <div class="section-title">Quick Actions</div>
                 </div>
                 <div class="actions-grid">
-                    <a href="index.html" class="action-card">
+                    <a href="dashboard.html" class="action-card">
                         <div class="action-icon blue"><i class="fas fa-plus"></i></div>
                         <div class="action-label">New Project</div>
                     </a>
                     <a href="payments.html" class="action-card">
-                        <div class="action-icon orange"><i class="fas fa-credit-card"></i></div>
+                        <div class="action-icon blue"><i class="fas fa-credit-card"></i></div>
                         <div class="action-label">Add Payment</div>
                     </a>
                     <a href="materials.html" class="action-card">
@@ -1037,45 +1184,97 @@
                     <div class="section-title">All Modules</div>
                 </div>
                 <div class="modules-grid">
-                    <a href="index.html" class="module-tile">
-                        <div class="module-icon"><i class="fas fa-th-large"></i></div>
-                        <div class="module-name">Dashboard</div>
+                    <a href="dashboard.html" class="module-tile">
+                        <div class="module-header">
+                            <div class="module-icon-wrapper green"><i class="fas fa-th-large"></i></div>
+                            <div>
+                                <div class="module-name">Dashboard</div>
+                                <div class="module-description">Overview of all projects</div>
+                            </div>
+                        </div>
                     </a>
                     <a href="compare.html" class="module-tile">
-                        <div class="module-icon"><i class="fas fa-chart-bar"></i></div>
-                        <div class="module-name">Compare</div>
+                        <div class="module-header">
+                            <div class="module-icon-wrapper blue"><i class="fas fa-chart-bar"></i></div>
+                            <div>
+                                <div class="module-name">Compare</div>
+                                <div class="module-description">Analyze project metrics</div>
+                            </div>
+                        </div>
                     </a>
                     <a href="payments.html" class="module-tile">
-                        <div class="module-icon"><i class="fas fa-credit-card"></i></div>
-                        <div class="module-name">Payments</div>
+                        <div class="module-header">
+                            <div class="module-icon-wrapper green"><i class="fas fa-credit-card"></i></div>
+                            <div>
+                                <div class="module-name">Payments</div>
+                                <div class="module-description">Track all transactions</div>
+                            </div>
+                        </div>
                     </a>
                     <a href="materials.html" class="module-tile">
-                        <div class="module-icon"><i class="fas fa-boxes"></i></div>
-                        <div class="module-name">Stock</div>
+                        <div class="module-header">
+                            <div class="module-icon-wrapper orange"><i class="fas fa-boxes"></i></div>
+                            <div>
+                                <div class="module-name">Stock</div>
+                                <div class="module-description">Material inventory</div>
+                            </div>
+                        </div>
                     </a>
                     <a href="funds.html" class="module-tile">
-                        <div class="module-icon"><i class="fas fa-wallet"></i></div>
-                        <div class="module-name">Funds</div>
+                        <div class="module-header">
+                            <div class="module-icon-wrapper green"><i class="fas fa-wallet"></i></div>
+                            <div>
+                                <div class="module-name">Funds</div>
+                                <div class="module-description">Project budget allocation</div>
+                            </div>
+                        </div>
                     </a>
                     <a href="labour-calendar.html" class="module-tile">
-                        <div class="module-icon"><i class="fas fa-calendar-alt"></i></div>
-                        <div class="module-name">Labour Calendar</div>
+                        <div class="module-header">
+                            <div class="module-icon-wrapper pink"><i class="fas fa-calendar-alt"></i></div>
+                            <div>
+                                <div class="module-name">Labour Calendar</div>
+                                <div class="module-description">Workforce scheduling</div>
+                            </div>
+                        </div>
                     </a>
                     <a href="economics.html" class="module-tile">
-                        <div class="module-icon" style="color: #7C3AED;"><i class="fas fa-chart-line"></i></div>
-                        <div class="module-name">Economics</div>
+                        <div class="module-header">
+                            <div class="module-icon-wrapper purple"><i class="fas fa-chart-line"></i></div>
+                            <div>
+                                <div class="module-name">Economics</div>
+                                <div class="module-description">Financial forecasting</div>
+                            </div>
+                        </div>
                     </a>
                     <a href="settings.html" class="module-tile">
-                        <div class="module-icon"><i class="fas fa-cog"></i></div>
-                        <div class="module-name">Settings</div>
+                        <div class="module-header">
+                            <div class="module-icon-wrapper dark"><i class="fas fa-cog"></i></div>
+                            <div>
+                                <div class="module-name">Settings</div>
+                                <div class="module-description">App configuration</div>
+                            </div>
+                        </div>
                     </a>
                     <a href="upgrade.html" class="module-tile premium">
-                        <div class="module-icon" style="color: #B45309;"><i class="fas fa-star"></i></div>
-                        <div class="module-name" style="color: #B45309;">Premium</div>
+                        <div class="module-header">
+                            <div class="module-icon-wrapper gold"><i class="fas fa-star"></i></div>
+                            <div>
+                                <div class="module-name" style="color: #B45309;">Premium</div>
+                                <div class="module-description" style="color: #92400E;">Unlock all features</div>
+                            </div>
+                        </div>
                     </a>
                     <a href="admin.html" class="module-tile admin" id="adminTile" style="display: none;">
-                        <div class="module-icon" style="color: #FFD700;"><i class="fas fa-shield-alt"></i></div>
-                        <div class="module-name" style="color: #FFD700;">Admin</div>
+                        <div class="module-header">
+                            <div class="module-icon-wrapper"
+                                style="background: linear-gradient(135deg, #FFD700, #B45309);"><i
+                                    class="fas fa-shield-alt"></i></div>
+                            <div>
+                                <div class="module-name">Admin</div>
+                                <div class="module-description">System management</div>
+                            </div>
+                        </div>
                     </a>
                 </div>
             </div>
@@ -1088,7 +1287,7 @@
             <div class="modal-header"
                 style="padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center;">
                 <h3 style="font-size: 1.125rem; font-weight: 700; color: var(--dark);"><i class="fas fa-user-edit"
-                        style="margin-right: 0.5rem; color: var(--green-primary);"></i>Edit Profile</h3>
+                        style="margin-right: 0.5rem; color: var(--primary-primary);"></i>Edit Profile</h3>
                 <button onclick="window.closeProfileModal()"
                     style="width: 32px; height: 32px; border-radius: 8px; border: 1px solid var(--border); background: none; cursor: pointer; display: flex; align-items: center; justify-content: center; color: var(--gray);"><i
                         class="fas fa-times"></i></button>
@@ -1096,7 +1295,7 @@
             <form id="profileForm" style="padding: 1.5rem;">
                 <div style="margin-bottom: 1.5rem; text-align: center;">
                     <div id="profilePicturePreview"
-                        style="width: 80px; height: 80px; border-radius: 50%; background: linear-gradient(135deg, var(--green-primary), var(--green-dark)); display: flex; align-items: center; justify-content: center; margin: 0 auto 0.75rem; overflow: hidden; position: relative;">
+                        style="width: 80px; height: 80px; border-radius: 50%; background: linear-gradient(135deg, var(--primary-primary), var(--primary-dark)); display: flex; align-items: center; justify-content: center; margin: 0 auto 0.75rem; overflow: hidden; position: relative;">
                         <span id="profilePictureInitial"
                             style="color: white; font-size: 2rem; font-weight: 700;">B</span>
                         <img id="profilePictureImg" src="" alt=""
@@ -1138,7 +1337,7 @@
                     <button type="button" onclick="window.closeProfileModal()"
                         style="padding: 0.625rem 1.25rem; border-radius: 8px; font-weight: 600; font-size: 0.875rem; cursor: pointer; background: var(--bg); color: var(--gray); border: 1px solid var(--border);">Cancel</button>
                     <button type="submit"
-                        style="padding: 0.625rem 1.25rem; border-radius: 8px; font-weight: 600; font-size: 0.875rem; cursor: pointer; background: var(--green-primary); color: white; border: none;">Save
+                        style="padding: 0.625rem 1.25rem; border-radius: 8px; font-weight: 600; font-size: 0.875rem; cursor: pointer; background: var(--primary-primary); color: white; border: none;">Save
                         Changes</button>
                 </div>
             </form>
@@ -1274,7 +1473,7 @@
             const isPremium = userData.premiumStatus === 'PREMIUM' || user.email === 'sulaimaansong6297@gmail.com';
             if (isPremium) {
                 document.getElementById('premiumBtn').innerHTML = '<i class="fas fa-crown"></i><span>Premium</span>';
-                document.getElementById('premiumBtn').style.background = 'linear-gradient(135deg, #10B981, #059669)';
+                document.getElementById('premiumBtn').style.background = 'linear-gradient(135deg, #F7B500, #D9A000)';
                 document.getElementById('premiumBtn').style.color = 'white';
             }
 
@@ -1532,7 +1731,7 @@
 
                 // Show success toast
                 const toast = document.createElement('div');
-                toast.style.cssText = 'position: fixed; bottom: 1rem; right: 1rem; background: #10B981; color: white; padding: 0.75rem 1.25rem; border-radius: 8px; font-weight: 600; z-index: 2000; animation: slideIn 0.3s ease;';
+                toast.style.cssText = 'position: fixed; bottom: 1rem; right: 1rem; background: #F7B500; color: white; padding: 0.75rem 1.25rem; border-radius: 8px; font-weight: 600; z-index: 2000; animation: slideIn 0.3s ease;';
                 toast.innerHTML = '<i class="fas fa-check-circle" style="margin-right: 0.5rem;"></i>Profile updated successfully!';
                 document.body.appendChild(toast);
                 setTimeout(() => toast.remove(), 3000);

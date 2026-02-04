@@ -5,7 +5,7 @@
     --primary-dark: #0284C7;
     --primary-light: #38BDF8;
     --secondary: #8B5CF6;
-    --success: #10B981;
+    --success: #F7B500;
     --danger: #EF4444;
     --warning: #F59E0B;
     --info: #3B82F6;
@@ -237,7 +237,7 @@ body {
 /* Health Meter */
 .health-meter {
     height: 10px;
-    background: linear-gradient(to right, #10B981 0%, #10B981 60%, #F59E0B 80%, #EF4444 100%);
+    background: linear-gradient(to right, #F7B500 0%, #F7B500 60%, #F59E0B 80%, #EF4444 100%);
     border-radius: 50px;
     position: relative;
     box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
@@ -301,7 +301,7 @@ body {
 }
 
 .btn-success {
-    background: linear-gradient(135deg, #10B981 0%, #059669 100%);
+    background: linear-gradient(135deg, #F7B500 0%, #D9A000 100%);
     color: white;
     box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
 }
@@ -309,7 +309,7 @@ body {
 .btn-success:hover {
     transform: translateY(-2px);
     box-shadow: 0 8px 20px rgba(16, 185, 129, 0.5);
-    background: linear-gradient(135deg, #059669 0%, #047857 100%);
+    background: linear-gradient(135deg, #D9A000 0%, #047857 100%);
 }
 
 .btn-warning {
@@ -679,7 +679,7 @@ body {
 /* Text Colors for Visibility */
 .text-primary { color: var(--primary); }
 .text-secondary { color: var(--secondary); }
-.text-success { color: var(--success); }
+.text-primary { color: var(--success); }
 .text-danger { color: var(--danger); }
 .text-warning { color: var(--warning); }
 .text-info { color: var(--info); }
@@ -907,6 +907,6 @@ body {
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
-.attendance-btn.bg-emerald-500 { background: #10B981; border-color: #10B981; }
+.attendance-btn.bg-emerald-500 { background: #F7B500; border-color: #F7B500; }
 .attendance-btn.bg-amber-500 { background: #F59E0B; border-color: #F59E0B; }
 .attendance-btn.bg-rose-500 { background: #F43F5E; border-color: #F43F5E; }

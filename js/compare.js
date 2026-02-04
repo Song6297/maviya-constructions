@@ -27,7 +27,7 @@ const Utils = window.Utils || {
         return { percent, status: 'ok', color: 'green' };
     },
     getDeadlineStatus(endDate, status) {
-        if (status === 'Completed') return { class: 'text-green-500 bg-green-500/10', text: 'Completed', priority: 0 };
+        if (status === 'Completed') return { class: 'text-green-500 bg-primary/10', text: 'Completed', priority: 0 };
         const days = this.getDaysRemaining(endDate);
         if (days < 0) return { class: 'text-red-500 bg-red-500/20 animate-pulse', text: `${Math.abs(days)}d overdue`, priority: 4 };
         if (days === 0) return { class: 'text-red-500 bg-red-500/10', text: 'Due today', priority: 3 };
@@ -48,7 +48,7 @@ const Utils = window.Utils || {
 
 const CompareApp = {
     charts: {},
-    colors: ['#F59E0B', '#3B82F6', '#10B981', '#EF4444', '#8B5CF6', '#EC4899', '#14B8A6', '#F97316'],
+    colors: ['#F59E0B', '#3B82F6', '#F7B500', '#EF4444', '#8B5CF6', '#EC4899', '#14B8A6', '#F97316'],
 
     async init() {
         this.showLoading(true);
@@ -205,7 +205,7 @@ const CompareApp = {
                 datasets: [{
                     label: 'Days Remaining',
                     data: data.map(p => p.daysRemaining),
-                    backgroundColor: data.map(p => p.daysRemaining < 0 ? '#EF4444' : p.daysRemaining <= 7 ? '#F59E0B' : '#10B981')
+                    backgroundColor: data.map(p => p.daysRemaining < 0 ? '#EF4444' : p.daysRemaining <= 7 ? '#F59E0B' : '#F7B500')
                 }]
             },
             options: {

@@ -31,7 +31,7 @@ window.Utils = {
     },
 
     getDeadlineStatus(endDate, status) {
-        if (status === 'Completed') return { class: 'text-green-500 bg-green-500/10', text: 'Completed', priority: 0 };
+        if (status === 'Completed') return { class: 'text-green-500 bg-primary/10', text: 'Completed', priority: 0 };
         const days = this.getDaysRemaining(endDate);
         if (days < 0) return { class: 'text-red-500 bg-red-500/20 animate-pulse', text: `${Math.abs(days)}d overdue`, priority: 4 };
         if (days === 0) return { class: 'text-red-500 bg-red-500/10', text: 'Due today', priority: 3 };
@@ -41,7 +41,7 @@ window.Utils = {
     },
 
     getPaymentStatus(dueDate, isPaid) {
-        if (isPaid) return { class: 'text-green-500 bg-green-500/10', text: 'Paid' };
+        if (isPaid) return { class: 'text-green-500 bg-primary/10', text: 'Paid' };
         const days = this.getDaysRemaining(dueDate);
         if (days < 0) return { class: 'text-red-500 bg-red-500/20 animate-pulse', text: `${Math.abs(days)}d overdue` };
         if (days === 0) return { class: 'text-red-500 bg-red-500/10', text: 'Due today' };

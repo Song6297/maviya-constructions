@@ -11,7 +11,7 @@
             document.documentElement.setAttribute('data-theme', savedTheme);
         })();
     </script>
-    <link rel="icon" type="image/png" href="B&B.png">
+    <link rel="icon" type="image/svg+xml" href="logo.svg">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
     <link
         href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Nunito:wght@400;600;700;800;900&display=swap"
@@ -20,10 +20,10 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         :root {
-            --green-primary: var(--primary);
-            --green-light: var(--primary-light);
-            --green-dark: var(--primary-dark);
-            --green-muted: var(--primary-muted);
+            --primary-primary: var(--primary);
+            --primary-light: var(--primary-light);
+            --primary-dark: var(--primary-dark);
+            --primary-muted: var(--primary-muted);
         }
 
         * {
@@ -93,7 +93,7 @@
         .logo-text {
             font-size: 0.875rem;
             font-weight: 700;
-            color: var(--green-primary);
+            color: var(--primary-primary);
             opacity: 0;
             width: 0;
             overflow: hidden;
@@ -122,12 +122,12 @@
         }
 
         .nav-item:hover {
-            background: var(--green-muted);
-            color: var(--green-primary);
+            background: var(--primary-muted);
+            color: var(--primary-primary);
         }
 
         .nav-item.active {
-            background: var(--green-primary);
+            background: var(--primary-primary);
             color: white;
         }
 
@@ -216,7 +216,7 @@
 
         .page-title i {
             font-size: 1.5rem;
-            color: var(--green-primary);
+            color: var(--primary-primary);
         }
 
         .header-actions {
@@ -240,8 +240,8 @@
         }
 
         .btn-refresh:hover {
-            border-color: var(--green-primary);
-            color: var(--green-primary);
+            border-color: var(--primary-primary);
+            color: var(--primary-primary);
         }
 
         /* Hero Section */
@@ -262,7 +262,7 @@
             right: -20%;
             width: 60%;
             height: 200%;
-            background: radial-gradient(circle, rgba(74, 124, 89, 0.3) 0%, transparent 60%);
+            background: radial-gradient(circle, rgba(247, 181, 0, 0.3) 0%, transparent 60%);
             pointer-events: none;
         }
 
@@ -319,7 +319,7 @@
             width: 60px;
             height: 60px;
             border-radius: 50%;
-            background: conic-gradient(var(--green-primary) var(--score-percent, 75%), rgba(255, 255, 255, 0.1) 0);
+            background: conic-gradient(var(--primary-primary) var(--score-percent, 75%), rgba(255, 255, 255, 0.1) 0);
             display: flex;
             align-items: center;
             justify-content: center;
@@ -379,7 +379,7 @@
         }
 
         .hero-stat-value.positive {
-            color: #10B981;
+            color: #F7B500;
         }
 
         .hero-stat-value.negative {
@@ -427,7 +427,7 @@
         }
 
         .tab-btn.active {
-            background: var(--green-primary);
+            background: var(--primary-primary);
             color: white;
         }
 
@@ -467,15 +467,16 @@
 
         .metric-card {
             background: var(--white);
-            border-radius: 12px;
-            padding: 1.25rem;
+            border-radius: 20px;
+            padding: 1.5rem;
             border: 1px solid var(--border);
-            transition: all 0.2s;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
         }
 
         .metric-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            transform: translateY(-4px);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
         }
 
         .metric-card-header {
@@ -504,8 +505,8 @@
         }
 
         .metric-card-icon.green {
-            background: var(--green-muted);
-            color: var(--green-primary);
+            background: var(--primary-muted);
+            color: var(--primary-primary);
         }
 
         .metric-card-icon.blue {
@@ -538,7 +539,7 @@
         }
 
         .metric-card-change.positive {
-            color: #10B981;
+            color: #F7B500;
         }
 
         .metric-card-change.negative {
@@ -565,7 +566,7 @@
         }
 
         .info-btn:hover {
-            color: var(--green-primary);
+            color: var(--primary-primary);
         }
 
         .info-btn .tooltip {
@@ -609,10 +610,11 @@
         /* Section Cards */
         .section-card {
             background: var(--white);
-            border-radius: 12px;
+            border-radius: 20px;
             padding: 1.5rem;
             border: 1px solid var(--border);
             margin-bottom: 1.5rem;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
         }
 
         .section-card-header {
@@ -632,13 +634,29 @@
         }
 
         .section-card-title i {
-            color: var(--green-primary);
+            color: var(--primary-primary);
         }
 
-        /* Charts */
+        /* Charts - Modern Style */
         .chart-container {
             position: relative;
             height: 300px;
+            background: var(--white);
+            border-radius: 16px;
+            padding: 1rem;
+            border: 1px solid var(--border);
+            overflow: hidden;
+        }
+
+        .chart-container::before {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(135deg, #3B82F6 0%, #22D3EE 100%);
+            opacity: 0.6;
         }
 
         /* Data Tables */
@@ -681,7 +699,7 @@
 
         .efficiency-badge.high {
             background: #D1FAE5;
-            color: #059669;
+            color: #D9A000;
         }
 
         .efficiency-badge.medium {
@@ -703,10 +721,11 @@
 
         .insight-card {
             background: var(--white);
-            border-radius: 12px;
-            padding: 1.25rem;
+            border-radius: 16px;
+            padding: 1.5rem;
             border: 1px solid var(--border);
-            border-left: 4px solid var(--green-primary);
+            border-left: 4px solid var(--primary-primary);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
         }
 
         .insight-card.high-priority {
@@ -735,8 +754,8 @@
             font-weight: 600;
             padding: 0.25rem 0.5rem;
             border-radius: 4px;
-            background: var(--green-muted);
-            color: var(--green-primary);
+            background: var(--primary-muted);
+            color: var(--primary-primary);
         }
 
         .insight-card-desc {
@@ -775,7 +794,7 @@
         .scenario-slider-value {
             font-size: 1.25rem;
             font-weight: 700;
-            color: var(--green-primary);
+            color: var(--primary-primary);
         }
 
         .scenario-slider input[type="range"] {
@@ -793,7 +812,7 @@
             width: 20px;
             height: 20px;
             border-radius: 50%;
-            background: var(--green-primary);
+            background: var(--primary-primary);
             cursor: pointer;
             box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
         }
@@ -833,7 +852,7 @@
         }
 
         .scenario-result-change.positive {
-            color: #10B981;
+            color: #F7B500;
         }
 
         .scenario-result-change.negative {
@@ -863,8 +882,8 @@
         }
 
         .valuation-card.base {
-            border-color: var(--green-primary);
-            background: linear-gradient(135deg, var(--green-muted), var(--white));
+            border-color: var(--primary-primary);
+            background: linear-gradient(135deg, var(--primary-muted), var(--white));
         }
 
         .valuation-card-label {
@@ -884,7 +903,7 @@
         }
 
         .valuation-card.base .valuation-card-value {
-            color: var(--green-primary);
+            color: var(--primary-primary);
         }
 
         .valuation-card-method {
@@ -973,8 +992,8 @@
         }
 
         .info-btn:hover {
-            background: var(--green-muted);
-            color: var(--green-primary);
+            background: var(--primary-muted);
+            color: var(--primary-primary);
         }
 
         .info-btn .tooltip {
@@ -1060,13 +1079,13 @@
         <svg class="logo-loader" width="120" height="110" viewBox="0 0 200 160" xmlns="http://www.w3.org/2000/svg">
             <style>
                 .brick {
-                    fill: #b7c8b8;
+                    fill: var(--primary);
                     stroke: #1e1e1e;
                     stroke-width: 2;
                 }
 
                 .bit {
-                    fill: #2f2f2f;
+                    fill: var(--accent);
                     animation: bitPulse 1.6s infinite ease-in-out;
                     opacity: 0.25;
                 }
@@ -1106,25 +1125,25 @@
             <div class="logo-section">
                 <a href="hub.html" class="logo-link">
                     <svg class="logo-svg" viewBox="0 0 140 110" xmlns="http://www.w3.org/2000/svg">
-                        <rect x="0" y="56" width="17" height="17" rx="2" fill="#2f2f2f" stroke="#000"
+                        <rect x="0" y="56" width="17" height="17" rx="2" fill="var(--accent)" stroke="#000"
                             stroke-width="1.5" />
-                        <rect x="20" y="56" width="17" height="17" rx="2" fill="#b7c8b8" stroke="#000"
+                        <rect x="20" y="56" width="17" height="17" rx="2" fill="var(--primary)" stroke="#000"
                             stroke-width="1.5" />
-                        <rect x="40" y="56" width="17" height="17" rx="2" fill="#2f2f2f" stroke="#000"
+                        <rect x="40" y="56" width="17" height="17" rx="2" fill="var(--accent)" stroke="#000"
                             stroke-width="1.5" />
-                        <rect x="60" y="56" width="17" height="17" rx="2" fill="#b7c8b8" stroke="#000"
+                        <rect x="60" y="56" width="17" height="17" rx="2" fill="var(--primary)" stroke="#000"
                             stroke-width="1.5" />
-                        <rect x="80" y="56" width="17" height="17" rx="2" fill="#2f2f2f" stroke="#000"
+                        <rect x="80" y="56" width="17" height="17" rx="2" fill="var(--accent)" stroke="#000"
                             stroke-width="1.5" />
-                        <rect x="20" y="36" width="17" height="17" rx="2" fill="#b7c8b8" stroke="#000"
+                        <rect x="20" y="36" width="17" height="17" rx="2" fill="var(--primary)" stroke="#000"
                             stroke-width="1.5" />
-                        <rect x="40" y="36" width="17" height="17" rx="2" fill="#2f2f2f" stroke="#000"
+                        <rect x="40" y="36" width="17" height="17" rx="2" fill="var(--accent)" stroke="#000"
                             stroke-width="1.5" />
-                        <rect x="60" y="36" width="17" height="17" rx="2" fill="#b7c8b8" stroke="#000"
+                        <rect x="60" y="36" width="17" height="17" rx="2" fill="var(--primary)" stroke="#000"
                             stroke-width="1.5" />
-                        <rect x="40" y="16" width="17" height="17" rx="2" fill="#b7c8b8" stroke="#000"
+                        <rect x="40" y="16" width="17" height="17" rx="2" fill="var(--primary)" stroke="#000"
                             stroke-width="1.5" />
-                        <rect x="60" y="16" width="17" height="17" rx="2" fill="#b7c8b8" stroke="#000"
+                        <rect x="60" y="16" width="17" height="17" rx="2" fill="var(--primary)" stroke="#000"
                             stroke-width="1.5" />
                     </svg>
                     <span class="logo-text">B&B</span>
@@ -1132,7 +1151,7 @@
             </div>
 
             <nav class="nav-menu">
-                <a href="index.html" class="nav-item" title="Dashboard">
+                <a href="dashboard.html" class="nav-item" title="Dashboard">
                     <i class="fas fa-th-large nav-icon"></i>
                     <span class="nav-text">Dashboard</span>
                 </a>
@@ -1198,7 +1217,7 @@
                 </div>
                 <div class="header-actions">
                     <button class="btn-refresh" id="startEconomicsTourBtn"
-                        style="background: var(--green-primary); color: white; border: none;">
+                        style="background: var(--primary-primary); color: white; border: none;">
                         <i class="fas fa-play-circle"></i>
                         <span>Economics Guide</span>
                     </button>
@@ -1628,7 +1647,7 @@
                     labels: ['Revenue', 'Operating Costs', 'Profit'],
                     datasets: [{
                         data: [overview.totalRevenue, overview.operatingCosts, Math.max(0, overview.grossProfit)],
-                        backgroundColor: ['#10B981', '#3B82F6', '#8B5CF6'],
+                        backgroundColor: ['#F7B500', '#3B82F6', '#8B5CF6'],
                         borderWidth: 0
                     }]
                 },
@@ -1651,7 +1670,7 @@
                     <td><strong>${p.projectName}</strong></td>
                     <td>${formatCurrency(p.revenue)}</td>
                     <td>${formatCurrency(p.costs)}</td>
-                    <td style="color: ${p.profit >= 0 ? '#10B981' : '#EF4444'}">${formatCurrency(p.profit)}</td>
+                    <td style="color: ${p.profit >= 0 ? '#F7B500' : '#EF4444'}">${formatCurrency(p.profit)}</td>
                     <td>${Math.round(p.margin)}%</td>
                     <td><span class="efficiency-badge ${p.margin >= 20 ? 'high' : p.margin >= 10 ? 'medium' : 'low'}">${p.margin >= 20 ? 'High' : p.margin >= 10 ? 'Medium' : 'Low'}</span></td>
                 </tr>
@@ -1670,7 +1689,7 @@
                     datasets: [{
                         label: 'Cost',
                         data: distribution.map(d => d.cost),
-                        backgroundColor: '#4A7C59',
+                        backgroundColor: 'var(--primary)',
                         borderRadius: 8
                     }]
                 },
@@ -1715,7 +1734,7 @@
                 data: {
                     labels: marginTrend.map(m => m.month),
                     datasets: [
-                        { label: 'Revenue', data: marginTrend.map(m => m.revenue), borderColor: '#10B981', backgroundColor: 'rgba(16, 185, 129, 0.1)', fill: true, tension: 0.4 },
+                        { label: 'Revenue', data: marginTrend.map(m => m.revenue), borderColor: '#F7B500', backgroundColor: 'rgba(16, 185, 129, 0.1)', fill: true, tension: 0.4 },
                         { label: 'Costs', data: marginTrend.map(m => m.cost), borderColor: '#3B82F6', backgroundColor: 'rgba(59, 130, 246, 0.1)', fill: true, tension: 0.4 }
                     ]
                 },

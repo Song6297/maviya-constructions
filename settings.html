@@ -9,15 +9,15 @@
         // Apply saved theme immediately to prevent flash
         (function () {
             const theme = localStorage.getItem('bb_theme') || 'light';
-            const accent = localStorage.getItem('bb_accent') || 'green';
+            const accent = localStorage.getItem('bb_accent') || 'yellow';
             if (theme === 'dark') document.documentElement.setAttribute('data-theme', 'dark');
             else if (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches) {
                 document.documentElement.setAttribute('data-theme', 'dark');
             }
-            if (accent !== 'green') document.documentElement.setAttribute('data-accent', accent);
+            if (accent !== 'yellow') document.documentElement.setAttribute('data-accent', accent);
         })();
     </script>
-    <link rel="icon" type="image/png" href="B&B.png">
+    <link rel="icon" type="image/svg+xml" href="logo.svg">
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <link
@@ -917,7 +917,7 @@
                     <div class="color-selector">
                         <label class="color-option">
                             <input type="radio" name="accentColor" value="green" checked>
-                            <span class="color-swatch" style="background: #4A7C59;"></span>
+                            <span class="color-swatch" style="background: var(--primary);"></span>
                             <span>Green</span>
                         </label>
                         <label class="color-option">
@@ -1066,94 +1066,95 @@
                             <i class="fas fa-play-circle"></i> Restart Guided Tour
                         </button>
                     </div>
-                </div>
-                <div class="toggle-setting">
-                    <div class="toggle-info">
-                        <span class="toggle-label">Offline Mode</span>
-                        <span class="toggle-description">Work without internet connection</span>
-                        <span class="feature-badge beta">Beta</span>
-                    </div>
-                    <label class="toggle-switch">
-                        <input type="checkbox" id="offlineMode">
-                        <span class="toggle-slider"></span>
-                    </label>
-                </div>
-    </div>
-    <div class="settings-card">
-        <h3>Labs</h3>
-        <p class="card-description">Early access to features in development</p>
-        <div class="labs-list">
-            <div class="lab-item">
-                <div class="lab-info">
-                    <span class="lab-name">3D Project Visualization</span>
-                    <span class="lab-description">View your construction projects in 3D</span>
-                </div>
-                <button class="btn btn-secondary btn-sm" id="try3DVisualization">Try It</button>
-            </div>
-            <div class="lab-item">
-                <div class="lab-info">
-                    <span class="lab-name">Smart Scheduling</span>
-                    <span class="lab-description">AI-powered project scheduling</span>
-                </div>
-                <button class="btn btn-secondary btn-sm">Coming Soon</button>
-            </div>
-        </div>
-    </div>
-    </section>
 
-    <!-- Danger Zone Section -->
-    <section id="danger" class="settings-section">
-        <div class="section-header danger">
-            <h1><i class="fas fa-exclamation-triangle"></i> Danger Zone</h1>
-            <p>Irreversible and destructive actions</p>
-        </div>
-        <div class="settings-card danger-card">
-            <h3>Export & Leave</h3>
-            <p class="card-description">Download all your data before leaving</p>
-            <div class="card-actions">
-                <button class="btn btn-secondary" id="exportBeforeLeaveBtn">
-                    <i class="fas fa-download"></i> Export All Data
-                </button>
-            </div>
-        </div>
-        <div class="settings-card danger-card">
-            <h3>Delete All Projects</h3>
-            <p class="card-description">Permanently delete all your projects and associated data. This action cannot be
-                undone.</p>
-            <div class="card-actions">
-                <button class="btn btn-danger" id="deleteAllProjectsBtn">
-                    <i class="fas fa-trash"></i> Delete All Projects
-                </button>
-            </div>
-        </div>
-        <div class="settings-card danger-card">
-            <h3>Reset Settings</h3>
-            <p class="card-description">Reset all settings to their default values.</p>
-            <div class="card-actions">
-                <button class="btn btn-danger-outline" id="resetSettingsBtn">
-                    <i class="fas fa-undo"></i> Reset All Settings
-                </button>
-            </div>
-        </div>
-        <div class="settings-card danger-card critical">
-            <h3>Delete Account</h3>
-            <p class="card-description">Permanently delete your account and all associated data. This action is
-                irreversible and will:</p>
-            <ul class="danger-list">
-                <li><i class="fas fa-times"></i> Delete all your projects</li>
-                <li><i class="fas fa-times"></i> Delete all documents and files</li>
-                <li><i class="fas fa-times"></i> Remove all team members</li>
-                <li><i class="fas fa-times"></i> Cancel any active subscriptions</li>
-                <li><i class="fas fa-times"></i> Delete your account permanently</li>
-            </ul>
-            <div class="card-actions">
-                <button class="btn btn-danger" id="deleteAccountBtn">
-                    <i class="fas fa-user-times"></i> Delete My Account
-                </button>
-            </div>
-        </div>
-    </section>
-    </main>
+                    <div class="toggle-setting">
+                        <div class="toggle-info">
+                            <span class="toggle-label">Offline Mode</span>
+                            <span class="toggle-description">Work without internet connection</span>
+                            <span class="feature-badge beta">Beta</span>
+                        </div>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="offlineMode">
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+                </div>
+                <div class="settings-card">
+                    <h3>Labs</h3>
+                    <p class="card-description">Early access to features in development</p>
+                    <div class="labs-list">
+                        <div class="lab-item">
+                            <div class="lab-info">
+                                <span class="lab-name">3D Project Visualization</span>
+                                <span class="lab-description">View your construction projects in 3D</span>
+                            </div>
+                            <button class="btn btn-secondary btn-sm" id="try3DVisualization">Try It</button>
+                        </div>
+                        <div class="lab-item">
+                            <div class="lab-info">
+                                <span class="lab-name">Smart Scheduling</span>
+                                <span class="lab-description">AI-powered project scheduling</span>
+                            </div>
+                            <button class="btn btn-secondary btn-sm">Coming Soon</button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Danger Zone Section -->
+            <section id="danger" class="settings-section">
+                <div class="section-header danger">
+                    <h1><i class="fas fa-exclamation-triangle"></i> Danger Zone</h1>
+                    <p>Irreversible and destructive actions</p>
+                </div>
+                <div class="settings-card danger-card">
+                    <h3>Export & Leave</h3>
+                    <p class="card-description">Download all your data before leaving</p>
+                    <div class="card-actions">
+                        <button class="btn btn-secondary" id="exportBeforeLeaveBtn">
+                            <i class="fas fa-download"></i> Export All Data
+                        </button>
+                    </div>
+                </div>
+                <div class="settings-card danger-card">
+                    <h3>Delete All Projects</h3>
+                    <p class="card-description">Permanently delete all your projects and associated data. This action
+                        cannot be
+                        undone.</p>
+                    <div class="card-actions">
+                        <button class="btn btn-danger" id="deleteAllProjectsBtn">
+                            <i class="fas fa-trash"></i> Delete All Projects
+                        </button>
+                    </div>
+                </div>
+                <div class="settings-card danger-card">
+                    <h3>Reset Settings</h3>
+                    <p class="card-description">Reset all settings to their default values.</p>
+                    <div class="card-actions">
+                        <button class="btn btn-danger-outline" id="resetSettingsBtn">
+                            <i class="fas fa-undo"></i> Reset All Settings
+                        </button>
+                    </div>
+                </div>
+                <div class="settings-card danger-card critical">
+                    <h3>Delete Account</h3>
+                    <p class="card-description">Permanently delete your account and all associated data. This action is
+                        irreversible and will:</p>
+                    <ul class="danger-list">
+                        <li><i class="fas fa-times"></i> Delete all your projects</li>
+                        <li><i class="fas fa-times"></i> Delete all documents and files</li>
+                        <li><i class="fas fa-times"></i> Remove all team members</li>
+                        <li><i class="fas fa-times"></i> Cancel any active subscriptions</li>
+                        <li><i class="fas fa-times"></i> Delete your account permanently</li>
+                    </ul>
+                    <div class="card-actions">
+                        <button class="btn btn-danger" id="deleteAccountBtn">
+                            <i class="fas fa-user-times"></i> Delete My Account
+                        </button>
+                    </div>
+                </div>
+            </section>
+        </main>
     </div>
 
     <!-- Confirmation Modal -->
@@ -1279,7 +1280,7 @@
                     restartTourBtn.addEventListener('click', () => {
                         localStorage.removeItem('bb_tour_completed');
                         this.showToast('Tour reset! Redirecting to dashboard...', 'success');
-                        setTimeout(() => window.location.href = 'index.html', 1500);
+                        setTimeout(() => window.location.href = 'dashboard.html', 1500);
                     });
                 }
             },
@@ -1514,7 +1515,7 @@
                     },
                     appearance: {
                         theme: 'light',
-                        accentColor: 'green',
+                        accentColor: 'yellow',
                         fontSize: 'medium',
                         compactMode: false,
                         enableAnimations: true,
@@ -1599,7 +1600,7 @@
                 // Appearance
                 const theme = settings.appearance?.theme || 'light';
                 document.querySelector(`input[name="theme"][value="${theme}"]`).checked = true;
-                const accentColor = settings.appearance?.accentColor || 'green';
+                const accentColor = settings.appearance?.accentColor || 'yellow';
                 document.querySelector(`input[name="accentColor"][value="${accentColor}"]`).checked = true;
                 document.getElementById('fontSize').value = settings.appearance?.fontSize || 'medium';
                 document.getElementById('compactMode').checked = settings.appearance?.compactMode || false;
@@ -1892,7 +1893,7 @@
 
                     // Show success
                     saveBtn.innerHTML = '<i class="fas fa-check"></i> Saved!';
-                    saveBtn.style.background = '#10B981';
+                    saveBtn.style.background = '#F7B500';
                     this.showToast('Account settings saved successfully', 'success');
                     console.log('[Settings] Account saved to Firebase:', updateData);
 
@@ -2016,7 +2017,7 @@
 
             applyTheme() {
                 const theme = userSettings.appearance?.theme || 'light';
-                const accentColor = userSettings.appearance?.accentColor || 'green';
+                const accentColor = userSettings.appearance?.accentColor || 'yellow';
                 this.previewTheme(theme);
                 this.previewAccentColor(accentColor);
             },
@@ -2024,7 +2025,7 @@
             saveAppearanceSettings() {
                 userSettings.appearance = {
                     theme: document.querySelector('input[name="theme"]:checked')?.value || 'light',
-                    accentColor: document.querySelector('input[name="accentColor"]:checked')?.value || 'green',
+                    accentColor: document.querySelector('input[name="accentColor"]:checked')?.value || 'yellow',
                     fontSize: document.getElementById('fontSize').value,
                     compactMode: document.getElementById('compactMode').checked,
                     enableAnimations: document.getElementById('enableAnimations').checked,
@@ -2197,7 +2198,7 @@
                 this.populateSettingsForms(userSettings);
                 this.applyTheme();
                 localStorage.setItem('bb_theme', 'light');
-                localStorage.setItem('bb_accent', 'green');
+                localStorage.setItem('bb_accent', 'yellow');
                 this.showToast('Settings reset to defaults', 'success');
                 this.closeConfirmModal();
             },
@@ -2307,12 +2308,12 @@
 
                 // Set border color based on type
                 const borderColors = {
-                    success: '#10B981',
+                    success: '#F7B500',
                     error: '#EF4444',
                     warning: '#F59E0B',
                     info: '#3B82F6'
                 };
-                toast.style.borderLeft = `4px solid ${borderColors[type] || '#4A7C59'}`;
+                toast.style.borderLeft = `4px solid ${borderColors[type] || 'var(--primary)'}`;
 
                 const icons = {
                     success: 'fa-check-circle',
@@ -2322,7 +2323,7 @@
                 };
 
                 const iconColors = {
-                    success: '#10B981',
+                    success: '#F7B500',
                     error: '#EF4444',
                     warning: '#F59E0B',
                     info: '#3B82F6'
