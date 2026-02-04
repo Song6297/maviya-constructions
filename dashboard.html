@@ -18,6 +18,12 @@
         })();
     </script>
     <link rel="icon" type="image/svg+xml" href="logo.svg">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#F7B500">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="B&B">
+    <link rel="apple-touch-icon" href="logo.svg">
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <link
@@ -460,9 +466,10 @@
                             <div class="donut-chart">
                                 <svg viewBox="0 0 100 100">
                                     <circle cx="50" cy="50" r="40" fill="none" stroke="#E5E5E5" stroke-width="10" />
-                                    <circle id="progressCircle" cx="50" cy="50" r="40" fill="none" stroke="var(--accent)"
-                                        stroke-width="10" stroke-dasharray="251.2" stroke-dashoffset="251.2"
-                                        transform="rotate(-90 50 50)" stroke-linecap="round" />
+                                    <circle id="progressCircle" cx="50" cy="50" r="40" fill="none"
+                                        stroke="var(--accent)" stroke-width="10" stroke-dasharray="251.2"
+                                        stroke-dashoffset="251.2" transform="rotate(-90 50 50)"
+                                        stroke-linecap="round" />
                                     <circle id="inProgressCircle" cx="50" cy="50" r="40" fill="none" stroke="#FF9800"
                                         stroke-width="10" stroke-dasharray="251.2" stroke-dashoffset="251.2"
                                         transform="rotate(-90 50 50)" stroke-linecap="round" />
@@ -3085,6 +3092,13 @@
                 btn.innerHTML = '<i class="fas fa-file-export nav-icon"></i><span class="nav-text">Export All</span>';
                 btn.style.pointerEvents = 'auto';
             }
+        }
+    </script>
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js');
+            });
         }
     </script>
 </body>

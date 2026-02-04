@@ -1,0 +1,18 @@
+{
+    "name": "B&B - Bricks & Bits",
+    "short_name": "B&B",
+    "description": "Smart Construction Management System",
+    "start_url": "/index.html",
+    "display": "standalone",
+    "background_color": "#1A1A1A",
+    "theme_color": "#F7B500",
+    "orientation": "portrait",
+    "icons": [
+        {
+            "src": "logo.svg",
+            "sizes": "any",
+            "type": "image/svg+xml",
+            "purpose": "any"
+        }
+    ]
+}

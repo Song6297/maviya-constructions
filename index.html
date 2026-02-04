@@ -8,6 +8,12 @@
     <meta name="description"
         content="Simplify your construction business with B&B. Track projects, manage payments, and grow your business with smart tools.">
     <link rel="icon" type="image/svg+xml" href="logo.svg">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#F7B500">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="B&B">
+    <link rel="apple-touch-icon" href="logo.svg">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap"
         rel="stylesheet">
@@ -1009,13 +1015,16 @@
                 <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
                     <div
                         style="background: var(--primary); width: 80px; height: 80px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 2rem; color: var(--black);">
-                        <i class="fas fa-hammer"></i></div>
+                        <i class="fas fa-hammer"></i>
+                    </div>
                     <div
                         style="background: var(--accent); width: 80px; height: 80px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 2rem; color: var(--primary);">
-                        <i class="fas fa-trowel-bricks"></i></div>
+                        <i class="fas fa-trowel-bricks"></i>
+                    </div>
                     <div
                         style="background: var(--primary-light); width: 80px; height: 80px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 2rem; color: var(--black);">
-                        <i class="fas fa-compass-drafting"></i></div>
+                        <i class="fas fa-compass-drafting"></i>
+                    </div>
                 </div>
                 <div style="margin-top: 2rem;">
                     <h3 style="font-size: 1.5rem; font-weight: 800; color: var(--black); margin-bottom: 0.5rem;">Built
@@ -1271,6 +1280,13 @@
             </div>
         </div>
     </footer>
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js');
+            });
+        }
+    </script>
 </body>
 
 </html>

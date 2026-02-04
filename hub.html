@@ -18,6 +18,12 @@
         })();
     </script>
     <link rel="icon" type="image/svg+xml" href="logo.svg">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#F7B500">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="B&B">
+    <link rel="apple-touch-icon" href="logo.svg">
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <link
@@ -1013,16 +1019,26 @@
     <aside class="sidebar">
         <div class="sidebar-header">
             <svg class="logo-svg" viewBox="0 0 140 110" xmlns="http://www.w3.org/2000/svg">
-                <rect x="0" y="56" width="17" height="17" rx="2" fill="var(--accent)" stroke="#000" stroke-width="1.5" />
-                <rect x="20" y="56" width="17" height="17" rx="2" fill="var(--primary)" stroke="#000" stroke-width="1.5" />
-                <rect x="40" y="56" width="17" height="17" rx="2" fill="var(--accent)" stroke="#000" stroke-width="1.5" />
-                <rect x="60" y="56" width="17" height="17" rx="2" fill="var(--primary)" stroke="#000" stroke-width="1.5" />
-                <rect x="80" y="56" width="17" height="17" rx="2" fill="var(--accent)" stroke="#000" stroke-width="1.5" />
-                <rect x="20" y="36" width="17" height="17" rx="2" fill="var(--primary)" stroke="#000" stroke-width="1.5" />
-                <rect x="40" y="36" width="17" height="17" rx="2" fill="var(--accent)" stroke="#000" stroke-width="1.5" />
-                <rect x="60" y="36" width="17" height="17" rx="2" fill="var(--primary)" stroke="#000" stroke-width="1.5" />
-                <rect x="40" y="16" width="17" height="17" rx="2" fill="var(--primary)" stroke="#000" stroke-width="1.5" />
-                <rect x="60" y="16" width="17" height="17" rx="2" fill="var(--primary)" stroke="#000" stroke-width="1.5" />
+                <rect x="0" y="56" width="17" height="17" rx="2" fill="var(--accent)" stroke="#000"
+                    stroke-width="1.5" />
+                <rect x="20" y="56" width="17" height="17" rx="2" fill="var(--primary)" stroke="#000"
+                    stroke-width="1.5" />
+                <rect x="40" y="56" width="17" height="17" rx="2" fill="var(--accent)" stroke="#000"
+                    stroke-width="1.5" />
+                <rect x="60" y="56" width="17" height="17" rx="2" fill="var(--primary)" stroke="#000"
+                    stroke-width="1.5" />
+                <rect x="80" y="56" width="17" height="17" rx="2" fill="var(--accent)" stroke="#000"
+                    stroke-width="1.5" />
+                <rect x="20" y="36" width="17" height="17" rx="2" fill="var(--primary)" stroke="#000"
+                    stroke-width="1.5" />
+                <rect x="40" y="36" width="17" height="17" rx="2" fill="var(--accent)" stroke="#000"
+                    stroke-width="1.5" />
+                <rect x="60" y="36" width="17" height="17" rx="2" fill="var(--primary)" stroke="#000"
+                    stroke-width="1.5" />
+                <rect x="40" y="16" width="17" height="17" rx="2" fill="var(--primary)" stroke="#000"
+                    stroke-width="1.5" />
+                <rect x="60" y="16" width="17" height="17" rx="2" fill="var(--primary)" stroke="#000"
+                    stroke-width="1.5" />
             </svg>
             <span>B&B</span>
         </div>
@@ -1866,6 +1882,13 @@
                 window.location.href = 'login.html';
             }
         });
+    </script>
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js');
+            });
+        }
     </script>
 </body>
 
