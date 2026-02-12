@@ -163,7 +163,7 @@
 
         .nav-item.active {
             background: var(--primary);
-            color: white;
+            color: var(--accent);
             border-left-color: var(--primary);
             font-weight: 600;
         }
@@ -476,14 +476,22 @@
 
         .action-icon.blue {
             background: linear-gradient(135deg, var(--primary-primary), var(--primary-dark));
+            color: var(--accent);
         }
 
         .action-icon.orange {
             background: linear-gradient(135deg, var(--brown-light), #8B6914);
+            color: white;
         }
 
         .action-icon.green {
-            background: linear-gradient(135deg, #F7B500, #1A1A1A);
+            background: linear-gradient(135deg, #F7B500, #F7B500);
+            color: var(--accent);
+        }
+
+        .action-icon.purple {
+            background: linear-gradient(135deg, #EDE9FE, #DDD6FE);
+            color: #7C3AED;
         }
 
         .action-label {
@@ -591,6 +599,7 @@
 
         .module-icon-wrapper.green {
             background: linear-gradient(135deg, var(--primary-primary), var(--primary-dark));
+            color: var(--accent);
         }
 
         .module-icon-wrapper.blue {
@@ -603,6 +612,7 @@
 
         .module-icon-wrapper.orange {
             background: linear-gradient(135deg, #F59E0B, #D97706);
+            color: var(--accent);
         }
 
         .module-icon-wrapper.pink {
@@ -611,6 +621,12 @@
 
         .module-icon-wrapper.gold {
             background: linear-gradient(135deg, #FFD700, #B45309);
+            color: var(--accent);
+        }
+
+        .module-icon-wrapper.admin {
+            background: linear-gradient(135deg, #FFD700, #B45309);
+            color: var(--accent);
         }
 
         .module-icon-wrapper.dark {
@@ -1081,6 +1097,10 @@
                 <div class="nav-label">Modules</div>
                 <a href="materials.html" class="nav-item"><i class="fas fa-boxes"></i><span
                         class="nav-text">Materials</span></a>
+                <a href="economics.html" class="nav-item"><i class="fas fa-coins"></i><span
+                        class="nav-text">Economics</span></a>
+                <a href="bid-estimator.html" class="nav-item"><i class="fas fa-gavel"></i><span class="nav-text">Bid
+                        Estimator</span></a>
             </div>
         </div>
 
@@ -1186,8 +1206,7 @@
                         <div class="action-label">Track Stock</div>
                     </a>
                     <a href="economics.html" class="action-card">
-                        <div class="action-icon purple" style="background: #EDE9FE; color: #7C3AED;"><i
-                                class="fas fa-chart-line"></i></div>
+                        <div class="action-icon purple"><i class="fas fa-chart-line"></i></div>
                         <div class="action-label">Economics</div>
                     </a>
                 </div>
@@ -1283,9 +1302,7 @@
                     </a>
                     <a href="admin.html" class="module-tile admin" id="adminTile" style="display: none;">
                         <div class="module-header">
-                            <div class="module-icon-wrapper"
-                                style="background: linear-gradient(135deg, #FFD700, #B45309);"><i
-                                    class="fas fa-shield-alt"></i></div>
+                            <div class="module-icon-wrapper admin"><i class="fas fa-shield-alt"></i></div>
                             <div>
                                 <div class="module-name">Admin</div>
                                 <div class="module-description">System management</div>

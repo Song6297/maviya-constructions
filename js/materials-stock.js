@@ -20,9 +20,9 @@ const MATERIAL_UNITS = [
 ];
 
 const Utils = window.Utils || {
-    formatNumber(num) { 
+    formatNumber(num) {
         if (num === null || num === undefined || isNaN(num)) return '0';
-        return new Intl.NumberFormat('en-IN').format(num); 
+        return new Intl.NumberFormat('en-IN').format(num);
     },
     escapeHtml(text) { const div = document.createElement('div'); div.textContent = text; return div.innerHTML; }
 };
@@ -63,7 +63,12 @@ const MaterialStock = {
 
     bindEvents() {
         document.getElementById('addStockBtn').addEventListener('click', () => this.openModal());
-        document.querySelectorAll('.close-modal, .cancel-modal').forEach(btn => btn.addEventListener('click', () => this.closeModal()));
+
+        // Stock Modal Close Buttons
+        document.querySelectorAll('#stockModal .close-modal, #stockModal .cancel-modal').forEach(btn =>
+            btn.addEventListener('click', () => this.closeModal())
+        );
+
         document.getElementById('stockModal').addEventListener('click', e => { if (e.target.id === 'stockModal') this.closeModal(); });
         document.getElementById('stockForm').addEventListener('submit', e => this.handleSubmit(e));
         document.getElementById('materialSelect').addEventListener('change', e => {
@@ -74,6 +79,12 @@ const MaterialStock = {
         document.getElementById('cancelDelete').addEventListener('click', () => this.closeDeleteModal());
         document.getElementById('confirmDelete').addEventListener('click', () => this.confirmDelete());
         document.getElementById('deleteModal').addEventListener('click', e => { if (e.target.id === 'deleteModal') this.closeDeleteModal(); });
+
+        // History Modal Close Buttons
+        document.querySelectorAll('#historyModal .close-modal').forEach(btn =>
+            btn.addEventListener('click', () => this.closeHistoryModal())
+        );
+        document.getElementById('historyModal').addEventListener('click', e => { if (e.target.id === 'historyModal') this.closeHistoryModal(); });
     },
 
     async openModal(id = null) {
@@ -95,6 +106,7 @@ const MaterialStock = {
                 document.getElementById('materialCategory').value = item.category;
                 document.getElementById('materialUnit').value = item.unit;
                 document.getElementById('availableQty').value = item.available;
+                document.getElementById('recoveredQty').value = parseFloat(item.recovered) || 0;
                 document.getElementById('minStock').value = item.minStock || 0;
                 document.getElementById('ratePerUnit').value = item.rate;
                 document.getElementById('supplier').value = item.supplier || '';
@@ -108,6 +120,66 @@ const MaterialStock = {
 
     closeModal() {
         const modal = document.getElementById('stockModal');
+        modal.classList.remove('active');
+        setTimeout(() => modal.classList.add('hidden'), 300);
+    },
+
+    async openHistoryModal(stockId) {
+        const modal = document.getElementById('historyModal');
+        const tbody = document.getElementById('historyTableBody');
+        const empty = document.getElementById('historyEmptyState');
+        const title = document.getElementById('historyModalTitle');
+        const subtitle = document.getElementById('historyModalSubtitle');
+
+        modal.classList.remove('hidden');
+        modal.classList.add('active');
+        tbody.innerHTML = '<tr><td colspan="4" class="text-center p-4">Loading...</td></tr>';
+        empty.classList.add('hidden');
+
+        try {
+            const stockItem = await Storage.materialStock.getById(stockId);
+            title.textContent = stockItem ? stockItem.name : 'Unknown Item';
+            subtitle.textContent = stockItem ? `${stockItem?.category} • ${stockItem?.unit}` : '';
+
+            const transactions = await Storage.materialTransactions.getByStockId(stockId);
+
+            if (!transactions || transactions.length === 0) {
+                tbody.innerHTML = '';
+                empty.classList.remove('hidden');
+                return;
+            }
+
+            // Sort by date desc
+            transactions.sort((a, b) => new Date(b.timestamp || b.date) - new Date(a.timestamp || a.date));
+
+            tbody.innerHTML = transactions.map(t => {
+                const date = new Date(t.timestamp || t.date).toLocaleString('en-IN', {
+                    dateStyle: 'medium', timeStyle: 'short'
+                });
+                const isUsage = t.action === 'used';
+                const actionClass = isUsage ? 'text-blue-600' : 'text-green-600';
+                const actionIcon = isUsage ? 'fa-arrow-down' : 'fa-arrow-up';
+
+                return `
+                    <tr class="hover:bg-slate-50">
+                        <td class="text-slate-600 text-sm whitespace-nowrap">${date}</td>
+                        <td class="font-medium text-slate-800">${Utils.escapeHtml(t.projectName)}</td>
+                        <td><span class="${actionClass} text-xs font-semibold px-2 py-1 bg-slate-100 rounded-full">
+                            <i class="fas ${actionIcon} mr-1"></i>${t.action ? t.action.toUpperCase() : 'USED'}
+                        </span></td>
+                        <td class="font-bold text-slate-700">${t.quantity} ${t.unit}</td>
+                    </tr>
+                `;
+            }).join('');
+
+        } catch (error) {
+            console.error('Error loading history:', error);
+            tbody.innerHTML = '<tr><td colspan="4" class="text-center text-red-500 p-4">Error loading history</td></tr>';
+        }
+    },
+
+    closeHistoryModal() {
+        const modal = document.getElementById('historyModal');
         modal.classList.remove('active');
         setTimeout(() => modal.classList.add('hidden'), 300);
     },
@@ -126,7 +198,7 @@ const MaterialStock = {
             unit: document.getElementById('materialUnit').value,
             available: parseFloat(document.getElementById('availableQty').value),
             used: existingItem?.used || 0,
-            recovered: existingItem?.recovered || 0,
+            recovered: parseFloat(document.getElementById('recoveredQty').value) || 0,
             minStock: parseFloat(document.getElementById('minStock').value) || 0,
             rate: parseFloat(document.getElementById('ratePerUnit').value),
             supplier: document.getElementById('supplier').value.trim()
@@ -145,7 +217,7 @@ const MaterialStock = {
 
     async render() {
         let items = await Storage.materialStock.getAll();
-        
+
         if (this.filters.status === 'available') items = items.filter(i => i.available > i.minStock);
         else if (this.filters.status === 'low') items = items.filter(i => i.available <= i.minStock);
         if (this.filters.category !== 'all') items = items.filter(i => i.category === this.filters.category);
@@ -174,6 +246,7 @@ const MaterialStock = {
                 <td class="font-semibold text-sky-600">₹${Utils.formatNumber(value)}</td>
                 <td><span class="material-status ${isLow ? 'material-low' : 'material-available'}">${isLow ? 'Low' : 'OK'}</span></td>
                 <td><div class="flex gap-1">
+                    <button class="action-btn text-blue-500" onclick="MaterialStock.openHistoryModal('${item.id}')" title="View History"><i class="fas fa-history text-xs"></i></button>
                     <button class="action-btn" onclick="MaterialStock.openModal('${item.id}')"><i class="fas fa-pen text-xs"></i></button>
                     <button class="action-btn delete" onclick="MaterialStock.openDeleteModal('${item.id}')"><i class="fas fa-trash text-xs"></i></button>
                 </div></td>

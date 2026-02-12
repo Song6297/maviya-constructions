@@ -1032,6 +1032,317 @@
             visibility: visible;
         }
 
+        /* ===== ML PREDICTIONS TAB ===== */
+
+        /* Diff Cards */
+        .diff-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .diff-card {
+            background: var(--white);
+            border-radius: 16px;
+            padding: 1.25rem;
+            border: 1px solid var(--border);
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
+            transition: all 0.3s;
+        }
+
+        .diff-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+        }
+
+        .diff-card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 0.75rem;
+        }
+
+        .diff-card-title {
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--gray);
+        }
+
+        .diff-card-badge {
+            font-size: 0.625rem;
+            font-weight: 700;
+            padding: 0.2rem 0.5rem;
+            border-radius: 20px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .diff-card-badge.up {
+            background: rgba(34, 197, 94, 0.1);
+            color: #16a34a;
+        }
+
+        .diff-card-badge.down {
+            background: rgba(239, 68, 68, 0.1);
+            color: #dc2626;
+        }
+
+        .diff-card-badge.flat {
+            background: rgba(107, 114, 128, 0.1);
+            color: #6b7280;
+        }
+
+        .diff-card-values {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .diff-current {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .diff-label {
+            font-size: 0.625rem;
+            color: var(--gray);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 0.2rem;
+        }
+
+        .diff-value {
+            font-size: 1.375rem;
+            font-weight: 800;
+            color: var(--dark);
+        }
+
+        .diff-arrow {
+            font-size: 1.25rem;
+            color: var(--gray);
+            flex-shrink: 0;
+        }
+
+        .diff-predicted .diff-value {
+            color: var(--primary);
+        }
+
+        .diff-delta {
+            display: flex;
+            align-items: center;
+            gap: 0.35rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .diff-delta.positive {
+            color: #16a34a;
+        }
+
+        .diff-delta.negative {
+            color: #dc2626;
+        }
+
+        .diff-delta.neutral {
+            color: #6b7280;
+        }
+
+        /* Prediction Chart Section */
+        .prediction-chart-container {
+            position: relative;
+            height: 350px;
+            background: var(--white);
+            border-radius: 16px;
+            padding: 1rem;
+            border: 1px solid var(--border);
+            overflow: hidden;
+        }
+
+        .prediction-chart-container::before {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            opacity: 0.8;
+        }
+
+        /* Accuracy Gauges */
+        .accuracy-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .accuracy-card {
+            background: var(--white);
+            border-radius: 16px;
+            padding: 1.25rem;
+            border: 1px solid var(--border);
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .accuracy-card.limited-data {
+            border-style: dashed;
+            background: var(--bg-light);
+            opacity: 0.9;
+        }
+
+        .accuracy-card-label {
+            font-size: 0.6875rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--gray);
+            margin-bottom: 0.75rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .limited-tag {
+            font-size: 0.5625rem;
+            background: var(--primary-muted);
+            color: var(--primary-dark);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        .accuracy-gauge {
+            position: relative;
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 0.5rem;
+        }
+
+        .accuracy-gauge svg {
+            transform: rotate(-90deg);
+        }
+
+        .accuracy-gauge-bg {
+            fill: none;
+            stroke: var(--border);
+            stroke-width: 8;
+        }
+
+        .accuracy-gauge-fill {
+            fill: none;
+            stroke-width: 8;
+            stroke-linecap: round;
+            transition: stroke-dashoffset 1s ease;
+        }
+
+        .accuracy-gauge-value {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 1rem;
+            font-weight: 800;
+            color: var(--dark);
+        }
+
+        .accuracy-card-desc {
+            font-size: 0.6875rem;
+            color: var(--gray);
+            line-height: 1.3;
+        }
+
+        /* Risk & Data Quality */
+        .risk-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+
+        .risk-card {
+            background: var(--white);
+            border-radius: 16px;
+            padding: 1.5rem;
+            border: 1px solid var(--border);
+        }
+
+        .risk-card-title {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.875rem;
+            font-weight: 700;
+            color: var(--dark);
+            margin-bottom: 1rem;
+        }
+
+        .risk-card-title i {
+            color: var(--primary);
+        }
+
+        .risk-bar {
+            height: 10px;
+            background: var(--border);
+            border-radius: 5px;
+            overflow: hidden;
+            margin-bottom: 0.5rem;
+        }
+
+        .risk-bar-fill {
+            height: 100%;
+            border-radius: 5px;
+            transition: width 1s ease;
+        }
+
+        .risk-details {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .risk-detail-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.8125rem;
+        }
+
+        .risk-detail-label {
+            color: var(--gray);
+        }
+
+        .risk-detail-value {
+            font-weight: 700;
+            color: var(--dark);
+        }
+
+        .model-reliability-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            padding: 0.25rem 0.625rem;
+            border-radius: 20px;
+            font-size: 0.6875rem;
+            font-weight: 600;
+        }
+
+        .model-reliability-badge.reliable {
+            background: rgba(34, 197, 94, 0.1);
+            color: #16a34a;
+        }
+
+        .model-reliability-badge.unreliable {
+            background: rgba(239, 68, 68, 0.1);
+            color: #dc2626;
+        }
+
         /* Responsive */
         @media (max-width: 1024px) {
             .hero-valuation {
@@ -1044,6 +1355,10 @@
 
             .scenario-results {
                 grid-template-columns: repeat(2, 1fr);
+            }
+
+            .risk-grid {
+                grid-template-columns: 1fr;
             }
         }
 
@@ -1068,6 +1383,10 @@
 
             .tab-nav {
                 flex-wrap: wrap;
+            }
+
+            .diff-grid {
+                grid-template-columns: 1fr;
             }
         }
     </style>
@@ -1171,6 +1490,10 @@
                     <i class="fas fa-chart-line nav-icon"></i>
                     <span class="nav-text">Economics</span>
                 </a>
+                <a href="bid-estimator.html" class="nav-item" title="Bid Estimator">
+                    <i class="fas fa-gavel nav-icon"></i>
+                    <span class="nav-text">Bid Estimator</span>
+                </a>
                 <a href="labour-calendar.html" class="nav-item" title="Labour Calendar">
                     <i class="fas fa-calendar-alt nav-icon"></i>
                     <span class="nav-text">Calendar</span>
@@ -1216,10 +1539,9 @@
                     <h1>Economics & Valuation</h1>
                 </div>
                 <div class="header-actions">
-                    <button class="btn-refresh" id="startEconomicsTourBtn"
-                        style="background: var(--primary-primary); color: white; border: none;">
-                        <i class="fas fa-play-circle"></i>
-                        <span>Economics Guide</span>
+                    <button class="btn-refresh" id="formulaGuideBtn">
+                        <i class="fas fa-flask"></i>
+                        <span>Formula Guide</span>
                     </button>
                     <button class="btn-refresh" id="refreshBtn">
                         <i class="fas fa-sync-alt"></i>
@@ -1233,12 +1555,12 @@
                 <div class="hero-content">
                     <div class="hero-left">
                         <div class="hero-label">Estimated Business Value</div>
-                        <div class="hero-valuation">
+                        <div class="hero-valuation" data-formula-id="heroValuation">
                             <span class="currency">₹</span>
                             <span id="heroValuation">0</span>
                         </div>
                         <div class="hero-range" id="heroRange">Loading valuation range...</div>
-                        <div class="hero-health">
+                        <div class="hero-health" data-formula-id="healthScoreValue">
                             <div class="health-score" id="healthScore" style="--score-percent: 75%;">
                                 <span id="healthScoreValue">75</span>
                             </div>
@@ -1249,15 +1571,15 @@
                         </div>
                     </div>
                     <div class="hero-right">
-                        <div class="hero-stat">
+                        <div class="hero-stat" data-formula-id="heroRevenue">
                             <div class="hero-stat-value" id="heroRevenue">₹0</div>
                             <div class="hero-stat-label">Total Revenue</div>
                         </div>
-                        <div class="hero-stat">
+                        <div class="hero-stat" data-formula-id="heroMargin">
                             <div class="hero-stat-value" id="heroMargin">0%</div>
                             <div class="hero-stat-label">Gross Margin</div>
                         </div>
-                        <div class="hero-stat">
+                        <div class="hero-stat" data-formula-id="heroRunway">
                             <div class="hero-stat-value" id="heroRunway">0</div>
                             <div class="hero-stat-label">Months Runway</div>
                         </div>
@@ -1303,6 +1625,10 @@
                 <button class="tab-btn" data-tab="scenarios">
                     <i class="fas fa-flask"></i>
                     <span>Scenarios</span>
+                </button>
+                <button class="tab-btn" data-tab="predictions">
+                    <i class="fas fa-brain"></i>
+                    <span>ML Predictions</span>
                 </button>
             </div>
 
@@ -1411,7 +1737,7 @@
 
             <!-- Scenarios Tab -->
             <div class="tab-panel" id="panel-scenarios">
-                <div class="scenario-controls">
+                <div class="scenario-controls" data-formula-id="scenario-costReduction">
                     <div class="scenario-slider">
                         <div class="scenario-slider-header">
                             <span class="scenario-slider-title">Cost Reduction</span>
@@ -1419,7 +1745,7 @@
                         </div>
                         <input type="range" id="costReductionSlider" min="0" max="30" value="10" step="5">
                     </div>
-                    <div class="scenario-slider">
+                    <div class="scenario-slider" data-formula-id="scenario-revenueGrowth">
                         <div class="scenario-slider-header">
                             <span class="scenario-slider-title">Revenue Growth</span>
                             <span class="scenario-slider-value" id="revenueGrowthValue">20%</span>
@@ -1434,12 +1760,91 @@
                     <div class="scenario-results" id="scenarioResults"></div>
                 </div>
             </div>
+
+            <!-- ML Predictions Tab -->
+            <div class="tab-panel" id="panel-predictions">
+                <!-- Diff Layout: Current vs Predicted -->
+                <div class="section-card">
+                    <div class="section-card-header">
+                        <div class="section-card-title"><i class="fas fa-exchange-alt"></i> Current vs Predicted (Next
+                            Month)</div>
+                        <span class="model-reliability-badge reliable" id="mlReliabilityBadge">
+                            <i class="fas fa-check-circle"></i> Loading...
+                        </span>
+                    </div>
+                    <div class="diff-grid" id="predictionDiffGrid">
+                        <div class="diff-card" style="opacity: 0.5; text-align: center; padding: 2rem;">
+                            <i class="fas fa-spinner fa-spin" style="font-size: 1.5rem; color: var(--gray);"></i>
+                            <p style="color: var(--gray); margin-top: 0.75rem; font-size: 0.875rem;">Loading
+                                predictions...</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Prediction Timeline Chart -->
+                <div class="section-card">
+                    <div class="section-card-header">
+                        <div class="section-card-title" data-formula-id="ml-revenue">
+                            <i class="fas fa-chart-area"></i> Revenue Forecast with Confidence Bands
+                        </div>
+                    </div>
+                    <div class="prediction-chart-container">
+                        <canvas id="predictionTimelineChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Model Accuracy -->
+                <div class="section-card">
+                    <div class="section-card-header">
+                        <div class="section-card-title" data-formula-id="ml-accuracy">
+                            <i class="fas fa-bullseye"></i> Model Accuracy
+                        </div>
+                    </div>
+                    <div class="accuracy-grid" id="accuracyGrid">
+                        <div class="accuracy-card" style="opacity: 0.5; text-align: center;">
+                            <p style="color: var(--gray); font-size: 0.875rem;">Calculating...</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Risk & Data Quality -->
+                <div class="risk-grid">
+                    <div class="risk-card">
+                        <div class="risk-card-title"><i class="fas fa-shield-alt"></i> Risk Score</div>
+                        <div class="risk-bar">
+                            <div class="risk-bar-fill" id="riskBarFill" style="width: 0%; background: var(--primary);">
+                            </div>
+                        </div>
+                        <div class="risk-details" id="riskDetails">
+                            <div class="risk-detail-row">
+                                <span class="risk-detail-label">Score</span>
+                                <span class="risk-detail-value">—</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="risk-card">
+                        <div class="risk-card-title"><i class="fas fa-database"></i> Data Quality</div>
+                        <div class="risk-bar">
+                            <div class="risk-bar-fill" id="dataQualityBarFill" style="width: 0%; background: #22c55e;">
+                            </div>
+                        </div>
+                        <div class="risk-details" id="dataQualityDetails">
+                            <div class="risk-detail-row">
+                                <span class="risk-detail-label">Quality</span>
+                                <span class="risk-detail-value">—</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </main>
     </div>
 
     <script type="module">
         import { auth, onAuthStateChanged, signOut } from './js/firebase-config.js';
         import EconomicsAnalytics from './js/economics-analytics.js';
+        import EconomicsML from './js/economics-ml.js';
+        import FormulaGuideOverlay from './js/economics-guide-overlay.js';
 
         let charts = {};
 
@@ -1507,12 +1912,13 @@
                     updateScenarioResults()
                 ]);
 
-                // Economics Tour
-                document.getElementById('startEconomicsTourBtn').addEventListener('click', () => {
-                    import('./js/guided-tour.js').then(module => {
-                        module.default.startEconomicsTour();
-                    });
+                // Formula Guide Overlay
+                document.getElementById('formulaGuideBtn').addEventListener('click', () => {
+                    FormulaGuideOverlay.toggle();
                 });
+
+                // Load ML Predictions
+                renderPredictionsTab();
 
             } catch (error) {
                 console.error('Error loading economics:', error);
@@ -1819,6 +2225,338 @@
                     <div class="scenario-result-label">Valuation Impact</div>
                     <div class="scenario-result-value">${formatCurrency(combinedValuationIncrease)}</div>
                     <div class="scenario-result-change positive">+${Math.round((combinedValuationIncrease / Math.max(1, costScenario.currentValuation)) * 100)}%</div>
+                </div>
+            `;
+        }
+
+        // ===== ML PREDICTIONS TAB RENDERING =====
+
+        async function renderPredictionsTab() {
+            try {
+                const predictions = await EconomicsML.getComprehensivePredictions(3);
+                renderDiffCards(predictions);
+                renderPredictionChart(predictions);
+                renderAccuracyGauges(predictions);
+                renderRiskAssessment(predictions);
+            } catch (err) {
+                console.error('ML Predictions error:', err);
+                document.getElementById('predictionDiffGrid').innerHTML = `
+                    <div class="diff-card" style="text-align: center; padding: 2rem; grid-column: 1/-1;">
+                        <i class="fas fa-exclamation-triangle" style="font-size: 1.5rem; color: #F59E0B;"></i>
+                        <p style="color: var(--gray); margin-top: 0.75rem; font-size: 0.875rem;">Unable to generate predictions. Add more project data for ML forecasting.</p>
+                    </div>`;
+            }
+        }
+
+        function renderDiffCards(predictions) {
+            const { revenue, costs, margins, predictedProfit } = predictions;
+            const currentProfit = Math.max(0, revenue.currentValue - costs.currentValue);
+
+            const cards = [
+                { title: 'Monthly Revenue', current: revenue.currentValue, predicted: revenue.predictedNextValue, change: revenue.changePercent, isCurrency: true, formulaId: 'ml-revenue' },
+                { title: 'Monthly Costs', current: costs.currentValue, predicted: costs.predictedNextValue, change: costs.changePercent, isCurrency: true, invertColor: true, formulaId: 'ml-costs' },
+                { title: 'Gross Margin', current: margins.currentValue, predicted: margins.predictedNextValue, change: margins.changePercent, isPercent: true, formulaId: 'ml-margins' },
+                { title: 'Monthly Profit', current: currentProfit, predicted: predictedProfit, change: currentProfit > 0 ? Math.round((predictedProfit - currentProfit) / currentProfit * 100 * 10) / 10 : 0, isCurrency: true }
+            ];
+
+            document.getElementById('predictionDiffGrid').innerHTML = cards.map(card => {
+                const isUp = card.invertColor ? card.change < 0 : card.change > 0;
+                const isDown = card.invertColor ? card.change > 0 : card.change < 0;
+                const dirClass = isUp ? 'up' : isDown ? 'down' : 'flat';
+                const deltaClass = isUp ? 'positive' : isDown ? 'negative' : 'neutral';
+                const arrow = card.change > 0 ? '↑' : card.change < 0 ? '↓' : '→';
+                const formatVal = card.isPercent ? (v => Math.round(v) + '%') : (v => formatCurrency(v));
+
+                return `
+                    <div class="diff-card" ${card.formulaId ? `data-formula-id="${card.formulaId}"` : ''}>
+                        <div class="diff-card-header">
+                            <span class="diff-card-title">${card.title}</span>
+                            <span class="diff-card-badge ${dirClass}">${arrow} ${Math.abs(card.change)}%</span>
+                        </div>
+                        <div class="diff-card-values">
+                            <div class="diff-current">
+                                <span class="diff-label">Current</span>
+                                <span class="diff-value">${formatVal(card.current)}</span>
+                            </div>
+                            <i class="fas fa-long-arrow-alt-right diff-arrow"></i>
+                            <div class="diff-predicted">
+                                <span class="diff-label">Predicted</span>
+                                <span class="diff-value">${formatVal(card.predicted)}</span>
+                            </div>
+                        </div>
+                        <div class="diff-delta ${deltaClass}">
+                            <i class="fas fa-arrow-${card.change >= 0 ? 'up' : 'down'}"></i>
+                            ${Math.abs(card.change)}% change expected
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            // Update reliability badge
+            const avgReliable = [revenue, costs, margins].filter(m => m.accuracy.reliable).length;
+            const badge = document.getElementById('mlReliabilityBadge');
+            if (avgReliable >= 2) {
+                badge.className = 'model-reliability-badge reliable';
+                badge.innerHTML = '<i class="fas fa-check-circle"></i> Model Reliable';
+            } else {
+                badge.className = 'model-reliability-badge unreliable';
+                badge.innerHTML = '<i class="fas fa-exclamation-circle"></i> Limited Data';
+            }
+        }
+
+        function renderPredictionChart(predictions) {
+            const { revenue } = predictions;
+            const ctx = document.getElementById('predictionTimelineChart').getContext('2d');
+            if (charts.predictionTimeline) charts.predictionTimeline.destroy();
+
+            const historicalLabels = revenue.historical.labels;
+            const forecastLabels = revenue.predictions.map(p => p.label);
+            const allLabels = [...historicalLabels, ...forecastLabels];
+
+            // Historical data (fill forecast slots with null)
+            const historicalData = [...revenue.historical.values, ...forecastLabels.map(() => null)];
+
+            // Forecast data (fill historical slots with null, connect from last historical)
+            const forecastData = [...historicalLabels.map(() => null)];
+            forecastData[forecastData.length - 1] = revenue.historical.values[revenue.historical.values.length - 1];
+            revenue.predictions.forEach(p => forecastData.push(p.predicted));
+
+            // Confidence bands
+            const upper95 = [...historicalLabels.map(() => null)];
+            upper95[upper95.length - 1] = revenue.historical.values[revenue.historical.values.length - 1];
+            revenue.predictions.forEach(p => upper95.push(p.upper95));
+
+            const lower95 = [...historicalLabels.map(() => null)];
+            lower95[lower95.length - 1] = revenue.historical.values[revenue.historical.values.length - 1];
+            revenue.predictions.forEach(p => lower95.push(p.lower95));
+
+            const upper80 = [...historicalLabels.map(() => null)];
+            upper80[upper80.length - 1] = revenue.historical.values[revenue.historical.values.length - 1];
+            revenue.predictions.forEach(p => upper80.push(p.upper80));
+
+            const lower80 = [...historicalLabels.map(() => null)];
+            lower80[lower80.length - 1] = revenue.historical.values[revenue.historical.values.length - 1];
+            revenue.predictions.forEach(p => lower80.push(p.lower80));
+
+            charts.predictionTimeline = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: allLabels,
+                    datasets: [
+                        {
+                            label: 'Historical Revenue',
+                            data: historicalData,
+                            borderColor: '#F7B500',
+                            backgroundColor: 'rgba(247, 181, 0, 0.1)',
+                            borderWidth: 2.5,
+                            fill: true,
+                            tension: 0.4,
+                            pointRadius: 3,
+                            pointBackgroundColor: '#F7B500'
+                        },
+                        {
+                            label: 'Predicted Revenue',
+                            data: forecastData,
+                            borderColor: '#F7B500', // var(--primary)
+                            borderWidth: 3,
+                            borderDash: [5, 5],
+                            fill: false,
+                            tension: 0.4,
+                            pointRadius: 5,
+                            pointBackgroundColor: '#F7B500',
+                            pointBorderColor: 'white',
+                            pointBorderWidth: 2
+                        },
+                        {
+                            label: '95% Confidence Upper',
+                            data: upper95,
+                            borderColor: 'transparent',
+                            backgroundColor: 'rgba(99, 102, 241, 0.08)',
+                            fill: '+1',
+                            tension: 0.4,
+                            pointRadius: 0
+                        },
+                        {
+                            label: '95% Confidence Lower',
+                            data: lower95,
+                            borderColor: 'transparent',
+                            backgroundColor: 'rgba(99, 102, 241, 0.08)',
+                            fill: false,
+                            tension: 0.4,
+                            pointRadius: 0
+                        },
+                        {
+                            label: '80% Confidence Upper',
+                            data: upper80,
+                            borderColor: 'transparent',
+                            backgroundColor: 'rgba(99, 102, 241, 0.15)',
+                            fill: '+1',
+                            tension: 0.4,
+                            pointRadius: 0
+                        },
+                        {
+                            label: '80% Confidence Lower',
+                            data: lower80,
+                            borderColor: 'transparent',
+                            backgroundColor: 'rgba(99, 102, 241, 0.15)',
+                            fill: false,
+                            tension: 0.4,
+                            pointRadius: 0
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'top',
+                            labels: {
+                                filter: (item) => !item.text.includes('Confidence'),
+                                usePointStyle: true,
+                                pointStyle: 'circle'
+                            }
+                        },
+                        tooltip: {
+                            mode: 'index',
+                            intersect: false,
+                            filter: (item) => !item.dataset.label.includes('Confidence')
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: (val) => {
+                                    if (val >= 10000000) return '₹' + (val / 10000000).toFixed(1) + 'Cr';
+                                    if (val >= 100000) return '₹' + (val / 100000).toFixed(1) + 'L';
+                                    if (val >= 1000) return '₹' + (val / 1000).toFixed(0) + 'K';
+                                    return '₹' + val;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function renderAccuracyGauges(predictions) {
+            const metrics = [
+                {
+                    label: 'Revenue R²',
+                    value: predictions.revenue.accuracy.rSquared,
+                    max: 1,
+                    format: v => v.toFixed(3),
+                    color: 'var(--primary)',
+                    desc: 'Coefficient of determination. 1.0 = perfect fit',
+                    isTraining: predictions.revenue.accuracy.isTrainingOnly
+                },
+                {
+                    label: 'Revenue MAPE',
+                    value: Math.min(100, predictions.revenue.accuracy.mape),
+                    max: 100,
+                    format: v => v.toFixed(1) + '%',
+                    color: predictions.revenue.accuracy.mape < 30 ? 'var(--primary)' : '#f59e0b',
+                    desc: 'Mean absolute % error. Lower = more accurate',
+                    invert: true,
+                    isTraining: predictions.revenue.accuracy.isTrainingOnly
+                },
+                {
+                    label: 'Costs R²',
+                    value: predictions.costs.accuracy.rSquared,
+                    max: 1,
+                    format: v => v.toFixed(3),
+                    color: '#f59e0b',
+                    desc: 'How well costs follow a linear trend',
+                    isTraining: predictions.costs.accuracy.isTrainingOnly
+                },
+                {
+                    label: 'Margins R²',
+                    value: predictions.margins.accuracy.rSquared,
+                    max: 1,
+                    format: v => v.toFixed(3),
+                    color: 'var(--primary-dark)',
+                    desc: 'Margin prediction goodness of fit',
+                    isTraining: predictions.margins.accuracy.isTrainingOnly
+                }
+            ];
+
+            const circumference = 2 * Math.PI * 32;
+
+            document.getElementById('accuracyGrid').innerHTML = metrics.map(m => {
+                const percent = m.invert ? (1 - m.value / m.max) : (m.value / m.max);
+                const dashoffset = circumference * (1 - Math.max(0, Math.min(1, percent)));
+
+                return `
+                    <div class="accuracy-card ${m.isTraining ? 'limited-data' : ''}">
+                        <div class="accuracy-card-label">
+                            ${m.label}
+                            ${m.isTraining ? '<span class="limited-tag">Limited Data</span>' : ''}
+                        </div>
+                        <div class="accuracy-gauge">
+                            <svg width="80" height="80" viewBox="0 0 80 80">
+                                <circle class="accuracy-gauge-bg" cx="40" cy="40" r="32"></circle>
+                                <circle class="accuracy-gauge-fill" cx="40" cy="40" r="32"
+                                    stroke="${m.color}"
+                                    stroke-dasharray="${circumference}"
+                                    stroke-dashoffset="${dashoffset}"></circle>
+                            </svg>
+                            <span class="accuracy-gauge-value">${m.format(m.value)}</span>
+                        </div>
+                        <div class="accuracy-card-desc">${m.isTraining ? 'Metrics calculated on training set only.' : m.desc}</div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function renderRiskAssessment(predictions) {
+            const { riskScore, dataQuality, dataPoints, revenue, costs, margins } = predictions;
+
+            // Risk bar
+            const riskFill = document.getElementById('riskBarFill');
+            riskFill.style.width = riskScore + '%';
+            riskFill.style.background = riskScore >= 70 ? '#22c55e' : riskScore >= 40 ? '#f59e0b' : '#ef4444';
+
+            document.getElementById('riskDetails').innerHTML = `
+                <div class="risk-detail-row">
+                    <span class="risk-detail-label">Risk Score</span>
+                    <span class="risk-detail-value">${riskScore}/100</span>
+                </div>
+                <div class="risk-detail-row">
+                    <span class="risk-detail-label">Revenue Trend</span>
+                    <span class="risk-detail-value" style="color: ${revenue.trend === 'upward' ? 'var(--primary)' : revenue.trend === 'downward' ? 'var(--error)' : 'var(--gray)'}">
+                        <i class="fas fa-arrow-${revenue.trend === 'upward' ? 'up' : revenue.trend === 'downward' ? 'down' : 'right'}"></i>
+                        ${revenue.trend.charAt(0).toUpperCase() + revenue.trend.slice(1)}
+                    </span>
+                </div>
+                <div class="risk-detail-row">
+                    <span class="risk-detail-label">Margin Trend</span>
+                    <span class="risk-detail-value" style="color: ${margins.trend === 'upward' ? 'var(--primary)' : margins.trend === 'downward' ? 'var(--error)' : 'var(--gray)'}">
+                        <i class="fas fa-arrow-${margins.trend === 'upward' ? 'up' : margins.trend === 'downward' ? 'down' : 'right'}"></i>
+                        ${margins.trend.charAt(0).toUpperCase() + margins.trend.slice(1)}
+                    </span>
+                </div>
+            `;
+
+            // Data quality bar
+            const qualityPercent = dataQuality === 'Excellent' ? 100 : dataQuality === 'Good' ? 75 : dataQuality === 'Fair' ? 50 : 25;
+            const dqFill = document.getElementById('dataQualityBarFill');
+            dqFill.style.width = qualityPercent + '%';
+            dqFill.style.background = qualityPercent >= 75 ? '#22c55e' : qualityPercent >= 50 ? '#f59e0b' : '#ef4444';
+
+            document.getElementById('dataQualityDetails').innerHTML = `
+                <div class="risk-detail-row">
+                    <span class="risk-detail-label">Quality</span>
+                    <span class="risk-detail-value">${dataQuality}</span>
+                </div>
+                <div class="risk-detail-row">
+                    <span class="risk-detail-label">Data Points</span>
+                    <span class="risk-detail-value">${dataPoints} months</span>
+                </div>
+                <div class="risk-detail-row">
+                    <span class="risk-detail-label">Models Reliable</span>
+                    <span class="risk-detail-value">${[revenue, costs, margins].filter(m => m.accuracy.reliable).length}/3</span>
                 </div>
             `;
         }

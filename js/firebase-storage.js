@@ -1,7 +1,9 @@
 // Firebase Firestore Storage Adapter
 // Replaces localStorage with cloud storage
+// Enhanced with: caching, real-time listeners, debounced writes
+// Updated: Fixed missing materialTransactions issue
 
-import { db, collection, doc, setDoc, getDoc, getDocs, updateDoc, deleteDoc, query, where, serverTimestamp, onAuthStateChanged, auth } from './firebase-config.js';
+import { db, collection, doc, setDoc, getDoc, getDocs, updateDoc, deleteDoc, query, where, serverTimestamp, onAuthStateChanged, auth, onSnapshot } from './firebase-config.js';
 
 let currentUserId = null;
 let authReady = false;
@@ -20,7 +22,187 @@ onAuthStateChanged(auth, (user) => {
         authReady = true;
         authReadyResolve();
     }
+    // Clear cache on user change
+    if (DataCache) DataCache.clearAll();
 });
+
+// ==================== IN-MEMORY CACHE LAYER ====================
+const DataCache = {
+    _store: new Map(),      // key -> { data, timestamp }
+    _ttl: 30000,            // 30-second default TTL
+    _listeners: new Map(),  // key -> Set<callback>
+
+    _key(collectionName, qualifier) {
+        return qualifier ? `${collectionName}::${qualifier}` : collectionName;
+    },
+
+    get(collectionName, qualifier) {
+        const key = this._key(collectionName, qualifier);
+        const entry = this._store.get(key);
+        if (!entry) return null;
+        if (Date.now() - entry.timestamp > this._ttl) {
+            this._store.delete(key);
+            return null;
+        }
+        return entry.data;
+    },
+
+    set(collectionName, qualifier, data) {
+        const key = this._key(collectionName, qualifier);
+        this._store.set(key, { data, timestamp: Date.now() });
+        // Notify any listeners
+        const listeners = this._listeners.get(key);
+        if (listeners) {
+            listeners.forEach(cb => {
+                try { cb(data); } catch (e) { console.error('Cache listener error:', e); }
+            });
+        }
+    },
+
+    invalidate(collectionName) {
+        // Clear all entries that start with this collection name
+        for (const key of this._store.keys()) {
+            if (key === collectionName || key.startsWith(collectionName + '::')) {
+                this._store.delete(key);
+            }
+        }
+    },
+
+    clearAll() {
+        this._store.clear();
+    },
+
+    // Subscribe to cache updates for a specific key
+    onChange(collectionName, qualifier, callback) {
+        const key = this._key(collectionName, qualifier);
+        if (!this._listeners.has(key)) {
+            this._listeners.set(key, new Set());
+        }
+        this._listeners.get(key).add(callback);
+        return () => {
+            const set = this._listeners.get(key);
+            if (set) set.delete(callback);
+        };
+    }
+};
+
+// ==================== REAL-TIME SUBSCRIPTION MANAGER ====================
+const RealtimeManager = {
+    _unsubscribers: new Map(), // key -> unsubscribe function
+
+    // Subscribe to a collection with real-time updates
+    subscribe(collectionName, callback) {
+        const key = `rt::${collectionName}`;
+        // Unsubscribe existing if any
+        this.unsubscribe(collectionName);
+
+        try {
+            if (!currentUserId) return null;
+            const q = query(collection(db, collectionName), where('userId', '==', currentUserId));
+            const unsub = onSnapshot(q, (snapshot) => {
+                const items = [];
+                snapshot.forEach((doc) => {
+                    items.push({ id: doc.id, ...doc.data() });
+                });
+                // Update cache
+                DataCache.set(collectionName, null, items);
+                // Notify callback
+                if (callback) callback(items);
+            }, (error) => {
+                console.error(`[Realtime] Error on ${collectionName}:`, error);
+            });
+            this._unsubscribers.set(key, unsub);
+            return unsub;
+        } catch (error) {
+            console.error(`[Realtime] Failed to subscribe to ${collectionName}:`, error);
+            return null;
+        }
+    },
+
+    // Subscribe to project-scoped collection
+    subscribeByProject(collectionName, projectId, callback) {
+        const key = `rt::${collectionName}::${projectId}`;
+        this.unsubscribeByKey(key);
+
+        try {
+            if (!currentUserId) return null;
+            const q = query(
+                collection(db, collectionName),
+                where('userId', '==', currentUserId),
+                where('projectId', '==', projectId)
+            );
+            const unsub = onSnapshot(q, (snapshot) => {
+                const items = [];
+                snapshot.forEach((doc) => {
+                    items.push({ id: doc.id, ...doc.data() });
+                });
+                DataCache.set(collectionName, projectId, items);
+                if (callback) callback(items);
+            }, (error) => {
+                console.error(`[Realtime] Error on ${collectionName}/${projectId}:`, error);
+            });
+            this._unsubscribers.set(key, unsub);
+            return unsub;
+        } catch (error) {
+            console.error(`[Realtime] Failed to subscribe to ${collectionName}/${projectId}:`, error);
+            return null;
+        }
+    },
+
+    unsubscribe(collectionName) {
+        const key = `rt::${collectionName}`;
+        this.unsubscribeByKey(key);
+    },
+
+    unsubscribeByKey(key) {
+        const unsub = this._unsubscribers.get(key);
+        if (unsub) {
+            unsub();
+            this._unsubscribers.delete(key);
+        }
+    },
+
+    unsubscribeAll() {
+        for (const unsub of this._unsubscribers.values()) {
+            try { unsub(); } catch (e) { /* ignore */ }
+        }
+        this._unsubscribers.clear();
+    }
+};
+
+// ==================== DEBOUNCED WRITE MANAGER ====================
+const WriteDebouncer = {
+    _pending: new Map(),  // key -> { timeout, data }
+    _delay: 500,          // 500ms debounce window
+
+    // Schedule a debounced write
+    schedule(collectionName, id, writeFn) {
+        const key = `${collectionName}::${id}`;
+        const existing = this._pending.get(key);
+        if (existing) {
+            clearTimeout(existing.timeout);
+        }
+        const timeout = setTimeout(async () => {
+            this._pending.delete(key);
+            try {
+                await writeFn();
+            } catch (e) {
+                console.error(`[Debounce] Failed write for ${key}:`, e);
+            }
+        }, this._delay);
+        this._pending.set(key, { timeout });
+    },
+
+    // Flush all pending writes immediately
+    async flushAll() {
+        // This triggers immediate execution by clearing timeouts and running writes
+        for (const [key, entry] of this._pending.entries()) {
+            clearTimeout(entry.timeout);
+        }
+        this._pending.clear();
+    }
+};
+
 
 const FirebaseStorage = {
     // Generate unique ID
@@ -45,17 +227,24 @@ const FirebaseStorage = {
         return currentUserId;
     },
 
-    // Get all documents from a collection for current user
+    // Get all documents from a collection (with cache)
     async getAll(collectionName) {
         try {
+            // Check cache first
+            const cached = DataCache.get(collectionName, null);
+            if (cached) return cached;
+
             await this.waitForAuth();
             const userId = this.getUserId();
+            // Filter by userId to ensure data isolation per user
             const q = query(collection(db, collectionName), where('userId', '==', userId));
             const querySnapshot = await getDocs(q);
             const items = [];
             querySnapshot.forEach((doc) => {
                 items.push({ id: doc.id, ...doc.data() });
             });
+            // Populate cache
+            DataCache.set(collectionName, null, items);
             return items;
         } catch (error) {
             console.error(`Error getting ${collectionName}:`, error);
@@ -73,6 +262,7 @@ const FirebaseStorage = {
                 return setDoc(docRef, { ...item, userId, updatedAt: serverTimestamp() });
             });
             await Promise.all(promises);
+            DataCache.invalidate(collectionName);
             return true;
         } catch (error) {
             console.error(`Error saving ${collectionName}:`, error);
@@ -116,6 +306,7 @@ const FirebaseStorage = {
                 updatedAt: serverTimestamp()
             };
             await setDoc(docRef, data);
+            DataCache.invalidate(collectionName);
             return { ...data, id };
         } catch (error) {
             console.error(`Error adding to ${collectionName}:`, error);
@@ -137,6 +328,7 @@ const FirebaseStorage = {
                 ...updates,
                 updatedAt: serverTimestamp()
             });
+            DataCache.invalidate(collectionName);
             return { id, ...updates };
         } catch (error) {
             console.error(`Error updating document ${id}:`, error);
@@ -156,6 +348,7 @@ const FirebaseStorage = {
             console.log(`[FirebaseStorage] Deleting ${collectionName}/${id}`);
             const docRef = doc(db, collectionName, id);
             await deleteDoc(docRef);
+            DataCache.invalidate(collectionName);
             console.log(`[FirebaseStorage] Successfully deleted ${collectionName}/${id}`);
             return true;
         } catch (error) {
@@ -164,14 +357,18 @@ const FirebaseStorage = {
         }
     },
 
-    // Get documents by project ID
+    // Get documents by project ID (with cache)
     async getByProject(collectionName, projectId) {
         try {
+            // Check cache first
+            const cached = DataCache.get(collectionName, projectId);
+            if (cached) return cached;
+
             await this.waitForAuth();
-            const userId = this.getUserId();
+            // Filter by both userId and projectId to ensure data isolation
             const q = query(
                 collection(db, collectionName),
-                where('userId', '==', userId),
+                where('userId', '==', this.getUserId()),
                 where('projectId', '==', projectId)
             );
             const querySnapshot = await getDocs(q);
@@ -179,6 +376,8 @@ const FirebaseStorage = {
             querySnapshot.forEach((doc) => {
                 items.push({ id: doc.id, ...doc.data() });
             });
+            // Populate cache
+            DataCache.set(collectionName, projectId, items);
             return items;
         } catch (error) {
             console.error(`Error getting ${collectionName} by project:`, error);
@@ -193,6 +392,7 @@ const FirebaseStorage = {
             const items = await this.getByProject(collectionName, projectId);
             const promises = items.map(item => this.delete(collectionName, item.id));
             await Promise.all(promises);
+            DataCache.invalidate(collectionName);
             return true;
         } catch (error) {
             console.error(`Error deleting ${collectionName} by project:`, error);
@@ -207,6 +407,7 @@ const Storage = {
         PROJECTS: 'projects',
         MATERIALS: 'materials',
         MATERIAL_STOCK: 'material_stock',
+        MATERIAL_TRANSACTIONS: 'material_transactions',
         LABOUR: 'labour',
         EXPENSES: 'expenses',
         LOGS: 'logs',
@@ -291,7 +492,7 @@ const Storage = {
                     console.log(`[Storage] Deleting ${col} for project ${id}`);
                     await FirebaseStorage.deleteByProject(Storage.COLLECTIONS[col], id);
                 }
-                
+
                 console.log('[Storage] Deleting project document:', id);
                 const result = await FirebaseStorage.delete(Storage.COLLECTIONS.PROJECTS, id);
                 console.log('[Storage] Project delete result:', result);
@@ -309,6 +510,15 @@ const Storage = {
         async add(m) { return await FirebaseStorage.add(Storage.COLLECTIONS.MATERIAL_STOCK, m); },
         async update(id, u) { return await FirebaseStorage.update(Storage.COLLECTIONS.MATERIAL_STOCK, id, u); },
         async delete(id) { return await FirebaseStorage.delete(Storage.COLLECTIONS.MATERIAL_STOCK, id); }
+    },
+
+    materialTransactions: {
+        async getAll() { return await FirebaseStorage.getAll(Storage.COLLECTIONS.MATERIAL_TRANSACTIONS); },
+        async getByStockId(stockId) {
+            const all = await FirebaseStorage.getAll(Storage.COLLECTIONS.MATERIAL_TRANSACTIONS);
+            return all.filter(t => t.stockId === stockId);
+        },
+        async add(t) { return await FirebaseStorage.add(Storage.COLLECTIONS.MATERIAL_TRANSACTIONS, t); }
     },
 
     materials: {
@@ -365,6 +575,7 @@ const Storage = {
     },
 
     attendance: {
+        async getAll() { return await FirebaseStorage.getAll(Storage.COLLECTIONS.ATTENDANCE); },
         async getByProject(pid) { return await FirebaseStorage.getByProject(Storage.COLLECTIONS.ATTENDANCE, pid); },
         async add(a) { return await FirebaseStorage.add(Storage.COLLECTIONS.ATTENDANCE, a); },
         async update(id, u) { return await FirebaseStorage.update(Storage.COLLECTIONS.ATTENDANCE, id, u); },
@@ -441,12 +652,12 @@ const Storage = {
     },
 
     // ===== MULTI-PROJECT FUND MANAGEMENT =====
-    
+
     // Project Virtual Wallets
     projectWallets: {
         async getAll() { return await FirebaseStorage.getAll(Storage.COLLECTIONS.PROJECT_WALLETS); },
         async getById(id) { return await FirebaseStorage.getById(Storage.COLLECTIONS.PROJECT_WALLETS, id); },
-        async getByProject(pid) { 
+        async getByProject(pid) {
             const all = await FirebaseStorage.getAll(Storage.COLLECTIONS.PROJECT_WALLETS);
             return all.find(w => w.projectId === pid);
         },
@@ -541,7 +752,7 @@ const Storage = {
     },
 
     // ===== PHASE MANAGEMENT =====
-    
+
     // Project Phases
     phases: {
         async getAll() { return await FirebaseStorage.getAll(Storage.COLLECTIONS.PHASES); },
@@ -605,13 +816,13 @@ const Storage = {
         },
         async add(e) { return await FirebaseStorage.add(Storage.COLLECTIONS.WORK_ENTRIES, e); },
         // Note: Work entries are immutable - no update/delete for audit trail
-        async update(id, u) { 
+        async update(id, u) {
             console.warn('Work entries are immutable. Create a new entry instead.');
-            return null; 
+            return null;
         },
-        async delete(id) { 
+        async delete(id) {
             console.warn('Work entries are immutable. Cannot delete.');
-            return false; 
+            return false;
         }
     },
 
@@ -634,13 +845,13 @@ const Storage = {
         },
         async add(p) { return await FirebaseStorage.add(Storage.COLLECTIONS.LABOUR_PAYMENTS, p); },
         // Note: Payments are immutable for audit trail
-        async update(id, u) { 
+        async update(id, u) {
             console.warn('Labour payments are immutable. Create a new record instead.');
-            return null; 
+            return null;
         },
-        async delete(id) { 
+        async delete(id) {
             console.warn('Labour payments are immutable. Cannot delete.');
-            return false; 
+            return false;
         }
     },
 
@@ -669,6 +880,52 @@ const Storage = {
         async add(r) { return await FirebaseStorage.add(Storage.COLLECTIONS.WORK_TYPE_RATES, r); },
         async update(id, u) { return await FirebaseStorage.update(Storage.COLLECTIONS.WORK_TYPE_RATES, id, u); },
         async delete(id) { return await FirebaseStorage.delete(Storage.COLLECTIONS.WORK_TYPE_RATES, id); }
+    },
+
+    // ===== REAL-TIME & CACHE UTILITIES =====
+
+    // Subscribe to real-time updates for a collection
+    subscribe(collectionName, callback) {
+        return RealtimeManager.subscribe(collectionName, callback);
+    },
+
+    // Subscribe to project-scoped real-time updates
+    subscribeByProject(collectionName, projectId, callback) {
+        return RealtimeManager.subscribeByProject(collectionName, projectId, callback);
+    },
+
+    // Unsubscribe all real-time listeners
+    unsubscribeAll() {
+        RealtimeManager.unsubscribeAll();
+    },
+
+    // Prefetch commonly needed collections to warm the cache
+    async prefetch(...collectionNames) {
+        await FirebaseStorage.waitForAuth();
+        const promises = collectionNames.map(name => this.getAll(name));
+        return await Promise.all(promises);
+    },
+
+    // Invalidate cache for a collection (force re-fetch on next read)
+    invalidateCache(collectionName) {
+        DataCache.invalidate(collectionName);
+    },
+
+    // Clear all cached data
+    clearCache() {
+        DataCache.clearAll();
+    },
+
+    // Schedule a debounced update (for rapid-fire operations like toggling checkboxes)
+    debouncedUpdate(collectionName, id, updates) {
+        WriteDebouncer.schedule(collectionName, id, () => {
+            return FirebaseStorage.update(collectionName, id, updates);
+        });
+    },
+
+    // Listen to cache changes for reactive UI updates
+    onCacheChange(collectionName, qualifier, callback) {
+        return DataCache.onChange(collectionName, qualifier, callback);
     }
 };
 

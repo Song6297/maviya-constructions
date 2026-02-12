@@ -112,7 +112,7 @@ function getUserId() {
 
 const PhaseManager = {
     // ==================== PHASE CRUD ====================
-    
+
     /**
      * Create a new phase for a project
      * @param {string} projectId - The project ID
@@ -123,11 +123,11 @@ const PhaseManager = {
         try {
             await waitForAuth();
             const userId = getUserId();
-            
+
             // Get existing phases to calculate order
             const existingPhases = await this.getPhases(projectId);
             const maxOrder = existingPhases.reduce((max, p) => Math.max(max, p.order || 0), -1);
-            
+
             // Check for duplicate name and append suffix if needed
             let phaseName = phaseData.name || 'New Phase';
             const existingNames = existingPhases.map(p => p.name.toLowerCase());
@@ -138,7 +138,7 @@ const PhaseManager = {
                 }
                 phaseName = `${phaseName} ${suffix}`;
             }
-            
+
             const id = generateId();
             const phase = {
                 id,
@@ -156,10 +156,10 @@ const PhaseManager = {
                 createdAt: new Date().toISOString(),
                 updatedAt: new Date().toISOString()
             };
-            
+
             const docRef = doc(db, COLLECTIONS.PHASES, id);
             await setDoc(docRef, phase);
-            
+
             console.log('[PhaseManager] Created phase:', phase);
             return phase;
         } catch (error) {
@@ -167,7 +167,7 @@ const PhaseManager = {
             throw error;
         }
     },
-    
+
     /**
      * Update an existing phase
      * @param {string} projectId - The project ID
@@ -183,14 +183,14 @@ const PhaseManager = {
                 ...updates,
                 updatedAt: new Date().toISOString()
             };
-            
+
             // Remove undefined values
             Object.keys(updateData).forEach(key => {
                 if (updateData[key] === undefined) delete updateData[key];
             });
-            
+
             await updateDoc(docRef, updateData);
-            
+
             console.log('[PhaseManager] Updated phase:', phaseId, updateData);
             return { id: phaseId, ...updateData };
         } catch (error) {
@@ -198,7 +198,7 @@ const PhaseManager = {
             throw error;
         }
     },
-    
+
     /**
      * Delete a phase and all associated data
      * @param {string} projectId - The project ID
@@ -213,27 +213,27 @@ const PhaseManager = {
             for (const item of checklists) {
                 await deleteDoc(doc(db, COLLECTIONS.PHASE_CHECKLISTS, item.id));
             }
-            
+
             // Delete all worker assignments for this phase
             const workers = await this.getPhaseWorkers(projectId, phaseId);
             for (const assignment of workers) {
                 await deleteDoc(doc(db, COLLECTIONS.PHASE_WORKERS, assignment.id));
             }
-            
+
             // Delete the phase itself
             await deleteDoc(doc(db, COLLECTIONS.PHASES, phaseId));
-            
+
             // Reorder remaining phases
             const remainingPhases = await this.getPhases(projectId);
             await this.normalizePhaseOrder(projectId, remainingPhases.map(p => p.id));
-            
+
             console.log('[PhaseManager] Deleted phase:', phaseId);
         } catch (error) {
             console.error('[PhaseManager] Error deleting phase:', error);
             throw error;
         }
     },
-    
+
     /**
      * Get all phases for a project
      * @param {string} projectId - The project ID
@@ -248,23 +248,23 @@ const PhaseManager = {
                 where('projectId', '==', projectId),
                 where('userId', '==', userId)
             );
-            
+
             const snapshot = await getDocs(q);
             const phases = [];
             snapshot.forEach(doc => {
                 phases.push({ id: doc.id, ...doc.data() });
             });
-            
+
             // Sort by order
             phases.sort((a, b) => (a.order || 0) - (b.order || 0));
-            
+
             return phases;
         } catch (error) {
             console.error('[PhaseManager] Error getting phases:', error);
             return [];
         }
     },
-    
+
     /**
      * Get a single phase by ID
      * @param {string} phaseId - The phase ID
@@ -284,7 +284,7 @@ const PhaseManager = {
             return null;
         }
     },
-    
+
     /**
      * Reorder phases
      * @param {string} projectId - The project ID
@@ -301,7 +301,7 @@ const PhaseManager = {
             throw error;
         }
     },
-    
+
     /**
      * Normalize phase order values to be sequential (0, 1, 2, ...)
      * @param {string} projectId - The project ID
@@ -320,7 +320,7 @@ const PhaseManager = {
     },
 
     // ==================== CHECKLIST OPERATIONS ====================
-    
+
     /**
      * Add a checklist item to a phase
      * @param {string} projectId - The project ID
@@ -332,11 +332,11 @@ const PhaseManager = {
         try {
             await waitForAuth();
             const userId = getUserId();
-            
+
             // Get existing items to calculate order
             const existingItems = await this.getChecklistItems(projectId, phaseId, item.category);
             const maxOrder = existingItems.reduce((max, i) => Math.max(max, i.order || 0), -1);
-            
+
             const id = generateId();
             const checklistItem = {
                 id,
@@ -350,16 +350,21 @@ const PhaseManager = {
                 completedAt: null,
                 completedBy: null,
                 order: maxOrder + 1,
+                // Enhanced task fields
+                priority: item.priority || 'normal',      // normal, high, critical
+                assignedTo: item.assignedTo || null,        // worker ID
+                dueDate: item.dueDate || null,              // YYYY-MM-DD
+                dependsOn: item.dependsOn || [],            // array of checklist item IDs
                 createdAt: new Date().toISOString(),
                 updatedAt: new Date().toISOString()
             };
-            
+
             const docRef = doc(db, COLLECTIONS.PHASE_CHECKLISTS, id);
             await setDoc(docRef, checklistItem);
-            
+
             // Recalculate phase completion
             await this.recalculatePhaseCompletion(projectId, phaseId);
-            
+
             console.log('[PhaseManager] Added checklist item:', checklistItem);
             return checklistItem;
         } catch (error) {
@@ -367,7 +372,7 @@ const PhaseManager = {
             throw error;
         }
     },
-    
+
     /**
      * Update a checklist item
      * @param {string} projectId - The project ID
@@ -384,21 +389,21 @@ const PhaseManager = {
                 ...updates,
                 updatedAt: new Date().toISOString()
             };
-            
+
             await updateDoc(docRef, updateData);
-            
+
             // Recalculate phase completion if status changed
             if ('isCompleted' in updates) {
                 await this.recalculatePhaseCompletion(projectId, phaseId);
             }
-            
+
             console.log('[PhaseManager] Updated checklist item:', itemId);
         } catch (error) {
             console.error('[PhaseManager] Error updating checklist item:', error);
             throw error;
         }
     },
-    
+
     /**
      * Toggle checklist item completion status
      * @param {string} projectId - The project ID
@@ -411,27 +416,27 @@ const PhaseManager = {
             await waitForAuth();
             const docRef = doc(db, COLLECTIONS.PHASE_CHECKLISTS, itemId);
             const docSnap = await getDoc(docRef);
-            
+
             if (!docSnap.exists()) {
                 throw new Error('Checklist item not found');
             }
-            
+
             const item = docSnap.data();
             const newStatus = !item.isCompleted;
             const userId = getUserId();
-            
+
             const updateData = {
                 isCompleted: newStatus,
                 completedAt: newStatus ? new Date().toISOString() : null,
                 completedBy: newStatus ? userId : null,
                 updatedAt: new Date().toISOString()
             };
-            
+
             await updateDoc(docRef, updateData);
-            
+
             // Recalculate phase completion
             await this.recalculatePhaseCompletion(projectId, phaseId);
-            
+
             console.log('[PhaseManager] Toggled checklist item:', itemId, 'to', newStatus);
             return newStatus;
         } catch (error) {
@@ -439,7 +444,7 @@ const PhaseManager = {
             throw error;
         }
     },
-    
+
     /**
      * Delete a checklist item
      * @param {string} projectId - The project ID
@@ -451,17 +456,17 @@ const PhaseManager = {
         try {
             await waitForAuth();
             await deleteDoc(doc(db, COLLECTIONS.PHASE_CHECKLISTS, itemId));
-            
+
             // Recalculate phase completion
             await this.recalculatePhaseCompletion(projectId, phaseId);
-            
+
             console.log('[PhaseManager] Deleted checklist item:', itemId);
         } catch (error) {
             console.error('[PhaseManager] Error deleting checklist item:', error);
             throw error;
         }
     },
-    
+
     /**
      * Get all checklist items for a phase
      * @param {string} projectId - The project ID
@@ -478,30 +483,30 @@ const PhaseManager = {
                 where('phaseId', '==', phaseId),
                 where('userId', '==', userId)
             );
-            
+
             const snapshot = await getDocs(q);
             let items = [];
             snapshot.forEach(doc => {
                 items.push({ id: doc.id, ...doc.data() });
             });
-            
+
             // Filter by category if specified
             if (category) {
                 items = items.filter(item => item.category === category);
             }
-            
+
             // Sort by order
             items.sort((a, b) => (a.order || 0) - (b.order || 0));
-            
+
             return items;
         } catch (error) {
             console.error('[PhaseManager] Error getting checklist items:', error);
             return [];
         }
     },
-    
+
     // ==================== COMPLETION LOGIC ====================
-    
+
     /**
      * Calculate completion percentage for a phase
      * @param {string} projectId - The project ID
@@ -511,21 +516,21 @@ const PhaseManager = {
     async calculateCompletion(projectId, phaseId) {
         try {
             const items = await this.getChecklistItems(projectId, phaseId);
-            
+
             if (items.length === 0) {
                 return 0;
             }
-            
+
             const completedCount = items.filter(item => item.isCompleted).length;
             const percentage = Math.round((completedCount / items.length) * 100);
-            
+
             return percentage;
         } catch (error) {
             console.error('[PhaseManager] Error calculating completion:', error);
             return 0;
         }
     },
-    
+
     /**
      * Recalculate and update phase completion percentage
      * @param {string} projectId - The project ID
@@ -535,9 +540,15 @@ const PhaseManager = {
     async recalculatePhaseCompletion(projectId, phaseId) {
         const percentage = await this.calculateCompletion(projectId, phaseId);
         await this.updatePhase(projectId, phaseId, { completionPercentage: percentage });
+
+        // Auto-trigger project-level progress recalculation
+        this.recalculateProjectProgress(projectId).catch(e =>
+            console.warn('[PhaseManager] Background project progress update failed:', e)
+        );
+
         return percentage;
     },
-    
+
     /**
      * Check if a phase can be completed
      * @param {string} projectId - The project ID
@@ -549,21 +560,21 @@ const PhaseManager = {
             const items = await this.getChecklistItems(projectId, phaseId);
             const requiredItems = items.filter(item => item.isRequired);
             const incompleteRequired = requiredItems.filter(item => !item.isCompleted);
-            
+
             if (incompleteRequired.length > 0) {
                 return {
                     canComplete: false,
                     blockers: incompleteRequired.map(item => item.name)
                 };
             }
-            
+
             return { canComplete: true, blockers: [] };
         } catch (error) {
             console.error('[PhaseManager] Error checking phase completion:', error);
             return { canComplete: false, blockers: ['Error checking completion status'] };
         }
     },
-    
+
     /**
      * Complete a phase
      * @param {string} projectId - The project ID
@@ -574,30 +585,30 @@ const PhaseManager = {
     async completePhase(projectId, phaseId, reason = null) {
         try {
             const { canComplete, blockers } = await this.canCompletePhase(projectId, phaseId);
-            
+
             if (!canComplete && !reason) {
                 throw new Error(`Cannot complete phase. Blockers: ${blockers.join(', ')}`);
             }
-            
+
             const updateData = {
                 status: PhaseStatus.COMPLETED,
                 actualEndDate: new Date().toISOString(),
                 completionPercentage: 100
             };
-            
+
             if (reason) {
                 updateData.manualCompletionReason = reason;
             }
-            
+
             await this.updatePhase(projectId, phaseId, updateData);
-            
+
             console.log('[PhaseManager] Completed phase:', phaseId);
         } catch (error) {
             console.error('[PhaseManager] Error completing phase:', error);
             throw error;
         }
     },
-    
+
     /**
      * Start a phase (set to in progress)
      * @param {string} projectId - The project ID
@@ -610,14 +621,14 @@ const PhaseManager = {
                 status: PhaseStatus.IN_PROGRESS,
                 actualStartDate: new Date().toISOString()
             });
-            
+
             console.log('[PhaseManager] Started phase:', phaseId);
         } catch (error) {
             console.error('[PhaseManager] Error starting phase:', error);
             throw error;
         }
     },
-    
+
     /**
      * Put a phase on hold
      * @param {string} projectId - The project ID
@@ -629,7 +640,7 @@ const PhaseManager = {
             await this.updatePhase(projectId, phaseId, {
                 status: PhaseStatus.ON_HOLD
             });
-            
+
             console.log('[PhaseManager] Put phase on hold:', phaseId);
         } catch (error) {
             console.error('[PhaseManager] Error holding phase:', error);
@@ -638,7 +649,7 @@ const PhaseManager = {
     },
 
     // ==================== WORKER ASSIGNMENTS ====================
-    
+
     /**
      * Assign a worker to a phase
      * @param {string} projectId - The project ID
@@ -650,7 +661,7 @@ const PhaseManager = {
         try {
             await waitForAuth();
             const userId = getUserId();
-            
+
             const id = generateId();
             const workerAssignment = {
                 id,
@@ -667,10 +678,10 @@ const PhaseManager = {
                 createdAt: new Date().toISOString(),
                 updatedAt: new Date().toISOString()
             };
-            
+
             const docRef = doc(db, COLLECTIONS.PHASE_WORKERS, id);
             await setDoc(docRef, workerAssignment);
-            
+
             console.log('[PhaseManager] Assigned worker:', workerAssignment);
             return workerAssignment;
         } catch (error) {
@@ -678,7 +689,7 @@ const PhaseManager = {
             throw error;
         }
     },
-    
+
     /**
      * Update a worker assignment
      * @param {string} projectId - The project ID
@@ -695,14 +706,14 @@ const PhaseManager = {
                 ...updates,
                 updatedAt: new Date().toISOString()
             });
-            
+
             console.log('[PhaseManager] Updated worker assignment:', assignmentId);
         } catch (error) {
             console.error('[PhaseManager] Error updating worker assignment:', error);
             throw error;
         }
     },
-    
+
     /**
      * Remove a worker assignment
      * @param {string} projectId - The project ID
@@ -720,7 +731,7 @@ const PhaseManager = {
             throw error;
         }
     },
-    
+
     /**
      * Get all worker assignments for a phase
      * @param {string} projectId - The project ID
@@ -736,20 +747,20 @@ const PhaseManager = {
                 where('phaseId', '==', phaseId),
                 where('userId', '==', userId)
             );
-            
+
             const snapshot = await getDocs(q);
             const assignments = [];
             snapshot.forEach(doc => {
                 assignments.push({ id: doc.id, ...doc.data() });
             });
-            
+
             return assignments;
         } catch (error) {
             console.error('[PhaseManager] Error getting phase workers:', error);
             return [];
         }
     },
-    
+
     /**
      * Get labour summary for a phase
      * @param {string} projectId - The project ID
@@ -759,7 +770,7 @@ const PhaseManager = {
     async getPhaseLabourSummary(projectId, phaseId) {
         try {
             const assignments = await this.getPhaseWorkers(projectId, phaseId);
-            
+
             // Group by worker
             const byWorker = {};
             assignments.forEach(a => {
@@ -776,7 +787,7 @@ const PhaseManager = {
                     byWorker[a.workerId].workTypes.push(a.workType);
                 }
             });
-            
+
             // Group by work type
             const byWorkType = {};
             assignments.forEach(a => {
@@ -789,7 +800,7 @@ const PhaseManager = {
                 }
                 byWorkType[a.workType].totalHours += a.hoursWorked || 0;
             });
-            
+
             // Count unique workers per work type
             Object.keys(byWorkType).forEach(wt => {
                 const uniqueWorkers = new Set(
@@ -797,7 +808,7 @@ const PhaseManager = {
                 );
                 byWorkType[wt].workerCount = uniqueWorkers.size;
             });
-            
+
             return {
                 totalAssignments: assignments.length,
                 totalHours: assignments.reduce((sum, a) => sum + (a.hoursWorked || 0), 0),
@@ -814,9 +825,9 @@ const PhaseManager = {
             };
         }
     },
-    
+
     // ==================== UTILITY METHODS ====================
-    
+
     /**
      * Get the currently active phase for a project
      * @param {string} projectId - The project ID
@@ -831,7 +842,7 @@ const PhaseManager = {
             return null;
         }
     },
-    
+
     /**
      * Get phase by date (which phase was active on a given date)
      * @param {string} projectId - The project ID
@@ -842,25 +853,25 @@ const PhaseManager = {
         try {
             const phases = await this.getPhases(projectId);
             const targetDate = new Date(date);
-            
+
             for (const phase of phases) {
                 const startDate = phase.actualStartDate ? new Date(phase.actualStartDate) : null;
                 const endDate = phase.actualEndDate ? new Date(phase.actualEndDate) : null;
-                
+
                 if (startDate && targetDate >= startDate) {
                     if (!endDate || targetDate <= endDate) {
                         return phase;
                     }
                 }
             }
-            
+
             return null;
         } catch (error) {
             console.error('[PhaseManager] Error getting phase by date:', error);
             return null;
         }
     },
-    
+
     /**
      * Delete all phases for a project (used when deleting a project)
      * @param {string} projectId - The project ID
@@ -869,18 +880,219 @@ const PhaseManager = {
     async deleteAllPhasesForProject(projectId) {
         try {
             const phases = await this.getPhases(projectId);
-            
+
             for (const phase of phases) {
                 await this.deletePhase(projectId, phase.id);
             }
-            
+
             console.log('[PhaseManager] Deleted all phases for project:', projectId);
         } catch (error) {
             console.error('[PhaseManager] Error deleting all phases:', error);
             throw error;
         }
     },
-    
+
+    // ==================== AUTO-PROGRESS & ANALYTICS ====================
+
+    /**
+     * Recalculate overall project progress from phase completions (weighted)
+     * @param {string} projectId - The project ID
+     * @returns {Promise<number>} - Overall progress 0-100
+     */
+    async recalculateProjectProgress(projectId) {
+        try {
+            const phases = await this.getPhases(projectId);
+
+            if (phases.length === 0) return 0;
+
+            // Each phase has equal weight by default; use 'weight' field if set
+            let totalWeight = 0;
+            let weightedProgress = 0;
+
+            for (const phase of phases) {
+                const weight = parseFloat(phase.weight) || 1;
+                totalWeight += weight;
+                weightedProgress += (phase.completionPercentage || 0) * weight;
+            }
+
+            const progress = totalWeight > 0 ? Math.round(weightedProgress / totalWeight) : 0;
+
+            // Update project progress in Firestore
+            try {
+                const Storage = (await import('./firebase-storage.js')).default;
+                await Storage.projects.update(projectId, {
+                    calculatedProgress: progress,
+                    lastProgressUpdate: new Date().toISOString()
+                });
+            } catch (e) {
+                console.warn('[PhaseManager] Could not update project progress:', e);
+            }
+
+            console.log(`[PhaseManager] Project ${projectId} progress: ${progress}%`);
+            return progress;
+        } catch (error) {
+            console.error('[PhaseManager] Error calculating project progress:', error);
+            return 0;
+        }
+    },
+
+    /**
+     * Get overdue phases for a project
+     * @param {string} projectId - The project ID
+     * @returns {Promise<array>} - Array of overdue phases
+     */
+    async getOverduePhases(projectId) {
+        try {
+            const phases = await this.getPhases(projectId);
+            const today = new Date().toISOString().split('T')[0];
+
+            return phases.filter(phase => {
+                if (phase.status === PhaseStatus.COMPLETED) return false;
+                if (!phase.plannedEndDate) return false;
+                return phase.plannedEndDate < today && (phase.completionPercentage || 0) < 100;
+            });
+        } catch (error) {
+            console.error('[PhaseManager] Error getting overdue phases:', error);
+            return [];
+        }
+    },
+
+    /**
+     * Get overdue tasks across all phases in a project
+     * @param {string} projectId - The project ID
+     * @returns {Promise<array>} - Array of overdue checklist items with phase info
+     */
+    async getOverdueTasks(projectId) {
+        try {
+            const phases = await this.getPhases(projectId);
+            const today = new Date().toISOString().split('T')[0];
+            const overdue = [];
+
+            for (const phase of phases) {
+                const items = await this.getChecklistItems(projectId, phase.id);
+                items.forEach(item => {
+                    if (!item.isCompleted && item.dueDate && item.dueDate < today) {
+                        overdue.push({
+                            ...item,
+                            phaseName: phase.name,
+                            phaseId: phase.id
+                        });
+                    }
+                });
+            }
+
+            return overdue;
+        } catch (error) {
+            console.error('[PhaseManager] Error getting overdue tasks:', error);
+            return [];
+        }
+    },
+
+    /**
+     * Get blocked checklist items (items whose dependencies aren't met)
+     * @param {string} projectId - The project ID
+     * @param {string} phaseId - The phase ID
+     * @returns {Promise<array>} - Array of blocked items
+     */
+    async getBlockedItems(projectId, phaseId) {
+        try {
+            const items = await this.getChecklistItems(projectId, phaseId);
+            const completedIds = new Set(items.filter(i => i.isCompleted).map(i => i.id));
+
+            return items.filter(item => {
+                if (item.isCompleted) return false;
+                if (!item.dependsOn || item.dependsOn.length === 0) return false;
+                return item.dependsOn.some(depId => !completedIds.has(depId));
+            });
+        } catch (error) {
+            console.error('[PhaseManager] Error getting blocked items:', error);
+            return [];
+        }
+    },
+
+    /**
+     * Get comprehensive project health summary from phases
+     * @param {string} projectId - The project ID
+     * @returns {Promise<object>}
+     */
+    async getProjectHealthSummary(projectId) {
+        try {
+            const phases = await this.getPhases(projectId);
+            const overduePhases = await this.getOverduePhases(projectId);
+            const overdueTasks = await this.getOverdueTasks(projectId);
+
+            let totalItems = 0;
+            let completedItems = 0;
+            let criticalPending = 0;
+            let blockedItems = [];
+
+            for (const phase of phases) {
+                const items = await this.getChecklistItems(projectId, phase.id);
+                totalItems += items.length;
+                completedItems += items.filter(i => i.isCompleted).length;
+                criticalPending += items.filter(i => i.priority === 'critical' && !i.isCompleted).length;
+
+                const blocked = await this.getBlockedItems(projectId, phase.id);
+                blockedItems.push(...blocked);
+            }
+
+            // Calculate Score
+            let score = 100;
+            const risks = [];
+
+            // 1. Overdue Phases (-15 each)
+            if (overduePhases.length > 0) {
+                const deduction = overduePhases.length * 15;
+                score -= deduction;
+                risks.push({ type: 'overdue_phase', count: overduePhases.length, deduction, message: `${overduePhases.length} phase(s) overdue` });
+            }
+
+            // 2. Critical Pending (-10 each)
+            if (criticalPending > 0) {
+                const deduction = criticalPending * 10;
+                score -= deduction;
+                risks.push({ type: 'critical_task', count: criticalPending, deduction, message: `${criticalPending} critical task(s) pending` });
+            }
+
+            // 3. Overdue Tasks (-5 each)
+            if (overdueTasks.length > 0) {
+                const deduction = overdueTasks.length * 5;
+                score -= deduction;
+                risks.push({ type: 'overdue_task', count: overdueTasks.length, deduction, message: `${overdueTasks.length} task(s) overdue` });
+            }
+
+            // 4. Blocked Tasks (-5 each)
+            if (blockedItems.length > 0) {
+                const deduction = blockedItems.length * 5;
+                score -= deduction;
+                risks.push({ type: 'blocked_task', count: blockedItems.length, deduction, message: `${blockedItems.length} task(s) blocked` });
+            }
+
+            score = Math.max(0, score);
+
+            return {
+                totalPhases: phases.length,
+                completedPhases: phases.filter(p => p.status === PhaseStatus.COMPLETED).length,
+                inProgressPhases: phases.filter(p => p.status === PhaseStatus.IN_PROGRESS).length,
+                overduePhases: overduePhases.length,
+                totalTasks: totalItems,
+                completedTasks: completedItems,
+                criticalPending: criticalPending,
+                blockedTasks: blockedItems.length,
+                overallProgress: await this.recalculateProjectProgress(projectId),
+                healthScore: score,
+                risks: risks
+            };
+        } catch (error) {
+            console.error('[PhaseManager] Error getting health summary:', error);
+            return {
+                totalPhases: 0, completedPhases: 0, inProgressPhases: 0, overduePhases: 0,
+                totalTasks: 0, completedTasks: 0, criticalPending: 0, blockedTasks: 0,
+                overallProgress: 0, healthScore: 100, risks: []
+            };
+        }
+    },
+
     // Export constants
     PhaseStatus,
     ChecklistCategory

@@ -3,13 +3,13 @@ import Storage from './firebase-storage.js';
 
 // Make Utils available globally for other scripts
 window.Utils = {
-    formatNumber(num) { 
+    formatNumber(num) {
         if (num === null || num === undefined || isNaN(num)) return '0';
-        return new Intl.NumberFormat('en-IN').format(num); 
+        return new Intl.NumberFormat('en-IN').format(num);
     },
     formatDate(dateStr) { return new Date(dateStr).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }); },
     escapeHtml(text) { const div = document.createElement('div'); div.textContent = text; return div.innerHTML; },
-    
+
     getDaysRemaining(endDate) {
         const end = new Date(endDate);
         const today = new Date();
@@ -84,6 +84,14 @@ const App = {
         await this.renderProjects();
         await this.updateMetrics();
         this.showLoading(false);
+
+        // Load analytics widgets in parallel (non-blocking)
+        Promise.all([
+            this.renderActivityFeed(),
+            this.renderCashFlow(),
+            this.renderWorkerUtilization(),
+            this.renderBurnRate()
+        ]).catch(e => console.error('Analytics widget error:', e));
     },
 
     showLoading(show) {
@@ -156,7 +164,7 @@ const App = {
         const materials = await Storage.materials.getByProject(projectId);
         const labour = await Storage.labour.getByProject(projectId);
         const expenses = await Storage.expenses.getByProject(projectId);
-        
+
         const matTotal = materials.filter(m => m.status === 'used').reduce((s, m) => {
             const qty = parseFloat(m.quantity) || 0;
             const rate = parseFloat(m.rate) || 0;
@@ -166,16 +174,16 @@ const App = {
             const rate = parseFloat(m.rate) || 0;
             return s + (qty * rate);
         }, 0);
-        
+
         const labTotal = labour.reduce((s, l) => {
             const total = parseFloat(l.totalAmount) || 0;
             const wage = parseFloat(l.dailyWage) || 0;
             const days = parseFloat(l.daysWorked) || 0;
             return s + (total || (wage * days));
         }, 0);
-        
+
         const expTotal = expenses.reduce((s, e) => s + (parseFloat(e.amount) || 0), 0);
-        
+
         return Math.max(0, matTotal) + labTotal + expTotal;
     },
 
@@ -313,19 +321,19 @@ const App = {
         try {
             const { auth, db } = await import('./firebase-config.js');
             const { doc, getDoc } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
-            
+
             const user = auth.currentUser;
             if (!user) {
                 console.log('Premium check: No user logged in');
                 return false;
             }
-            
+
             // Admin always has full premium access (no project fee)
             if (user.email === 'sulaimaansong6297@gmail.com') {
                 console.log('Premium check: Admin user - full premium granted');
                 return true;
             }
-            
+
             // Saqlain has premium features but still pays ₹5 per project
             // This is handled separately - he gets premium UI but project fee still applies
             // So we return false here to trigger project fee payment
@@ -333,23 +341,23 @@ const App = {
                 console.log('Premium check: Saqlain - premium features but project fee applies');
                 return false; // Will redirect to project fee page
             }
-            
+
             console.log('Premium check: Checking user', user.email);
-            
+
             const userDoc = await getDoc(doc(db, 'users', user.uid));
             if (!userDoc.exists()) {
                 console.log('Premium check: User doc not found - free user');
                 return false;
             }
-            
+
             const userData = userDoc.data();
             console.log('Premium check: User data', userData.premiumStatus, userData.premiumEnd);
-            
+
             if (userData.premiumStatus !== 'PREMIUM') {
                 console.log('Premium check: Not premium status');
                 return false;
             }
-            
+
             // Check if premium expired
             if (userData.premiumEnd) {
                 const endDate = userData.premiumEnd.toDate ? userData.premiumEnd.toDate() : new Date(userData.premiumEnd);
@@ -358,7 +366,7 @@ const App = {
                     return false;
                 }
             }
-            
+
             console.log('Premium check: Premium active');
             return true;
         } catch (error) {
@@ -384,7 +392,7 @@ const App = {
             cards.push(await this.createProjectCard(p));
         }
         container.innerHTML = cards.join('');
-        
+
         container.querySelectorAll('.edit-btn').forEach(btn => btn.addEventListener('click', e => { e.stopPropagation(); this.openModal(btn.dataset.id); }));
         container.querySelectorAll('.delete-btn').forEach(btn => btn.addEventListener('click', e => { e.stopPropagation(); this.openDeleteModal(btn.dataset.id); }));
         container.querySelectorAll('.project-card').forEach(card => card.addEventListener('click', () => { window.location.href = `project.html?id=${card.dataset.id}`; }));
@@ -467,40 +475,40 @@ const App = {
         document.getElementById('activeProjects').textContent = projects.filter(p => p.status === 'In Progress').length;
         document.getElementById('completedProjects').textContent = projects.filter(p => p.status === 'Completed').length;
         document.getElementById('delayedProjects').textContent = projects.filter(p => p.status !== 'Completed' && Utils.getDaysRemaining(p.endDate) < 0).length;
-        
+
         const pending = payments.filter(p => !p.isPaid).reduce((s, p) => s + (parseFloat(p.amount) || 0), 0);
         document.getElementById('pendingPayments').textContent = `₹${Utils.formatNumber(pending)}`;
-        
+
         // Load and display available credits
         await this.loadUserCredits();
     },
-    
+
     async loadUserCredits() {
         try {
             const creditsEl = document.getElementById('availableCredits');
             if (!creditsEl) return;
-            
+
             const { auth, db } = await import('./firebase-config.js');
             const { doc, getDoc } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
-            
+
             const user = auth.currentUser;
             if (!user) return;
-            
+
             const userDoc = await getDoc(doc(db, 'users', user.uid));
             if (userDoc.exists()) {
                 const userData = userDoc.data();
                 const credits = userData.projectCredits || 0;
                 creditsEl.textContent = credits;
-                
+
                 // Show/hide credits card based on premium status
                 const creditsCard = document.getElementById('creditsCard');
                 const buyCreditsBtn = document.getElementById('buyCreditsBtn');
-                
+
                 // Admin and Saqlain always have premium features
-                const isPremium = userData.premiumStatus === 'PREMIUM' || 
-                    user.email === 'sulaimaansong6297@gmail.com' || 
+                const isPremium = userData.premiumStatus === 'PREMIUM' ||
+                    user.email === 'sulaimaansong6297@gmail.com' ||
                     user.email === 'saqlainmohammed1122@gmail.com';
-                
+
                 if (isPremium && user.email !== 'saqlainmohammed1122@gmail.com') {
                     // Premium users (except Saqlain) don't need credits
                     if (creditsCard) creditsCard.style.display = 'none';
@@ -553,6 +561,280 @@ const App = {
         document.body.appendChild(toast);
         setTimeout(() => toast.classList.add('show'), 10);
         setTimeout(() => { toast.classList.remove('show'); setTimeout(() => toast.remove(), 300); }, 3000);
+    },
+
+    // ==================== ANALYTICS WIDGETS ====================
+
+    async renderActivityFeed() {
+        const container = document.getElementById('activityFeedList');
+        const countEl = document.getElementById('activityCount');
+        if (!container) return;
+
+        try {
+            const [projects, expenses, logs, attendance] = await Promise.all([
+                Storage.projects.getAll(),
+                Storage.expenses ? Storage.expenses.getAll() : Promise.resolve([]),
+                Storage.logs ? Storage.logs.getAll() : Promise.resolve([]),
+                Storage.attendance ? Storage.attendance.getAll() : Promise.resolve([])
+            ]);
+
+            const projectMap = {};
+            projects.forEach(p => { projectMap[p.id] = p.name; });
+
+            const activities = [];
+
+            // Recent expenses
+            expenses.forEach(e => {
+                activities.push({
+                    icon: 'receipt',
+                    color: '#EF4444',
+                    text: `Expense: ₹${Utils.formatNumber(e.amount)}`,
+                    project: projectMap[e.projectId] || 'Unknown',
+                    time: e.date || e.createdAt,
+                    category: e.category || ''
+                });
+            });
+
+            // Recent logs
+            logs.forEach(l => {
+                activities.push({
+                    icon: 'clipboard-list',
+                    color: '#6366F1',
+                    text: l.description || l.note || 'Log entry',
+                    project: projectMap[l.projectId] || 'Unknown',
+                    time: l.date || l.createdAt,
+                    category: 'Log'
+                });
+            });
+
+            // Recent attendance
+            attendance.forEach(a => {
+                activities.push({
+                    icon: 'user-check',
+                    color: '#10B981',
+                    text: `Attendance: ${a.status || 'Present'}`,
+                    project: projectMap[a.projectId] || 'Unknown',
+                    time: a.date || a.createdAt,
+                    category: 'Attendance'
+                });
+            });
+
+            // Sort by date (most recent first) and take top 10
+            activities.sort((a, b) => {
+                const dateA = a.time ? new Date(typeof a.time === 'object' && a.time.seconds ? a.time.seconds * 1000 : a.time) : new Date(0);
+                const dateB = b.time ? new Date(typeof b.time === 'object' && b.time.seconds ? b.time.seconds * 1000 : b.time) : new Date(0);
+                return dateB - dateA;
+            });
+
+            const recent = activities.slice(0, 10);
+
+            if (countEl) countEl.textContent = `${recent.length} recent`;
+
+            if (recent.length === 0) {
+                container.innerHTML = `
+                    <div style="text-align: center; padding: 1.5rem; color: var(--gray);">
+                        <i class="fas fa-inbox" style="font-size: 1.5rem; opacity: 0.3;"></i>
+                        <p style="font-size: 0.75rem; margin-top: 0.5rem;">No recent activity</p>
+                    </div>`;
+                return;
+            }
+
+            container.innerHTML = recent.map(a => {
+                const timeStr = a.time ? this._formatRelativeTime(a.time) : '';
+                return `
+                    <div style="display: flex; align-items: flex-start; gap: 0.625rem; padding: 0.5rem 0; border-bottom: 1px solid var(--border);">
+                        <div style="width: 28px; height: 28px; border-radius: 6px; background: ${a.color}15; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                            <i class="fas fa-${a.icon}" style="font-size: 0.6875rem; color: ${a.color};"></i>
+                        </div>
+                        <div style="flex: 1; min-width: 0;">
+                            <p style="font-size: 0.75rem; font-weight: 600; color: var(--dark); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${Utils.escapeHtml(a.text)}</p>
+                            <p style="font-size: 0.625rem; color: var(--gray);">${Utils.escapeHtml(a.project)} • ${timeStr}</p>
+                        </div>
+                    </div>`;
+            }).join('');
+        } catch (e) {
+            console.error('Activity feed error:', e);
+            container.innerHTML = '<p style="font-size: 0.75rem; color: var(--gray); text-align: center; padding: 1rem;">Could not load activity</p>';
+        }
+    },
+
+    _formatRelativeTime(time) {
+        try {
+            const date = time && typeof time === 'object' && time.seconds
+                ? new Date(time.seconds * 1000)
+                : new Date(time);
+            if (isNaN(date.getTime())) return '';
+            const now = new Date();
+            const diff = now - date;
+            const mins = Math.floor(diff / 60000);
+            if (mins < 1) return 'Just now';
+            if (mins < 60) return `${mins}m ago`;
+            const hours = Math.floor(mins / 60);
+            if (hours < 24) return `${hours}h ago`;
+            const days = Math.floor(hours / 24);
+            if (days < 7) return `${days}d ago`;
+            return date.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
+        } catch (e) {
+            return '';
+        }
+    },
+
+    async renderCashFlow() {
+        const incomeEl = document.getElementById('cashFlowIncome');
+        const outflowEl = document.getElementById('cashFlowOutflow');
+        const netEl = document.getElementById('cashFlowNet');
+        const barEl = document.getElementById('cashFlowBar');
+        if (!incomeEl) return;
+
+        try {
+            const now = new Date();
+            const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0];
+
+            const [projects, clientPayments, expenses, labour] = await Promise.all([
+                Storage.projects.getAll(),
+                Storage.clientPayments ? Storage.clientPayments.getAll() : Promise.resolve([]),
+                Storage.expenses ? Storage.expenses.getAll() : Promise.resolve([]),
+                Storage.labour ? Storage.labour.getAll() : Promise.resolve([])
+            ]);
+
+            // Income: client payments this month
+            const income = clientPayments
+                .filter(p => p.date >= monthStart || p.paymentDate >= monthStart)
+                .reduce((s, p) => s + (parseFloat(p.amount) || 0), 0);
+
+            // Outflow: expenses + labour this month
+            const expenseOut = expenses
+                .filter(e => e.date >= monthStart)
+                .reduce((s, e) => s + (parseFloat(e.amount) || 0), 0);
+            const labourOut = labour
+                .filter(l => l.date >= monthStart)
+                .reduce((s, l) => s + (parseFloat(l.totalAmount) || parseFloat(l.dailyWage) || 0), 0);
+            const outflow = expenseOut + labourOut;
+
+            const net = income - outflow;
+
+            incomeEl.textContent = `₹${Utils.formatNumber(income)}`;
+            outflowEl.textContent = `₹${Utils.formatNumber(outflow)}`;
+            netEl.textContent = `${net >= 0 ? '+' : ''}₹${Utils.formatNumber(Math.abs(net))}`;
+            netEl.style.color = net >= 0 ? '#059669' : '#DC2626';
+
+            // Update bar (income ratio)
+            const total = income + outflow;
+            const ratio = total > 0 ? (income / total * 100) : 50;
+            barEl.style.width = `${ratio}%`;
+            barEl.style.background = net >= 0
+                ? 'linear-gradient(90deg, #10B981, #059669)'
+                : 'linear-gradient(90deg, #EF4444, #DC2626)';
+        } catch (e) {
+            console.error('Cash flow error:', e);
+        }
+    },
+
+    async renderWorkerUtilization() {
+        const arcEl = document.getElementById('utilizationArc');
+        const percentEl = document.getElementById('utilizationPercent');
+        const activeEl = document.getElementById('activeWorkersToday');
+        const totalEl = document.getElementById('totalWorkforce');
+        const hoursEl = document.getElementById('todayHoursLogged');
+        if (!arcEl) return;
+
+        try {
+            const todayStr = new Date().toISOString().split('T')[0];
+
+            const [labour, workEntries, attendance] = await Promise.all([
+                Storage.labour ? Storage.labour.getAll() : Promise.resolve([]),
+                Storage.workEntries ? Storage.workEntries.getAll() : Promise.resolve([]),
+                Storage.attendance ? Storage.attendance.getAll() : Promise.resolve([])
+            ]);
+
+            const totalWorkers = labour.length;
+
+            // Workers active today (from work entries or attendance)
+            const activeToday = new Set();
+            workEntries.filter(w => w.date === todayStr).forEach(w => activeToday.add(w.labourId || w.workerId));
+            attendance.filter(a => a.date === todayStr && a.status !== 'absent').forEach(a => activeToday.add(a.workerId || a.labourId));
+            const activeCount = activeToday.size;
+
+            // Hours logged today
+            const hoursToday = workEntries
+                .filter(w => w.date === todayStr)
+                .reduce((s, w) => s + (parseFloat(w.hoursWorked) || 0), 0);
+
+            const utilization = totalWorkers > 0 ? Math.round((activeCount / totalWorkers) * 100) : 0;
+
+            percentEl.textContent = `${utilization}%`;
+            activeEl.textContent = activeCount;
+            totalEl.textContent = totalWorkers;
+            hoursEl.textContent = `${hoursToday.toFixed(1)}h`;
+
+            // Update SVG arc
+            arcEl.setAttribute('stroke-dasharray', `${utilization}, 100`);
+            arcEl.setAttribute('stroke', utilization > 70 ? '#10B981' : utilization > 30 ? '#F59E0B' : '#EF4444');
+        } catch (e) {
+            console.error('Worker utilization error:', e);
+        }
+    },
+
+    async renderBurnRate() {
+        const container = document.getElementById('burnRateList');
+        if (!container) return;
+
+        try {
+            const projects = await Storage.projects.getAll();
+            const activeProjects = projects.filter(p => p.status === 'In Progress');
+
+            if (activeProjects.length === 0) {
+                container.innerHTML = `
+                    <div style="text-align: center; padding: 1rem; color: var(--gray);">
+                        <i class="fas fa-check-circle" style="font-size: 1.25rem; opacity: 0.3;"></i>
+                        <p style="font-size: 0.75rem; margin-top: 0.5rem;">No active projects</p>
+                    </div>`;
+                return;
+            }
+
+            const burnItems = [];
+            for (const p of activeProjects.slice(0, 5)) {
+                const budget = parseFloat(p.budget) || 0;
+                const spent = await this.getProjectSpent(p.id);
+                const remaining = Math.max(0, budget - spent);
+                const elapsed = this.getDaysElapsed(p.startDate);
+                const dailyRate = elapsed > 0 ? spent / elapsed : 0;
+                const daysLeft = dailyRate > 0 ? Math.round(remaining / dailyRate) : Infinity;
+                const burnPercent = budget > 0 ? Math.min(100, Math.round((spent / budget) * 100)) : 0;
+
+                let color = '#10B981';
+                if (burnPercent > 90) color = '#EF4444';
+                else if (burnPercent > 70) color = '#F59E0B';
+
+                burnItems.push({
+                    name: p.name,
+                    burnPercent,
+                    daysLeft,
+                    dailyRate,
+                    color,
+                    id: p.id
+                });
+            }
+
+            container.innerHTML = burnItems.map(b => `
+                <div style="cursor: pointer;" onclick="window.location.href='project.html?id=${b.id}'">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.25rem;">
+                        <span style="font-size: 0.75rem; font-weight: 600; color: var(--dark); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 60%;">${Utils.escapeHtml(b.name)}</span>
+                        <span style="font-size: 0.6875rem; font-weight: 700; color: ${b.color};">${b.daysLeft === Infinity ? '∞' : b.daysLeft + 'd'} left</span>
+                    </div>
+                    <div style="height: 6px; background: var(--border); border-radius: 3px; overflow: hidden;">
+                        <div style="height: 100%; width: ${b.burnPercent}%; background: ${b.color}; border-radius: 3px; transition: width 0.5s ease;"></div>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; margin-top: 0.25rem;">
+                        <span style="font-size: 0.5625rem; color: var(--gray);">${b.burnPercent}% spent</span>
+                        <span style="font-size: 0.5625rem; color: var(--gray);">₹${Utils.formatNumber(Math.round(b.dailyRate))}/day</span>
+                    </div>
+                </div>
+            `).join('');
+        } catch (e) {
+            console.error('Burn rate error:', e);
+            container.innerHTML = '<p style="font-size: 0.75rem; color: var(--gray); text-align: center; padding: 1rem;">Could not load data</p>';
+        }
     }
 };
 

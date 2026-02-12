@@ -415,6 +415,10 @@
                         class="nav-text">Funds</span></a>
                 <a href="materials.html" class="nav-item active" title="Materials"><i
                         class="fas fa-boxes nav-icon"></i><span class="nav-text">Materials</span></a>
+                <a href="economics.html" class="nav-item" title="Economics"><i class="fas fa-coins nav-icon"></i><span
+                        class="nav-text">Economics</span></a>
+                <a href="bid-estimator.html" class="nav-item" title="Bid Estimator"><i
+                        class="fas fa-gavel nav-icon"></i><span class="nav-text">Bid Estimator</span></a>
                 <div class="nav-divider"></div>
                 <a href="hub.html" class="nav-item" title="Hub"><i class="fas fa-home nav-icon"></i><span
                         class="nav-text">Hub</span></a>
@@ -558,13 +562,21 @@
                     </div>
                 </div>
                 <div class="form-row"
-                    style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.25rem;">
+                    style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; margin-bottom: 1.25rem;">
                     <div class="form-group">
                         <label class="form-label"
                             style="font-weight: 600; color: var(--dark); margin-bottom: 0.5rem; display: block; font-size: 0.875rem;">
                             <i class="fas fa-layer-group text-primary mr-1"></i> Available Qty *
                         </label>
                         <input type="number" id="availableQty" required min="0" step="0.01" class="form-input"
+                            style="padding: 0.75rem 1rem; border-radius: var(--radius-md); border: 1px solid var(--border); width: 100%; font-size: 0.9375rem;">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label"
+                            style="font-weight: 600; color: var(--dark); margin-bottom: 0.5rem; display: block; font-size: 0.875rem;">
+                            <i class="fas fa-recycle text-blue-500 mr-1"></i> Recovered
+                        </label>
+                        <input type="number" id="recoveredQty" min="0" step="0.01" class="form-input" value="0"
                             style="padding: 0.75rem 1rem; border-radius: var(--radius-md); border: 1px solid var(--border); width: 100%; font-size: 0.9375rem;">
                     </div>
                     <div class="form-group">
@@ -605,6 +617,52 @@
                     </button>
                 </div>
             </form>
+        </div>
+    </div>
+
+    <!-- History Modal -->
+    <div id="historyModal" class="modal-overlay">
+        <div class="modal-content" style="max-width: 700px; border-radius: var(--radius-xl);">
+            <div class="modal-header"
+                style="background: var(--bg-light); padding: 1.5rem; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                    <h3 id="historyModalTitle"
+                        style="font-size: 1.25rem; font-weight: 700; color: var(--dark); margin: 0;">Usage History</h3>
+                    <p id="historyModalSubtitle" style="font-size: 0.875rem; color: var(--gray); margin: 0.25rem 0 0;">
+                        Loading...</p>
+                </div>
+                <button class="close-modal modal-close"
+                    style="background: none; border: none; font-size: 1.25rem; color: var(--gray); cursor: pointer;">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body" style="padding: 0;">
+                <div class="overflow-x-auto" style="max-height: 400px; overflow-y: auto;">
+                    <table class="data-table">
+                        <thead style="position: sticky; top: 0; background: white; z-index: 10;">
+                            <tr>
+                                <th>Date & Time</th>
+                                <th>Project</th>
+                                <th>Action</th>
+                                <th>Quantity</th>
+                            </tr>
+                        </thead>
+                        <tbody id="historyTableBody">
+                            <tr>
+                                <td colspan="4" class="text-center p-4">Loading history...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div id="historyEmptyState" class="hidden"
+                    style="padding: 2rem; text-align: center; color: var(--gray);">
+                    <i class="fas fa-history" style="font-size: 2rem; margin-bottom: 0.5rem; opacity: 0.5;"></i>
+                    <p>No usage history found</p>
+                </div>
+            </div>
+            <div class="modal-footer" style="padding: 1rem; border-top: 1px solid var(--border); text-align: right;">
+                <button class="btn btn-secondary close-modal">Close</button>
+            </div>
         </div>
     </div>
 

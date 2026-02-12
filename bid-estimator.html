@@ -1,0 +1,1192 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Bid Estimator | Maviya Constructions</title>
+    <script>
+        (function () {
+            const savedTheme = localStorage.getItem('bb-theme') || 'light';
+            document.documentElement.setAttribute('data-theme', savedTheme);
+        })();
+    </script>
+    <link rel="icon" type="image/svg+xml" href="logo.svg">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Nunito:wght@400;600;700;800;900&display=swap"
+        rel="stylesheet">
+    <link href="css/styles-professional.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-primary: var(--primary);
+            --primary-light: var(--primary-light);
+            --primary-dark: var(--primary-dark);
+            --primary-muted: var(--primary-muted);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg-light);
+            min-height: 100vh;
+        }
+
+        .app-wrapper {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 64px;
+            background: var(--white);
+            border-right: 1px solid var(--border);
+            padding: 1rem 0.5rem;
+            display: flex;
+            flex-direction: column;
+            position: fixed;
+            height: 100vh;
+            z-index: 100;
+            transition: width 0.3s ease;
+            overflow: hidden;
+        }
+
+        .sidebar:hover {
+            width: 200px;
+        }
+
+        .sidebar:hover .nav-text,
+        .sidebar:hover .logo-text,
+        .sidebar:hover .logout-text {
+            opacity: 1;
+            width: auto;
+        }
+
+        .logo-section {
+            text-align: center;
+            padding: 0.5rem 0 1rem;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 1rem;
+        }
+
+        .logo-link {
+            text-decoration: none;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.25rem;
+        }
+
+        .logo-svg {
+            width: 32px;
+            height: 28px;
+        }
+
+        .logo-text {
+            font-size: 0.875rem;
+            font-weight: 700;
+            color: var(--primary-primary);
+            opacity: 0;
+            width: 0;
+            overflow: hidden;
+            transition: opacity 0.2s ease, width 0.2s ease;
+        }
+
+        .nav-menu {
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+            flex: 1;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem;
+            border-radius: 8px;
+            text-decoration: none;
+            color: var(--gray);
+            font-weight: 600;
+            font-size: 0.8125rem;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+
+        .nav-item:hover {
+            background: var(--primary-muted);
+            color: var(--primary-primary);
+        }
+
+        .nav-item.active {
+            background: var(--primary-primary);
+            color: white;
+        }
+
+        .nav-icon {
+            font-size: 1rem;
+            width: 20px;
+            text-align: center;
+            flex-shrink: 0;
+        }
+
+        .nav-text {
+            opacity: 0;
+            width: 0;
+            overflow: hidden;
+            transition: opacity 0.2s ease, width 0.2s ease;
+        }
+
+        .nav-divider {
+            height: 1px;
+            background: var(--border);
+            margin: 0.5rem 0.75rem;
+        }
+
+        .sidebar-footer {
+            padding-top: 0.75rem;
+            border-top: 1px solid var(--border);
+        }
+
+        .logout-btn {
+            width: 100%;
+            padding: 0.75rem;
+            background: none;
+            border: none;
+            border-radius: 6px;
+            font-weight: 600;
+            color: var(--gray);
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-size: 0.8125rem;
+        }
+
+        .logout-btn:hover {
+            background: #FFEBEE;
+            color: #C62828;
+        }
+
+        .logout-text {
+            opacity: 0;
+            width: 0;
+            overflow: hidden;
+            transition: opacity 0.2s ease, width 0.2s ease;
+        }
+
+        /* Main Content */
+        .main-content {
+            margin-left: 64px;
+            flex: 1;
+            padding: 2rem;
+            max-width: 1400px;
+        }
+
+        /* Page Header */
+        .page-header {
+            margin-bottom: 2rem;
+        }
+
+        .page-header h1 {
+            font-size: 1.75rem;
+            font-weight: 800;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .page-header h1 i {
+            color: var(--primary);
+            font-size: 1.5rem;
+        }
+
+        .page-header p {
+            color: var(--gray);
+            margin-top: 0.25rem;
+            font-size: 0.9rem;
+        }
+
+        /* Layout Grid */
+        .estimator-layout {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            align-items: start;
+        }
+
+        /* Card Styles */
+        .card {
+            background: var(--white);
+            border-radius: 16px;
+            border: 1px solid var(--border);
+            overflow: hidden;
+        }
+
+        .card-header {
+            padding: 1.25rem 1.5rem;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-weight: 700;
+            font-size: 1rem;
+            color: var(--text-primary);
+        }
+
+        .card-header i {
+            color: var(--primary);
+        }
+
+        .card-body {
+            padding: 1.5rem;
+        }
+
+        /* Form Styles */
+        .form-group {
+            margin-bottom: 1.25rem;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 0.8125rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 0.375rem;
+        }
+
+        .form-group label .required {
+            color: #ef4444;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border: 1.5px solid var(--border);
+            border-radius: 10px;
+            font-size: 0.875rem;
+            font-family: 'Inter', sans-serif;
+            color: var(--text-primary);
+            background: var(--bg-light);
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        .form-control::placeholder {
+            color: #9ca3af;
+        }
+
+        select.form-control {
+            cursor: pointer;
+            appearance: auto;
+        }
+
+        textarea.form-control {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+
+        /* Submit Button */
+        .btn-analyze {
+            width: 100%;
+            padding: 1rem;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: #1A1A1A;
+            border: none;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 700;
+            font-family: 'Inter', sans-serif;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(247, 181, 0, 0.3);
+        }
+
+        .btn-analyze:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(247, 181, 0, 0.4);
+        }
+
+        .btn-analyze:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-analyze .spinner {
+            display: none;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-top: 3px solid white;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        .btn-analyze.loading .spinner {
+            display: block;
+        }
+
+        .btn-analyze.loading .btn-text {
+            display: none;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* Results Panel */
+        .results-panel {
+            position: sticky;
+            top: 2rem;
+        }
+
+        .results-placeholder {
+            text-align: center;
+            padding: 4rem 2rem;
+            color: var(--gray);
+        }
+
+        .results-placeholder i {
+            font-size: 3rem;
+            color: var(--border);
+            margin-bottom: 1rem;
+        }
+
+        .results-placeholder h3 {
+            font-size: 1.1rem;
+            margin-bottom: 0.5rem;
+            color: var(--text-primary);
+        }
+
+        /* Analysis Results */
+        .analysis-results {
+            display: none;
+        }
+
+        .analysis-results.visible {
+            display: block;
+        }
+
+        .result-section {
+            margin-bottom: 1.5rem;
+        }
+
+        .result-section:last-child {
+            margin-bottom: 0;
+        }
+
+        .result-section-title {
+            font-size: 0.8125rem;
+            font-weight: 700;
+            color: var(--primary);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .result-section-title i {
+            font-size: 0.875rem;
+        }
+
+        .result-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.625rem 0;
+            border-bottom: 1px solid var(--border);
+            font-size: 0.875rem;
+        }
+
+        .result-row:last-child {
+            border-bottom: none;
+        }
+
+        .result-label {
+            color: var(--gray);
+            font-weight: 500;
+        }
+
+        .result-value {
+            font-weight: 700;
+            color: var(--text-primary);
+            text-align: right;
+        }
+
+        .result-highlight {
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.08), rgba(59, 130, 246, 0.04));
+            border-radius: 12px;
+            padding: 1rem 1.25rem;
+            margin-bottom: 1rem;
+        }
+
+        .result-highlight .result-row {
+            border-bottom: none;
+        }
+
+        .result-highlight .result-value {
+            color: var(--primary);
+            font-size: 1.25rem;
+        }
+
+        /* Risk Badge */
+        .risk-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.375rem;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 700;
+        }
+
+        .risk-low {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .risk-medium {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .risk-high {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        /* Decision Badge */
+        .decision-yes {
+            background: #dcfce7;
+            color: #166534;
+            padding: 0.375rem 1rem;
+            border-radius: 20px;
+            font-weight: 700;
+            font-size: 0.875rem;
+        }
+
+        .decision-no {
+            background: #fee2e2;
+            color: #991b1b;
+            padding: 0.375rem 1rem;
+            border-radius: 20px;
+            font-weight: 700;
+            font-size: 0.875rem;
+        }
+
+        /* Advice Section */
+        .advice-text {
+            font-size: 0.8125rem;
+            color: var(--text-secondary);
+            line-height: 1.6;
+            padding: 0.75rem;
+            background: var(--bg-light);
+            border-radius: 8px;
+            border-left: 3px solid var(--primary);
+        }
+
+        .advice-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .advice-list li {
+            font-size: 0.8125rem;
+            color: var(--text-secondary);
+            padding: 0.5rem 0;
+            padding-left: 1.25rem;
+            position: relative;
+            line-height: 1.5;
+        }
+
+        .advice-list li::before {
+            content: '→';
+            position: absolute;
+            left: 0;
+            color: var(--primary);
+            font-weight: 700;
+        }
+
+        /* Actions Bar */
+        .results-actions {
+            display: flex;
+            gap: 0.75rem;
+            margin-top: 1.5rem;
+            padding-top: 1.25rem;
+            border-top: 1px solid var(--border);
+        }
+
+        .btn-action {
+            flex: 1;
+            padding: 0.75rem;
+            border: 1.5px solid var(--border);
+            border-radius: 10px;
+            background: var(--white);
+            color: var(--text-primary);
+            font-size: 0.8125rem;
+            font-weight: 600;
+            font-family: 'Inter', sans-serif;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .btn-action:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+            background: var(--primary-muted);
+        }
+
+        /* Error State */
+        .error-message {
+            background: #fee2e2;
+            color: #991b1b;
+            padding: 1rem;
+            border-radius: 10px;
+            font-size: 0.875rem;
+            display: none;
+        }
+
+        .error-message.visible {
+            display: block;
+        }
+
+        /* Loading Overlay */
+        .loading-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(255, 255, 255, 0.9);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            transition: opacity 0.3s;
+        }
+
+        .loading-overlay.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        /* Responsive */
+        @media (max-width: 900px) {
+            .estimator-layout {
+                grid-template-columns: 1fr;
+            }
+
+            .results-panel {
+                position: static;
+            }
+
+            .main-content {
+                padding: 1rem;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                display: none;
+            }
+
+            .main-content {
+                margin-left: 0;
+            }
+
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Print */
+        @media print {
+
+            .sidebar,
+            .card:first-child,
+            .results-actions {
+                display: none !important;
+            }
+
+            .main-content {
+                margin-left: 0;
+                max-width: 100%;
+            }
+
+            .estimator-layout {
+                grid-template-columns: 1fr;
+            }
+
+            .results-panel {
+                position: static;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="pageLoader">
+        <div style="text-align: center;">
+            <i class="fas fa-hard-hat fa-3x fa-spin" style="color: var(--primary); margin-bottom: 1rem;"></i>
+            <p style="font-weight: 600; color: var(--gray);">Loading Bid Estimator...</p>
+        </div>
+    </div>
+
+    <div class="app-wrapper">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="logo-section">
+                <a href="hub.html" class="logo-link">
+                    <svg class="logo-svg" viewBox="0 0 100 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <rect x="5" y="36" width="17" height="17" rx="2" fill="var(--primary)" stroke="#000"
+                            stroke-width="1.5" />
+                        <rect x="22" y="36" width="17" height="17" rx="2" fill="var(--primary)" stroke="#000"
+                            stroke-width="1.5" />
+                        <rect x="5" y="16" width="17" height="17" rx="2" fill="var(--primary)" stroke="#000"
+                            stroke-width="1.5" />
+                        <rect x="40" y="36" width="17" height="17" rx="2" fill="var(--primary)" stroke="#000"
+                            stroke-width="1.5" />
+                        <rect x="60" y="36" width="17" height="17" rx="2" fill="var(--primary)" stroke="#000"
+                            stroke-width="1.5" />
+                        <rect x="40" y="16" width="17" height="17" rx="2" fill="var(--primary)" stroke="#000"
+                            stroke-width="1.5" />
+                        <rect x="60" y="16" width="17" height="17" rx="2" fill="var(--primary)" stroke="#000"
+                            stroke-width="1.5" />
+                    </svg>
+                    <span class="logo-text">B&B</span>
+                </a>
+            </div>
+
+            <nav class="nav-menu">
+                <a href="dashboard.html" class="nav-item" title="Dashboard">
+                    <i class="fas fa-th-large nav-icon"></i>
+                    <span class="nav-text">Dashboard</span>
+                </a>
+                <a href="compare.html" class="nav-item" title="Compare">
+                    <i class="fas fa-chart-bar nav-icon"></i>
+                    <span class="nav-text">Compare</span>
+                </a>
+                <a href="payments.html" class="nav-item" title="Payments">
+                    <i class="fas fa-credit-card nav-icon"></i>
+                    <span class="nav-text">Payments</span>
+                </a>
+                <a href="funds.html" class="nav-item" title="Funds">
+                    <i class="fas fa-wallet nav-icon"></i>
+                    <span class="nav-text">Funds</span>
+                </a>
+                <a href="labour-calendar.html" class="nav-item" title="Labour Calendar">
+                    <i class="fas fa-calendar-alt nav-icon"></i>
+                    <span class="nav-text">Calendar</span>
+                </a>
+                <a href="materials.html" class="nav-item" title="Materials">
+                    <i class="fas fa-boxes nav-icon"></i>
+                    <span class="nav-text">Materials</span>
+                </a>
+                <a href="economics.html" class="nav-item" title="Economics">
+                    <i class="fas fa-chart-line nav-icon"></i>
+                    <span class="nav-text">Economics</span>
+                </a>
+                <a href="bid-estimator.html" class="nav-item active" title="Bid Estimator">
+                    <i class="fas fa-gavel nav-icon"></i>
+                    <span class="nav-text">Bid Estimator</span>
+                </a>
+
+                <div class="nav-divider"></div>
+
+                <a href="hub.html" class="nav-item" title="Hub">
+                    <i class="fas fa-home nav-icon"></i>
+                    <span class="nav-text">Hub</span>
+                </a>
+
+                <div class="nav-divider"></div>
+
+                <a href="about.html" class="nav-item" title="Help & Support">
+                    <i class="fas fa-life-ring nav-icon"></i>
+                    <span class="nav-text">Help</span>
+                </a>
+                <a href="settings.html" class="nav-item" title="Settings">
+                    <i class="fas fa-cog nav-icon"></i>
+                    <span class="nav-text">Settings</span>
+                </a>
+            </nav>
+
+            <div class="sidebar-footer">
+                <button id="logoutBtn" class="logout-btn" title="Logout">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span class="logout-text">Logout</span>
+                </button>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <div class="page-header">
+                <h1><i class="fas fa-gavel"></i> AI Bid Estimator</h1>
+                <p>Get AI-powered cost estimates and bidding guidance for your construction projects</p>
+            </div>
+
+            <div class="estimator-layout">
+                <!-- Input Form -->
+                <div class="card">
+                    <div class="card-header">
+                        <i class="fas fa-edit"></i> Project Details
+                    </div>
+                    <div class="card-body">
+                        <form id="estimatorForm">
+                            <div class="form-group">
+                                <label>Project Type <span class="required">*</span></label>
+                                <select class="form-control" id="projectType" required>
+                                    <option value="">Select Type</option>
+                                    <option value="Residential Building">Residential Building</option>
+                                    <option value="Commercial Building">Commercial Building</option>
+                                    <option value="Industrial Warehouse">Industrial Warehouse</option>
+                                    <option value="Road Construction">Road Construction</option>
+                                    <option value="Bridge Construction">Bridge Construction</option>
+                                    <option value="Renovation / Remodeling">Renovation / Remodeling</option>
+                                    <option value="Interior Fit-Out">Interior Fit-Out</option>
+                                    <option value="Government Housing Project">Government Housing Project</option>
+                                    <option value="Hospital / School">Hospital / School</option>
+                                    <option value="Temple / Religious Structure">Temple / Religious Structure</option>
+                                </select>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>Location <span class="required">*</span></label>
+                                    <input type="text" class="form-control" id="location"
+                                        placeholder="e.g., Bengaluru, KA" required>
+                                </div>
+                                <div class="form-group">
+                                    <label>Total Area (sq ft) <span class="required">*</span></label>
+                                    <input type="number" class="form-control" id="area" placeholder="e.g., 2500"
+                                        min="100" required>
+                                </div>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>Number of Floors</label>
+                                    <input type="number" class="form-control" id="floors" placeholder="e.g., 2" min="1"
+                                        max="50" value="1">
+                                </div>
+                                <div class="form-group">
+                                    <label>Material Quality</label>
+                                    <select class="form-control" id="materialQuality">
+                                        <option value="Medium">Medium (Standard)</option>
+                                        <option value="Low">Low (Economy)</option>
+                                        <option value="High">High (Premium)</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>Project Deadline</label>
+                                    <input type="date" class="form-control" id="deadline">
+                                </div>
+                                <div class="form-group">
+                                    <label>Site Condition</label>
+                                    <select class="form-control" id="siteCondition">
+                                        <option value="Normal">Normal — Accessible, flat</option>
+                                        <option value="Moderate">Moderate — Uneven, needs prep</option>
+                                        <option value="Difficult">Difficult — Hilly, remote, marshy</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label>Labour Availability</label>
+                                <select class="form-control" id="labourAvailability">
+                                    <option value="Good">Good — Skilled labour available</option>
+                                    <option value="Average">Average — Some shortage expected</option>
+                                    <option value="Scarce">Scarce — Hard to find workers</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label>Special Requirements</label>
+                                <textarea class="form-control" id="specialRequirements"
+                                    placeholder="e.g., earthquake-resistant design, solar panels, lift shaft, swimming pool, premium fittings..."></textarea>
+                            </div>
+
+                            <button type="submit" class="btn-analyze" id="analyzeBtn">
+                                <div class="spinner"></div>
+                                <span class="btn-text"><i class="fas fa-robot"></i> Generate AI Analysis</span>
+                            </button>
+                        </form>
+
+                        <div class="error-message" id="errorMessage"></div>
+                    </div>
+                </div>
+
+                <!-- Results Panel -->
+                <div class="results-panel">
+                    <div class="card">
+                        <div class="card-header">
+                            <i class="fas fa-file-invoice-dollar"></i> Analysis Report
+                        </div>
+                        <div class="card-body">
+                            <!-- Placeholder -->
+                            <div id="resultsPlaceholder" class="results-placeholder">
+                                <i class="fas fa-hard-hat"></i>
+                                <h3>No Analysis Yet</h3>
+                                <p>Fill in the project details and click <strong>"Generate AI Analysis"</strong> to get
+                                    your bid estimate.</p>
+                            </div>
+
+                            <!-- Results -->
+                            <div id="analysisResults" class="analysis-results">
+                                <!-- Project Summary -->
+                                <div class="result-section">
+                                    <div class="result-section-title"><i class="fas fa-clipboard-list"></i> Project
+                                        Summary</div>
+                                    <div class="result-highlight">
+                                        <div class="result-row">
+                                            <span class="result-label">Estimated Total Cost</span>
+                                            <span class="result-value" id="resTotalCost">—</span>
+                                        </div>
+                                    </div>
+                                    <div class="result-row">
+                                        <span class="result-label">Recommended Bid Price</span>
+                                        <span class="result-value" id="resBidPrice">—</span>
+                                    </div>
+                                    <div class="result-row">
+                                        <span class="result-label">Expected Profit Margin</span>
+                                        <span class="result-value" id="resProfitMargin">—</span>
+                                    </div>
+                                    <div class="result-row">
+                                        <span class="result-label">Estimated Duration</span>
+                                        <span class="result-value" id="resDuration">—</span>
+                                    </div>
+                                    <div class="result-row">
+                                        <span class="result-label">Risk Level</span>
+                                        <span class="result-value" id="resRisk">—</span>
+                                    </div>
+                                </div>
+
+                                <!-- Cost Breakdown -->
+                                <div class="result-section">
+                                    <div class="result-section-title"><i class="fas fa-coins"></i> Cost Breakdown</div>
+                                    <div class="result-row">
+                                        <span class="result-label">Material Cost</span>
+                                        <span class="result-value" id="resMaterialCost">—</span>
+                                    </div>
+                                    <div class="result-row">
+                                        <span class="result-label">Labour Cost</span>
+                                        <span class="result-value" id="resLabourCost">—</span>
+                                    </div>
+                                    <div class="result-row">
+                                        <span class="result-label">Equipment Cost</span>
+                                        <span class="result-value" id="resEquipmentCost">—</span>
+                                    </div>
+                                </div>
+
+                                <!-- Resource Planning -->
+                                <div class="result-section">
+                                    <div class="result-section-title"><i class="fas fa-users"></i> Resource Planning
+                                    </div>
+                                    <div class="result-row">
+                                        <span class="result-label">Recommended Workers</span>
+                                        <span class="result-value" id="resWorkers">—</span>
+                                    </div>
+                                    <div class="result-row">
+                                        <span class="result-label">Key Cost Drivers</span>
+                                        <span class="result-value" style="max-width: 60%; text-align: right;"
+                                            id="resCostDrivers">—</span>
+                                    </div>
+                                </div>
+
+                                <!-- Optimization -->
+                                <div class="result-section">
+                                    <div class="result-section-title"><i class="fas fa-lightbulb"></i> Optimization
+                                        Advice</div>
+                                    <ul class="advice-list" id="resCostReductions"></ul>
+                                </div>
+
+                                <!-- Decision -->
+                                <div class="result-section">
+                                    <div class="result-section-title"><i class="fas fa-check-circle"></i> Decision
+                                        Guidance</div>
+                                    <div style="margin-bottom: 0.75rem;">
+                                        <span id="resDecision"></span>
+                                    </div>
+                                    <div class="advice-text" id="resReason">—</div>
+                                </div>
+
+                                <!-- Actions -->
+                                <div class="results-actions">
+                                    <button class="btn-action" onclick="window.print()">
+                                        <i class="fas fa-print"></i> Print
+                                    </button>
+                                    <button class="btn-action" id="copyBtn">
+                                        <i class="fas fa-copy"></i> Copy
+                                    </button>
+                                    <button class="btn-action" id="newAnalysisBtn">
+                                        <i class="fas fa-plus"></i> New
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script type="module">
+        import { auth, db, onAuthStateChanged, signOut, doc, getDoc, collection, setDoc } from './js/firebase-config.js';
+
+        // --- Auth Guard ---
+        onAuthStateChanged(auth, async (user) => {
+            if (!user) {
+                window.location.href = 'login.html';
+                return;
+            }
+            document.getElementById('pageLoader').classList.add('hidden');
+        });
+
+        // Logout
+        document.getElementById('logoutBtn').addEventListener('click', async () => {
+            await signOut(auth);
+            window.location.href = 'login.html';
+        });
+
+        // --- Groq API Key (Secure) ---
+        async function getGroqKey() {
+            try {
+                const docRef = doc(db, 'system_settings', 'groq_api_key');
+                const docSnap = await getDoc(docRef);
+                if (docSnap.exists() && docSnap.data().key) {
+                    return docSnap.data().key;
+                }
+                throw new Error('API key not found. Please add your Groq API key to Firestore: system_settings/groq_api_key → field "key".');
+            } catch (e) {
+                console.error('Error fetching Groq key:', e);
+                throw e;
+            }
+        }
+
+        // --- Build Prompt ---
+        function buildPrompt(data) {
+            const deadlineStr = data.deadline
+                ? new Date(data.deadline).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })
+                : 'Flexible / Not specified';
+
+            return `You are a highly experienced construction project cost estimator, quantity surveyor, and contractor bid advisor with expertise in Indian construction markets.
+
+Your job is to analyze construction project details and provide professional bidding guidance to contractors before they take a project.
+
+Use realistic assumptions based on Indian construction standards, labour costs, and material pricing.
+
+## PROJECT DETAILS
+
+Project Type: ${data.projectType}
+Location: ${data.location}
+Total Area (sq ft): ${data.area}
+Number of Floors: ${data.floors}
+Material Quality: ${data.materialQuality}
+Project Deadline: ${deadlineStr}
+Site Condition: ${data.siteCondition}
+Labour Availability: ${data.labourAvailability}
+Special Requirements: ${data.specialRequirements || 'None specified'}
+
+## OUTPUT FORMAT (STRICT JSON)
+
+You MUST respond with ONLY a valid JSON object (no markdown, no text before or after). Use this exact structure:
+
+{
+  "estimatedTotalCost": "₹XX,XX,XXX",
+  "recommendedBidPrice": "₹XX,XX,XXX",
+  "expectedProfitMargin": "X%",
+  "estimatedDuration": "X months",
+  "riskLevel": "Low|Medium|High",
+  "riskExplanation": "brief reason",
+  "materialCost": "₹XX,XX,XXX",
+  "labourCost": "₹XX,XX,XXX",
+  "equipmentCost": "₹XX,XX,XXX",
+  "recommendedWorkers": "XX workers",
+  "keyCostDrivers": "brief list",
+  "costReductions": ["suggestion 1", "suggestion 2", "suggestion 3"],
+  "shouldTakeProject": "Yes|No",
+  "decisionReason": "brief explanation"
+}`;
+        }
+
+        // --- Call Groq AI ---
+        async function callGemini(prompt) {
+            const apiKey = await getGroqKey();
+            const url = 'https://api.groq.com/openai/v1/chat/completions';
+
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${apiKey}`
+                },
+                body: JSON.stringify({
+                    model: 'llama-3.3-70b-versatile',
+                    messages: [
+                        { role: 'system', content: 'You are a construction cost estimation expert. Always respond with valid JSON only, no markdown fences or extra text.' },
+                        { role: 'user', content: prompt }
+                    ],
+                    temperature: 0.3,
+                    max_tokens: 2048
+                })
+            });
+
+            if (!response.ok) {
+                const errData = await response.json().catch(() => ({}));
+                throw new Error(errData.error?.message || `Groq API error: ${response.status}`);
+            }
+
+            const data = await response.json();
+            const text = data.choices?.[0]?.message?.content;
+
+            if (!text) throw new Error('Empty response from AI');
+
+            // Remove markdown fences if present
+            const clean = text.replace(/```json\s*/gi, '').replace(/```\s*/g, '').trim();
+            return JSON.parse(clean);
+        }
+
+        // --- Render Results ---
+        function renderResults(result) {
+            document.getElementById('resTotalCost').textContent = result.estimatedTotalCost;
+            document.getElementById('resBidPrice').textContent = result.recommendedBidPrice;
+            document.getElementById('resProfitMargin').textContent = result.expectedProfitMargin;
+            document.getElementById('resDuration').textContent = result.estimatedDuration;
+
+            // Risk badge
+            const riskEl = document.getElementById('resRisk');
+            const lvl = (result.riskLevel || '').toLowerCase();
+            riskEl.innerHTML = `<span class="risk-badge risk-${lvl}"><i class="fas fa-${lvl === 'low' ? 'shield-alt' : lvl === 'high' ? 'exclamation-triangle' : 'exclamation-circle'}"></i> ${result.riskLevel}</span>`;
+
+            document.getElementById('resMaterialCost').textContent = result.materialCost;
+            document.getElementById('resLabourCost').textContent = result.labourCost;
+            document.getElementById('resEquipmentCost').textContent = result.equipmentCost;
+            document.getElementById('resWorkers').textContent = result.recommendedWorkers;
+            document.getElementById('resCostDrivers').textContent = result.keyCostDrivers;
+
+            // Cost reductions list
+            const list = document.getElementById('resCostReductions');
+            list.innerHTML = (result.costReductions || []).map(s => `<li>${s}</li>`).join('');
+
+            // Decision
+            const decEl = document.getElementById('resDecision');
+            const yes = (result.shouldTakeProject || '').toLowerCase().includes('yes');
+            decEl.innerHTML = `<span class="${yes ? 'decision-yes' : 'decision-no'}"><i class="fas fa-${yes ? 'thumbs-up' : 'thumbs-down'}"></i> ${result.shouldTakeProject}</span>`;
+            document.getElementById('resReason').textContent = result.decisionReason;
+
+            // Show results, hide placeholder
+            document.getElementById('resultsPlaceholder').style.display = 'none';
+            document.getElementById('analysisResults').classList.add('visible');
+        }
+
+        // --- Form Submit ---
+        const form = document.getElementById('estimatorForm');
+        const btn = document.getElementById('analyzeBtn');
+        const errorDiv = document.getElementById('errorMessage');
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            errorDiv.classList.remove('visible');
+
+            const data = {
+                projectType: document.getElementById('projectType').value,
+                location: document.getElementById('location').value,
+                area: document.getElementById('area').value,
+                floors: document.getElementById('floors').value || '1',
+                materialQuality: document.getElementById('materialQuality').value,
+                deadline: document.getElementById('deadline').value,
+                siteCondition: document.getElementById('siteCondition').value,
+                labourAvailability: document.getElementById('labourAvailability').value,
+                specialRequirements: document.getElementById('specialRequirements').value
+            };
+
+            btn.classList.add('loading');
+            btn.disabled = true;
+
+            try {
+                const prompt = buildPrompt(data);
+                const result = await callGemini(prompt);
+                renderResults(result);
+
+                // Save to Firestore
+                try {
+                    const id = 'bid_' + Date.now().toString(36);
+                    const userId = auth.currentUser?.uid;
+                    await setDoc(doc(db, 'bid_analyses', id), {
+                        ...data,
+                        result,
+                        userId,
+                        createdAt: new Date().toISOString()
+                    });
+                } catch (saveErr) {
+                    console.warn('Could not save analysis:', saveErr);
+                }
+            } catch (err) {
+                console.error('Analysis error:', err);
+                errorDiv.textContent = err.message || 'Failed to generate analysis. Please try again.';
+                errorDiv.classList.add('visible');
+            } finally {
+                btn.classList.remove('loading');
+                btn.disabled = false;
+            }
+        });
+
+        // --- Copy ---
+        document.getElementById('copyBtn').addEventListener('click', () => {
+            const resultsEl = document.getElementById('analysisResults');
+            const text = resultsEl.innerText;
+            navigator.clipboard.writeText(text).then(() => {
+                const btn = document.getElementById('copyBtn');
+                btn.innerHTML = '<i class="fas fa-check"></i> Copied!';
+                setTimeout(() => { btn.innerHTML = '<i class="fas fa-copy"></i> Copy'; }, 2000);
+            });
+        });
+
+        // --- New Analysis ---
+        document.getElementById('newAnalysisBtn').addEventListener('click', () => {
+            document.getElementById('analysisResults').classList.remove('visible');
+            document.getElementById('resultsPlaceholder').style.display = '';
+            form.reset();
+            document.getElementById('materialQuality').value = 'Medium';
+            document.getElementById('siteCondition').value = 'Normal';
+            document.getElementById('labourAvailability').value = 'Good';
+            errorDiv.classList.remove('visible');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+    </script>
+</body>
+
+</html>

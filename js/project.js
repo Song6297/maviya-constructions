@@ -24,9 +24,9 @@ const DOC_CATEGORIES = ['Agreement', 'Drawing', 'Bill', 'BOQ', 'Invoice', 'Recei
 
 // Utils (shared with app.js)
 const Utils = window.Utils || {
-    formatNumber(num) { 
+    formatNumber(num) {
         if (num === null || num === undefined || isNaN(num)) return '0';
-        return new Intl.NumberFormat('en-IN').format(num); 
+        return new Intl.NumberFormat('en-IN').format(num);
     },
     formatDate(dateStr) { return new Date(dateStr).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }); },
     escapeHtml(text) { const div = document.createElement('div'); div.textContent = text; return div.innerHTML; },
@@ -66,6 +66,17 @@ const Utils = window.Utils || {
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a'); a.href = url; a.download = filename; a.click();
         URL.revokeObjectURL(url);
+    },
+    debounce(func, wait) {
+        let timeout;
+        return function executedFunction(...args) {
+            const later = () => {
+                clearTimeout(timeout);
+                func(...args);
+            };
+            clearTimeout(timeout);
+            timeout = setTimeout(later, wait);
+        };
     }
 };
 
@@ -82,13 +93,13 @@ const ProjectApp = {
         console.log('ProjectApp.init() starting...');
         this.projectId = new URLSearchParams(window.location.search).get('id');
         if (!this.projectId) { window.location.href = 'dashboard.html'; return; }
-        
+
         this.showLoading(true);
-        
+
         try {
             this.project = await Storage.projects.getById(this.projectId);
             if (!this.project) { window.location.href = 'dashboard.html'; return; }
-            
+
             this.populateDropdowns();
             this.renderHeader();
             await this.checkProjectLock();
@@ -96,7 +107,11 @@ const ProjectApp = {
             await this.renderOverview();
             this.bindEvents();
             console.log('ProjectApp.bindEvents() completed');
+
+            // Render all tab data
             await this.renderAllTabs();
+            this.loadedTabs = new Set(['summary', 'materials', 'labour', 'vendors', 'expenses', 'documents', 'logs', 'floorplans']);
+
             console.log('ProjectApp.init() completed successfully');
         } catch (error) {
             console.error('Error initializing project:', error);
@@ -122,7 +137,7 @@ const ProjectApp = {
     async checkProjectLock() {
         const isCompleted = this.project.status === 'Completed';
         const reopenBtn = document.getElementById('reopenProjectBtn');
-        
+
         if (isCompleted) {
             if (reopenBtn) reopenBtn.classList.remove('hidden');
             document.querySelectorAll('.btn-add, .btn-primary, .action-btn:not(.delete), #exportDropdown').forEach(btn => {
@@ -158,7 +173,7 @@ const ProjectApp = {
         const materialUnit = document.getElementById('materialUnit');
         const docCategory = document.getElementById('docCategory');
         const docCategoryFilter = document.getElementById('docCategoryFilter');
-        
+
         if (materialSelect) materialSelect.innerHTML = '<option value="">Select</option>' + MATERIAL_LIST.map(m => `<option value="${m}">${m}</option>`).join('');
         if (materialCategory) materialCategory.innerHTML = MATERIAL_CATEGORIES.map(c => `<option value="${c}">${c}</option>`).join('');
         if (materialUnit) materialUnit.innerHTML = MATERIAL_UNITS.map(u => `<option value="${u.value}">${u.label}</option>`).join('');
@@ -178,10 +193,10 @@ const ProjectApp = {
         const alert = document.getElementById('budgetAlert');
         const title = document.getElementById('budgetAlertTitle');
         const text = document.getElementById('budgetAlertText');
-        
+
         // Skip if elements don't exist
         if (!alert || !title || !text) return;
-        
+
         const spent = await this.calculateTotalSpent();
         const budget = await this.getEffectiveBudget();
         const health = Utils.getBudgetHealth(spent, budget);
@@ -206,6 +221,61 @@ const ProjectApp = {
         }
     },
 
+    async renderHealthWidget() {
+        if (!window.PhaseManager) return;
+        const health = await PhaseManager.getProjectHealthSummary(this.projectId);
+
+        // Update Score Text
+        const scoreEl = document.getElementById('healthScoreValue');
+        if (scoreEl) scoreEl.textContent = health.healthScore;
+
+        // Update Ring Animation
+        // Circumference = 2 * PI * 56 ≈ 351.86
+        const circumference = 351.86;
+        const offset = circumference - (health.healthScore / 100) * circumference;
+        const ring = document.getElementById('healthScoreRing');
+        if (ring) {
+            ring.style.strokeDashoffset = offset;
+            // Update color based on score
+            if (health.healthScore >= 80) ring.style.stroke = '#10b981'; // Green
+            else if (health.healthScore >= 50) ring.style.stroke = '#f59e0b'; // Amber
+            else ring.style.stroke = '#ef4444'; // Red
+        }
+
+        // Update Badge
+        const badge = document.getElementById('healthScoreBadge');
+        if (badge) {
+            if (health.healthScore >= 80) {
+                badge.className = 'status-badge status-completed';
+                badge.textContent = 'Good Health';
+            } else if (health.healthScore >= 50) {
+                badge.className = 'status-badge status-on-hold';
+                badge.textContent = 'Needs Attention';
+            } else {
+                badge.className = 'status-badge delayed';
+                badge.textContent = 'Critical Risks';
+            }
+        }
+
+        // Render Risks
+        const risksList = document.getElementById('healthRisksList');
+        if (risksList) {
+            if (health.risks.length === 0) {
+                risksList.innerHTML = '<div class="text-emerald-600 text-sm"><i class="fas fa-check-circle mr-2"></i>No major risks detected</div>';
+            } else {
+                risksList.innerHTML = health.risks.map(risk => `
+                    <div class="flex items-start gap-2 text-sm p-2 rounded bg-red-50 border border-red-100">
+                        <i class="fas fa-exclamation-triangle text-red-500 mt-1"></i>
+                        <div>
+                            <span class="font-semibold text-red-700">${risk.message}</span>
+                            <span class="text-xs text-red-500 block">-${risk.deduction} points</span>
+                        </div>
+                    </div>
+                `).join('');
+            }
+        }
+    },
+
     async renderOverview() {
         const container = document.getElementById('overviewSection');
         const spent = await this.calculateTotalSpent();
@@ -213,6 +283,9 @@ const ProjectApp = {
         const health = Utils.getBudgetHealth(spent, budget);
         const deadline = Utils.getDeadlineStatus(this.project.endDate, this.project.status);
         const progress = this.calculateProgress();
+
+        // Render Health Widget
+        await this.renderHealthWidget();
 
         // Get fund status if available
         let fundStatusCard = '';
@@ -224,7 +297,7 @@ const ProjectApp = {
                 const totalSpentAllProjects = overallStatus.totalSpent || 0; // Total spent across all projects
                 const netAvailable = totalVirtualBalance - totalSpentAllProjects; // What's left in bank
                 const hasLoans = overallStatus.totalActiveLoans > 0;
-                
+
                 fundStatusCard = `
                     <div class="metric-card rounded-lg p-4 ${hasLoans ? 'border-amber-200 bg-amber-50' : ''}">
                         <p class="text-slate-600 text-sm">Total Bank Balance</p>
@@ -281,34 +354,54 @@ const ProjectApp = {
         if (addMaterialBtn) {
             addMaterialBtn.addEventListener('click', () => this.openModal('material'));
         }
-        
+
+        const addStockUsageBtn = document.getElementById('addStockUsageBtn');
+        if (addStockUsageBtn) {
+            addStockUsageBtn.addEventListener('click', () => this.openStockModal());
+        }
+
+        const stockUsageForm = document.getElementById('stockUsageForm');
+        if (stockUsageForm) {
+            stockUsageForm.addEventListener('submit', e => this.handleStockUsageSubmit(e));
+        }
+
+        const stockMaterialSelect = document.getElementById('stockMaterialSelect');
+        if (stockMaterialSelect) {
+            stockMaterialSelect.addEventListener('change', e => this.handleStockSelection(e.target.value));
+        }
+
+        const stockRequiredQty = document.getElementById('stockRequiredQty');
+        if (stockRequiredQty) {
+            stockRequiredQty.addEventListener('input', Utils.debounce(() => this.checkStockAvailability(), 500));
+        }
+
         const addLabourBtn = document.getElementById('addLabourBtn');
         if (addLabourBtn) {
             addLabourBtn.addEventListener('click', () => {
                 this.openModal('labour');
             });
         }
-        
+
         const addVendorBtn = document.getElementById('addVendorBtn');
         if (addVendorBtn) {
             addVendorBtn.addEventListener('click', () => this.openModal('vendor'));
         }
-        
+
         const addExpenseBtn = document.getElementById('addExpenseBtn');
         if (addExpenseBtn) {
             addExpenseBtn.addEventListener('click', () => this.openModal('expense'));
         }
-        
+
         const addDocBtn = document.getElementById('addDocBtn');
         if (addDocBtn) {
             addDocBtn.addEventListener('click', () => this.openModal('document'));
         }
-        
+
         const addLogBtn = document.getElementById('addLogBtn');
         if (addLogBtn) {
             addLogBtn.addEventListener('click', () => this.openModal('log'));
         }
-        
+
         const addClientPaymentBtn = document.getElementById('addClientPaymentBtn');
         if (addClientPaymentBtn) {
             addClientPaymentBtn.addEventListener('click', () => this.openModal('clientPayment'));
@@ -321,22 +414,22 @@ const ProjectApp = {
                 this.openAttendanceSheet();
             });
         }
-        
+
         const workerSelect = document.getElementById('workerSelect');
         if (workerSelect) {
             workerSelect.addEventListener('change', (e) => this.onWorkerSelect(e.target.value));
         }
-        
+
         const attendanceDateInput = document.getElementById('attendanceDateInput');
         if (attendanceDateInput) {
             attendanceDateInput.addEventListener('change', (e) => this.loadAttendanceForDate(e.target.value));
         }
-        
+
         const markAllPresentBtn = document.getElementById('markAllPresentBtn');
         if (markAllPresentBtn) {
             markAllPresentBtn.addEventListener('click', () => this.markAllPresent());
         }
-        
+
         const saveAttendanceBtn = document.getElementById('saveAttendanceBtn');
         if (saveAttendanceBtn) {
             saveAttendanceBtn.addEventListener('click', () => this.saveAttendance());
@@ -347,42 +440,42 @@ const ProjectApp = {
         if (materialForm) {
             materialForm.addEventListener('submit', e => this.handleMaterialSubmit(e));
         }
-        
+
         const labourForm = document.getElementById('labourForm');
         if (labourForm) {
             labourForm.addEventListener('submit', e => this.handleLabourSubmit(e));
         }
-        
+
         const vendorForm = document.getElementById('vendorForm');
         if (vendorForm) {
             vendorForm.addEventListener('submit', e => this.handleVendorSubmit(e));
         }
-        
+
         const expenseForm = document.getElementById('expenseForm');
         if (expenseForm) {
             expenseForm.addEventListener('submit', e => this.handleExpenseSubmit(e));
         }
-        
+
         const documentForm = document.getElementById('documentForm');
         if (documentForm) {
             documentForm.addEventListener('submit', e => this.handleDocumentSubmit(e));
         }
-        
+
         const logForm = document.getElementById('logForm');
         if (logForm) {
             logForm.addEventListener('submit', e => this.handleLogSubmit(e));
         }
-        
+
         const clientPaymentForm = document.getElementById('clientPaymentForm');
         if (clientPaymentForm) {
             clientPaymentForm.addEventListener('submit', e => this.handleClientPaymentSubmit(e));
         }
-        
+
         const workerPaymentForm = document.getElementById('workerPaymentForm');
         if (workerPaymentForm) {
             workerPaymentForm.addEventListener('submit', e => this.handleWorkerPaymentSubmit(e));
         }
-        
+
         const vendorPaymentForm = document.getElementById('vendorPaymentForm');
         if (vendorPaymentForm) {
             vendorPaymentForm.addEventListener('submit', e => this.handleVendorPaymentSubmit(e));
@@ -398,12 +491,12 @@ const ProjectApp = {
                 }
             });
         }
-        
+
         const materialStatusFilter = document.getElementById('materialStatusFilter');
         if (materialStatusFilter) {
             materialStatusFilter.addEventListener('change', e => { this.materialFilter = e.target.value; this.renderMaterials(); });
         }
-        
+
         const docCategoryFilter = document.getElementById('docCategoryFilter');
         if (docCategoryFilter) {
             docCategoryFilter.addEventListener('change', e => { this.docFilter = e.target.value; this.renderDocuments(); });
@@ -418,12 +511,12 @@ const ProjectApp = {
         if (cancelDelete) {
             cancelDelete.addEventListener('click', () => this.closeDeleteModal());
         }
-        
+
         const confirmDelete = document.getElementById('confirmDelete');
         if (confirmDelete) {
             confirmDelete.addEventListener('click', () => this.confirmDelete());
         }
-        
+
         // Fund Status Event Listeners
         const refreshFundStatusBtn = document.getElementById('refreshFundStatusBtn');
         if (refreshFundStatusBtn) {
@@ -498,55 +591,86 @@ const ProjectApp = {
                 return;
             }
         }
-        
+
         document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
         document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-        document.querySelector(`[data-tab="${tabName}"]`).classList.add('active');
-        document.getElementById(`${tabName}Tab`).classList.add('active');
-        if (tabName === 'summary') await this.renderSummary();
-        if (tabName === 'funds') await this.renderFundStatus();
-        if (tabName === 'vendors') await this.renderVendors();
-        if (tabName === 'floorplans') await this.renderFloorPlans();
+
+        const btn = document.querySelector(`[data-tab="${tabName}"]`);
+        if (btn) btn.classList.add('active');
+
+        const content = document.getElementById(`${tabName}Tab`);
+        if (content) content.classList.add('active');
+
+        // Lazy Loading Logic
+        try {
+            if (tabName === 'summary') {
+                this.showLoading(true);
+                await this.renderOverview(); // Updates header stats & Health Widget
+                await this.renderSummary();  // Updates financial cards
+                this.showLoading(false);
+            } else if (!this.loadedTabs.has(tabName)) {
+                this.showLoading(true);
+
+                if (tabName === 'funds') await this.renderFundStatus();
+                if (tabName === 'vendors') await this.renderVendors();
+                if (tabName === 'floorplans') await this.renderFloorPlans();
+                if (tabName === 'materials') await this.renderMaterials();
+                if (tabName === 'labour') await this.renderLabour();
+                if (tabName === 'expenses') await this.renderExpenses();
+                if (tabName === 'documents') await this.renderDocuments();
+                if (tabName === 'logs') await this.renderLogs();
+                // Phases are handled separately or via renderOverview? No, renderPhases is usually separate.
+                // Assuming 'phases' tab exists and has renderPhases. Checking project.html for 'phasesTab' later if needed.
+                // For now sticking to existing renderX methods.
+
+                this.loadedTabs.add(tabName);
+                this.showLoading(false);
+            }
+        } catch (error) {
+            console.error(`Error loading tab ${tabName}:`, error);
+            this.showToast(`Error loading ${tabName} data`, 'error');
+            this.showLoading(false);
+        }
     },
-    
+
     async checkUserPremiumForFeatures() {
         try {
             const { auth, db } = await import('./firebase-config.js');
             const { doc, getDoc } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
-            
+
             const user = auth.currentUser;
             if (!user) return false;
-            
+
             // Admin and Saqlain have access to premium features
             if (user.email === 'sulaimaansong6297@gmail.com' || user.email === 'saqlainmohammed1122@gmail.com') {
                 return true;
             }
-            
+
             const userDoc = await getDoc(doc(db, 'users', user.uid));
             if (!userDoc.exists()) return false;
-            
+
             const userData = userDoc.data();
             if (userData.premiumStatus !== 'PREMIUM') return false;
-            
+
             if (userData.premiumEnd) {
                 const endDate = userData.premiumEnd.toDate ? userData.premiumEnd.toDate() : new Date(userData.premiumEnd);
                 if (endDate <= new Date()) return false;
             }
-            
+
             return true;
         } catch (error) {
             console.error('Premium check error:', error);
             return false;
         }
     },
-    
+
     showPremiumRequiredModal(feature) {
         const featureNames = {
             'floorplans': '3D Floor Plans',
             'funds': 'Fund Management',
             'documents': 'Documents'
         };
-        
+
         const modal = document.createElement('div');
         modal.id = 'premiumRequiredModal';
         modal.innerHTML = `
@@ -581,7 +705,7 @@ const ProjectApp = {
     async renderMaterials() {
         let materials = await Storage.materials.getByProject(this.projectId);
         if (this.materialFilter !== 'all') materials = materials.filter(m => m.status === this.materialFilter);
-        
+
         const tbody = document.getElementById('materialsTableBody');
         const empty = document.getElementById('materialsEmpty');
         const totalRow = document.getElementById('materialsTotalRow');
@@ -613,7 +737,7 @@ const ProjectApp = {
                 </div></td>
             </tr>`;
         }).join('');
-        
+
         const totalBalance = Math.max(0, total) - totalPaid;
         document.getElementById('materialsTotalAmount').textContent = `₹${Utils.formatNumber(Math.max(0, total))}`;
         document.getElementById('materialsTotalPaid').textContent = `₹${Utils.formatNumber(totalPaid)}`;
@@ -641,20 +765,20 @@ const ProjectApp = {
         };
 
         this.showLoading(true);
-        
+
         // Get old paid amount if updating
         let oldPaidAmount = 0;
         if (id) {
             const oldMaterial = await Storage.materials.getById(id);
             oldPaidAmount = parseFloat(oldMaterial?.paidAmount) || 0;
         }
-        
+
         if (id) {
             await Storage.materials.update(id, data);
         } else {
             await Storage.materials.add(data);
         }
-        
+
         // Deduct paid amount from fund balance
         if (window.FundManagement && paidAmount > 0) {
             try {
@@ -668,7 +792,7 @@ const ProjectApp = {
                 console.warn('Fund balance update skipped:', err);
             }
         }
-        
+
         this.closeAllModals(); await this.renderMaterials(); await this.renderOverview(); await this.checkBudgetAlerts();
         this.showLoading(false);
         this.showToast('Material saved', 'success');
@@ -692,10 +816,10 @@ const ProjectApp = {
         try {
             // Import LabourCalendar dynamically
             const { default: LabourCalendar } = await import('./labour-calendar.js');
-            
+
             // Get project labour summary
             const summary = await LabourCalendar.getProjectLabourSummary(this.projectId);
-            
+
             if (!summary || !summary.workers || summary.workers.length === 0) {
                 listContainer.innerHTML = '';
                 if (empty) empty.classList.remove('hidden');
@@ -728,9 +852,9 @@ const ProjectApp = {
                 const unpaidDates = worker.unpaidDates || [];
                 const paidDaysCount = worker.paidDaysCount || 0;
                 const unpaidDaysCount = worker.unpaidDaysCount || 0;
-                
+
                 // Build paid dates badges (show last 5)
-                const paidDatesHtml = paidDates.length > 0 
+                const paidDatesHtml = paidDates.length > 0
                     ? `<div class="flex flex-wrap gap-1 mt-1">
                         ${paidDates.slice(-5).map(d => `
                             <span class="px-1.5 py-0.5 bg-emerald-100 text-emerald-700 text-xs rounded" title="₹${(d.earned || 0).toLocaleString('en-IN')}">
@@ -740,9 +864,9 @@ const ProjectApp = {
                         ${paidDates.length > 5 ? `<span class="text-xs text-slate-400">+${paidDates.length - 5} more</span>` : ''}
                        </div>`
                     : '';
-                
+
                 // Build unpaid dates badges (show all, max 5)
-                const unpaidDatesHtml = unpaidDates.length > 0 
+                const unpaidDatesHtml = unpaidDates.length > 0
                     ? `<div class="flex flex-wrap gap-1 mt-1">
                         ${unpaidDates.slice(0, 5).map(d => `
                             <span class="px-1.5 py-0.5 bg-rose-100 text-rose-700 text-xs rounded" title="₹${(d.earned || 0).toLocaleString('en-IN')} due">
@@ -805,10 +929,10 @@ const ProjectApp = {
 
         } catch (error) {
             console.error('Error rendering labour summary:', error);
-            
+
             // Check if it's a permission error
             const isPermissionError = error.message && error.message.includes('permission');
-            
+
             listContainer.innerHTML = `
                 <div class="text-center py-4 text-slate-500">
                     <i class="fas fa-exclamation-circle text-2xl mb-2 ${isPermissionError ? 'text-amber-500' : ''}"></i>
@@ -826,13 +950,13 @@ const ProjectApp = {
     async quickPayLabour(labourId, labourName, dueAmount) {
         const amount = prompt(`Pay ${labourName}\nAmount due: ₹${dueAmount.toLocaleString('en-IN')}\n\nEnter payment amount:`);
         if (!amount) return;
-        
+
         const payAmount = parseFloat(amount);
         if (isNaN(payAmount) || payAmount <= 0) {
             this.showToast('Please enter a valid amount', 'error');
             return;
         }
-        
+
         try {
             const { default: LabourCalendar } = await import('./labour-calendar.js');
             await LabourCalendar.processPaymentWithFundUpdate({
@@ -842,7 +966,7 @@ const ProjectApp = {
                 paymentDate: new Date().toISOString().split('T')[0],
                 paymentMethod: 'Cash'
             });
-            
+
             this.showToast(`Payment of ₹${payAmount.toLocaleString('en-IN')} recorded for ${labourName}`, 'success');
             await this.renderLabour();
             await this.renderOverview();
@@ -860,7 +984,7 @@ const ProjectApp = {
             const container = document.getElementById('vendorCardsContainer');
             const empty = document.getElementById('vendorEmpty');
             const totalRow = document.getElementById('vendorTotalRow');
-            
+
             if (container) container.innerHTML = '';
             if (empty) empty.classList.remove('hidden');
             if (totalRow) totalRow.classList.add('hidden');
@@ -870,7 +994,7 @@ const ProjectApp = {
     async handleVendorSubmit(e) {
         e.preventDefault();
         this.showLoading(true);
-        
+
         try {
             if (window.VendorManagement) {
                 const success = await window.VendorManagement.handleVendorSubmit(e, this.projectId);
@@ -886,14 +1010,14 @@ const ProjectApp = {
             console.error('Error saving vendor:', error);
             this.showToast('Error saving vendor', 'error');
         }
-        
+
         this.showLoading(false);
     },
 
     async handleVendorPaymentSubmit(e) {
         e.preventDefault();
         this.showLoading(true);
-        
+
         try {
             if (window.VendorManagement) {
                 const success = await window.VendorManagement.handleVendorPaymentSubmit(e, this.projectId);
@@ -909,7 +1033,7 @@ const ProjectApp = {
             console.error('Error recording vendor payment:', error);
             this.showToast('Error recording payment', 'error');
         }
-        
+
         this.showLoading(false);
     },
 
@@ -947,18 +1071,18 @@ const ProjectApp = {
     // Generate Invoice for Expense
     async generateExpenseInvoice(expenseId) {
         this.showToast('Generating invoice...', 'info');
-        
+
         try {
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF();
-            
+
             // Get expense data
             const expense = await Storage.expenses.getById(expenseId);
             if (!expense) {
                 this.showToast('Expense not found', 'error');
                 return;
             }
-            
+
             // Theme Colors (B&B Construction Theme)
             const colors = {
                 primary: [47, 47, 47],
@@ -968,7 +1092,7 @@ const ProjectApp = {
                 light: [241, 245, 249],
                 white: [255, 255, 255]
             };
-            
+
             // Get user profile data
             let companyName = 'B&B Constructions';
             let userName = 'Builder';
@@ -990,18 +1114,18 @@ const ProjectApp = {
                     }
                 }
             } catch (e) { console.log('Using default company name'); }
-            
+
             // Generate invoice number
             const invoiceNo = `INV-${Date.now().toString(36).toUpperCase()}`;
-            
+
             let y = 15;
-            
+
             // Header bar
             doc.setFillColor(...colors.primary);
             doc.rect(0, 0, 210, 12, 'F');
             doc.setFillColor(...colors.secondary);
             doc.rect(0, 12, 210, 3, 'F');
-            
+
             // Company Logo - B&B brick pattern
             y = 28;
             doc.setFillColor(...colors.primary);
@@ -1010,7 +1134,7 @@ const ProjectApp = {
             doc.rect(32, 20, 8, 8, 'F');
             doc.setFillColor(...colors.primary);
             doc.rect(27, 30, 8, 8, 'F');
-            
+
             // Company Header
             doc.setFontSize(20);
             doc.setTextColor(...colors.primary);
@@ -1027,7 +1151,7 @@ const ProjectApp = {
             }
             y += 4;
             doc.text(`Email: ${userEmail}`, 50, y);
-            
+
             // Invoice Title
             y = 28;
             doc.setFontSize(24);
@@ -1041,16 +1165,16 @@ const ProjectApp = {
             doc.text(`Invoice No: ${invoiceNo}`, 190, y, { align: 'right' });
             y += 5;
             doc.text(`Date: ${Utils.formatDate(new Date().toISOString())}`, 190, y, { align: 'right' });
-            
+
             y = 65;
-            
+
             // Project Info Box
             doc.setFillColor(...colors.light);
             doc.roundedRect(20, y, 170, 25, 3, 3, 'F');
             doc.setDrawColor(...colors.accent);
             doc.setLineWidth(0.5);
             doc.roundedRect(20, y, 170, 25, 3, 3, 'S');
-            
+
             y += 8;
             doc.setFontSize(10);
             doc.setTextColor(...colors.dark);
@@ -1062,9 +1186,9 @@ const ProjectApp = {
             doc.text(`Client: ${this.project.clientName}`, 115, y);
             y += 5;
             doc.text(`Location: ${this.project.location}`, 25, y);
-            
+
             y += 20;
-            
+
             // Expense Details Table
             doc.setFillColor(...colors.accent);
             doc.roundedRect(20, y, 170, 8, 2, 2, 'F');
@@ -1073,7 +1197,7 @@ const ProjectApp = {
             doc.setFont('helvetica', 'bold');
             doc.text('EXPENSE DETAILS', 105, y + 6, { align: 'center' });
             y += 12;
-            
+
             doc.autoTable({
                 startY: y,
                 head: [['Description', 'Category', 'Date', 'Amount']],
@@ -1089,16 +1213,16 @@ const ProjectApp = {
                 headStyles: { fillColor: colors.accent, fontSize: 10, fontStyle: 'bold' },
                 bodyStyles: { fontSize: 10 },
                 margin: { left: 20, right: 20 },
-                columnStyles: { 
-                    0: { cellWidth: 70 }, 
-                    1: { cellWidth: 40 }, 
+                columnStyles: {
+                    0: { cellWidth: 70 },
+                    1: { cellWidth: 40 },
                     2: { cellWidth: 35 },
                     3: { cellWidth: 25, halign: 'right' }
                 }
             });
-            
+
             y = doc.lastAutoTable.finalY + 10;
-            
+
             // Total Box
             doc.setFillColor(...colors.secondary);
             doc.roundedRect(120, y, 70, 15, 2, 2, 'F');
@@ -1107,9 +1231,9 @@ const ProjectApp = {
             doc.setFont('helvetica', 'bold');
             doc.text('TOTAL:', 125, y + 10);
             doc.text(`Rs. ${Utils.formatNumber(expense.amount)}`, 185, y + 10, { align: 'right' });
-            
+
             y += 30;
-            
+
             // Notes
             if (expense.notes) {
                 doc.setFontSize(10);
@@ -1120,7 +1244,7 @@ const ProjectApp = {
                 doc.setFont('helvetica', 'normal');
                 doc.text(expense.notes, 20, y);
             }
-            
+
             // Footer
             doc.setFillColor(...colors.light);
             doc.rect(0, 275, 210, 22, 'F');
@@ -1129,11 +1253,11 @@ const ProjectApp = {
             doc.text(`${companyName} - ${this.project.name}`, 20, 282);
             doc.text(`Generated by: ${userName} | ${new Date().toLocaleString('en-IN')}`, 20, 288);
             doc.text('Thank you for your business!', 190, 285, { align: 'right' });
-            
+
             // Save
             doc.save(`Invoice_${invoiceNo}_${expense.description.replace(/[^a-z0-9]/gi, '_').substring(0, 20)}.pdf`);
             this.showToast('Invoice generated successfully!', 'success');
-            
+
         } catch (error) {
             console.error('Invoice generation error:', error);
             this.showToast('Failed to generate invoice: ' + error.message, 'error');
@@ -1143,19 +1267,19 @@ const ProjectApp = {
     // Generate All Expense Invoices as a single PDF
     async generateAllExpenseInvoices() {
         this.showToast('Generating all invoices...', 'info');
-        
+
         try {
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF();
-            
+
             // Get all expenses
             const expenses = await Storage.expenses.getByProject(this.projectId);
-            
+
             if (!expenses || expenses.length === 0) {
                 this.showToast('No expenses to generate invoices for', 'info');
                 return;
             }
-            
+
             // Theme Colors
             const colors = {
                 primary: [47, 47, 47],
@@ -1165,7 +1289,7 @@ const ProjectApp = {
                 light: [241, 245, 249],
                 white: [255, 255, 255]
             };
-            
+
             // Get user profile data
             let companyName = 'B&B Constructions';
             let userName = 'Builder';
@@ -1185,16 +1309,16 @@ const ProjectApp = {
                     }
                 }
             } catch (e) { console.log('Using default company name'); }
-            
+
             // Cover Page
             let y = 15;
-            
+
             // Header bar
             doc.setFillColor(...colors.primary);
             doc.rect(0, 0, 210, 12, 'F');
             doc.setFillColor(...colors.secondary);
             doc.rect(0, 12, 210, 3, 'F');
-            
+
             // Company Logo
             y = 28;
             doc.setFillColor(...colors.primary);
@@ -1203,7 +1327,7 @@ const ProjectApp = {
             doc.rect(32, 20, 8, 8, 'F');
             doc.setFillColor(...colors.primary);
             doc.rect(27, 30, 8, 8, 'F');
-            
+
             // Header
             doc.setFontSize(22);
             doc.setTextColor(...colors.primary);
@@ -1215,7 +1339,7 @@ const ProjectApp = {
             doc.setFont('helvetica', 'normal');
             doc.text('Construction Management', 50, y);
             y += 20;
-            
+
             // Title
             doc.setFillColor(...colors.accent);
             doc.roundedRect(20, y, 170, 15, 3, 3, 'F');
@@ -1224,7 +1348,7 @@ const ProjectApp = {
             doc.setFont('helvetica', 'bold');
             doc.text('EXPENSE INVOICES REPORT', 105, y + 10, { align: 'center' });
             y += 25;
-            
+
             // Project Info
             doc.setFillColor(...colors.light);
             doc.roundedRect(20, y, 170, 25, 3, 3, 'F');
@@ -1241,10 +1365,10 @@ const ProjectApp = {
             doc.text(`Location: ${this.project.location}`, 25, y);
             doc.text(`Total Expenses: ${expenses.length}`, 115, y);
             y += 15;
-            
+
             // Summary Table
             const totalAmount = expenses.reduce((sum, exp) => sum + (parseFloat(exp.amount) || 0), 0);
-            
+
             doc.autoTable({
                 startY: y,
                 head: [['#', 'Description', 'Category', 'Date', 'Amount']],
@@ -1261,15 +1385,15 @@ const ProjectApp = {
                 bodyStyles: { fontSize: 9 },
                 footStyles: { fillColor: colors.secondary, textColor: colors.primary, fontStyle: 'bold' },
                 margin: { left: 20, right: 20 },
-                columnStyles: { 
+                columnStyles: {
                     0: { cellWidth: 10 },
-                    1: { cellWidth: 60 }, 
-                    2: { cellWidth: 30 }, 
+                    1: { cellWidth: 60 },
+                    2: { cellWidth: 30 },
                     3: { cellWidth: 30 },
                     4: { cellWidth: 40, halign: 'right' }
                 }
             });
-            
+
             // Footer on all pages
             const pageCount = doc.internal.getNumberOfPages();
             for (let i = 1; i <= pageCount; i++) {
@@ -1281,11 +1405,11 @@ const ProjectApp = {
                 doc.text(`${companyName} - ${this.project.name} Expenses`, 20, 291);
                 doc.text(`Generated: ${new Date().toLocaleString('en-IN')} | Page ${i} of ${pageCount}`, 190, 291, { align: 'right' });
             }
-            
+
             // Save
             doc.save(`${this.project.name.replace(/[^a-z0-9]/gi, '_')}_All_Expense_Invoices.pdf`);
             this.showToast(`Generated invoices for ${expenses.length} expenses!`, 'success');
-            
+
         } catch (error) {
             console.error('All invoices generation error:', error);
             this.showToast('Failed to generate invoices: ' + error.message, 'error');
@@ -1304,20 +1428,20 @@ const ProjectApp = {
             date: document.getElementById('expenseDate').value
         };
         this.showLoading(true);
-        
+
         // Get old amount if updating
         let oldAmount = 0;
         if (id) {
             const oldExpense = await Storage.expenses.getById(id);
             oldAmount = parseFloat(oldExpense?.amount) || 0;
         }
-        
+
         if (id) {
             await Storage.expenses.update(id, data);
         } else {
             await Storage.expenses.add(data);
         }
-        
+
         // Deduct from fund balance (or adjust if updating)
         if (window.FundManagement) {
             try {
@@ -1331,7 +1455,7 @@ const ProjectApp = {
                 console.warn('Fund balance update skipped:', err);
             }
         }
-        
+
         this.closeAllModals(); await this.renderExpenses(); await this.renderOverview(); await this.checkBudgetAlerts();
         this.showLoading(false);
         this.showToast('Expense saved', 'success');
@@ -1343,7 +1467,7 @@ const ProjectApp = {
     async renderDocuments() {
         let docs = await Storage.documents.getByProject(this.projectId);
         if (this.docFilter !== 'all') docs = docs.filter(d => d.category === this.docFilter);
-        
+
         const grid = document.getElementById('documentsGrid');
         const empty = document.getElementById('documentsEmpty');
 
@@ -1382,11 +1506,11 @@ const ProjectApp = {
             this.showToast('Please select a file to upload', 'error');
             return;
         }
-        
+
         // Allow up to 10MB files with Google Drive
-        if (file.size > 10 * 1024 * 1024) { 
-            alert('File too large! Maximum size is 10MB.'); 
-            return; 
+        if (file.size > 10 * 1024 * 1024) {
+            alert('File too large! Maximum size is 10MB.');
+            return;
         }
 
         this.showLoading(true);
@@ -1400,12 +1524,12 @@ const ProjectApp = {
                 const docCategoryEl = document.getElementById('docCategory');
                 const docDateEl = document.getElementById('docDate');
                 const docNotesEl = document.getElementById('docNotes');
-                
+
                 const docName = docNameEl?.value?.trim() || file.name;
                 const docCategory = docCategoryEl?.value || 'Other';
                 const docDate = docDateEl?.value || new Date().toISOString().split('T')[0];
                 const docNotes = docNotesEl?.value?.trim() || '';
-                
+
                 const payload = {
                     fileName: `${this.projectId}_${Date.now()}_${file.name}`,
                     mimeType: file.type,
@@ -1420,10 +1544,10 @@ const ProjectApp = {
                     },
                     body: JSON.stringify(payload)
                 });
-                
+
                 const responseText = await response.text();
                 console.log('Apps Script response:', responseText);
-                
+
                 let driveData;
                 try {
                     driveData = JSON.parse(responseText);
@@ -1445,9 +1569,9 @@ const ProjectApp = {
                         fileId: driveData.fileId,
                         viewUrl: driveData.viewUrl
                     };
-                    
+
                     await Storage.documents.add(data);
-                    this.closeAllModals(); 
+                    this.closeAllModals();
                     await this.renderDocuments();
                     this.showToast('Document uploaded to Google Drive!', 'success');
                 } else {
@@ -1472,9 +1596,9 @@ const ProjectApp = {
         if (!doc) return;
         const content = document.getElementById('previewContent');
         const title = document.getElementById('previewTitle');
-        
+
         const fileUrl = doc.viewUrl || doc.fileData;
-        
+
         if (!fileUrl) {
             content.innerHTML = `<div class="text-center text-gray-400"><i class="fas fa-exclamation-circle text-6xl mb-4"></i><p>File not found</p></div>`;
         } else if (doc.fileType?.startsWith('image/')) {
@@ -1490,7 +1614,7 @@ const ProjectApp = {
             const downloadUrl = doc.fileId ? `https://drive.google.com/uc?export=download&id=${doc.fileId}` : fileUrl;
             content.innerHTML = `<div class="text-center text-gray-400"><i class="fas fa-file-alt text-6xl mb-4"></i><p>Preview not available</p><a href="${downloadUrl}" target="_blank" class="btn-primary mt-4 inline-block">Download</a></div>`;
         }
-        
+
         title.textContent = doc.name;
         document.getElementById('previewModal').classList.add('active');
         document.getElementById('previewModal').classList.remove('hidden');
@@ -1544,8 +1668,8 @@ const ProjectApp = {
         }
 
         // Handle empty state
-        if (!floorPlans.length) { 
-            container.innerHTML = ''; 
+        if (!floorPlans.length) {
+            container.innerHTML = '';
             if (empty) {
                 empty.classList.remove('hidden');
                 // Ensure empty state has add button
@@ -1559,18 +1683,18 @@ const ProjectApp = {
                     `;
                 }
             }
-            return; 
+            return;
         }
-        
+
         if (empty) empty.classList.add('hidden');
 
         container.innerHTML = floorPlans.map((fp, index) => `
             <div class="floor-plan-card" data-index="${index}">
                 <div class="floor-plan-thumbnail" onclick="ProjectApp.viewFloorPlan(${index})">
-                    ${fp.fileType === 'pdf' 
-                        ? `<i class="fas fa-file-pdf pdf-icon"></i>` 
-                        : `<img src="${fp.dataUrl}" alt="${Utils.escapeHtml(fp.name || 'Floor Plan')}" onerror="this.parentElement.innerHTML='<i class=\\'fas fa-image text-4xl text-slate-400\\'></i>'">`
-                    }
+                    ${fp.fileType === 'pdf'
+                ? `<i class="fas fa-file-pdf pdf-icon"></i>`
+                : `<img src="${fp.dataUrl}" alt="${Utils.escapeHtml(fp.name || 'Floor Plan')}" onerror="this.parentElement.innerHTML='<i class=\\'fas fa-image text-4xl text-slate-400\\'></i>'">`
+            }
                 </div>
                 <div class="floor-plan-info">
                     <div class="floor-plan-name">${Utils.escapeHtml(fp.name || 'Untitled')}</div>
@@ -1605,7 +1729,7 @@ const ProjectApp = {
         const loading = document.getElementById('floorPlan3DLoading');
         const content = document.getElementById('floorPlanViewerContent');
         const controls = document.getElementById('floorPlan3DControls');
-        
+
         // Ensure modal elements exist
         if (!modal || !content) {
             console.error('Floor plan viewer modal elements not found');
@@ -1615,7 +1739,7 @@ const ProjectApp = {
 
         // Clean up any previous viewer
         this.cleanup3DViewer();
-        
+
         // Reset content
         content.innerHTML = `
             <canvas id="floorPlan3DCanvas" style="width: 100%; height: 100%;"></canvas>
@@ -1629,7 +1753,7 @@ const ProjectApp = {
 
         // Update title
         if (title) title.textContent = fp.name || 'Floor Plan';
-        
+
         // Show modal with .active class pattern
         modal.classList.remove('hidden');
         modal.classList.add('active');
@@ -1638,7 +1762,7 @@ const ProjectApp = {
         if (fp.fileType === 'pdf') {
             // Hide 3D controls for PDF
             if (controls) controls.style.display = 'none';
-            
+
             content.innerHTML = `
                 <iframe src="${fp.dataUrl}" style="width: 100%; height: 100%; border: none; background: white;"></iframe>
                 <div style="position: absolute; bottom: 1rem; left: 1rem; background: rgba(30, 41, 59, 0.9); border-radius: 8px; padding: 0.75rem 1rem;">
@@ -1752,8 +1876,8 @@ const ProjectApp = {
 
                 // Create plane geometry
                 const geometry = new THREE.PlaneGeometry(planeWidth, planeHeight);
-                const material = new THREE.MeshBasicMaterial({ 
-                    map: texture, 
+                const material = new THREE.MeshBasicMaterial({
+                    map: texture,
                     side: THREE.DoubleSide,
                     transparent: true
                 });
@@ -1806,7 +1930,7 @@ const ProjectApp = {
             };
             window.addEventListener('resize', handleResize);
             this.floorPlan3D.resizeHandler = handleResize;
-            
+
         } catch (error) {
             console.error('Error initializing 3D viewer:', error);
             if (loading) {
@@ -1845,10 +1969,10 @@ const ProjectApp = {
             if (isDragging) {
                 const deltaX = e.clientX - previousMousePosition.x;
                 const deltaY = e.clientY - previousMousePosition.y;
-                
+
                 spherical.theta -= deltaX * 0.01;
                 spherical.phi = Math.max(0.1, Math.min(Math.PI / 2 - 0.1, spherical.phi - deltaY * 0.01));
-                
+
                 updateCameraPosition();
             }
             if (isRightDragging && this.floorPlan3D.plane) {
@@ -1889,7 +2013,7 @@ const ProjectApp = {
             cancelAnimationFrame(this.floorPlan3D.animationId);
             this.floorPlan3D.animationId = null;
         }
-        
+
         // Dispose of Three.js objects
         if (this.floorPlan3D.plane) {
             if (this.floorPlan3D.plane.geometry) {
@@ -1902,7 +2026,7 @@ const ProjectApp = {
                 this.floorPlan3D.plane.material.dispose();
             }
         }
-        
+
         // Dispose of scene objects
         if (this.floorPlan3D.scene) {
             this.floorPlan3D.scene.traverse((object) => {
@@ -1916,18 +2040,18 @@ const ProjectApp = {
                 }
             });
         }
-        
+
         // Dispose of renderer
         if (this.floorPlan3D.renderer) {
             this.floorPlan3D.renderer.dispose();
             this.floorPlan3D.renderer.forceContextLoss();
         }
-        
+
         // Remove resize handler
         if (this.floorPlan3D.resizeHandler) {
             window.removeEventListener('resize', this.floorPlan3D.resizeHandler);
         }
-        
+
         // Reset state
         this.floorPlan3D = {
             scene: null,
@@ -1974,9 +2098,9 @@ const ProjectApp = {
 
     toggle3DMode() {
         if (!this.floorPlan3D.plane || !this.floorPlan3D.spherical || !this.floorPlan3D.updateCameraPosition) return;
-        
+
         this.floorPlan3D.is3DMode = !this.floorPlan3D.is3DMode;
-        
+
         if (this.floorPlan3D.is3DMode) {
             // 3D perspective view
             this.floorPlan3D.spherical = { theta: Math.PI / 4, phi: Math.PI / 3, radius: 8 };
@@ -1985,7 +2109,7 @@ const ProjectApp = {
             this.floorPlan3D.spherical = { theta: 0, phi: 0.01, radius: 10 };
         }
         this.floorPlan3D.updateCameraPosition();
-        
+
         // Update button icon
         const btn = document.getElementById('floorPlanToggle3D');
         if (btn) {
@@ -2007,10 +2131,10 @@ const ProjectApp = {
 
     async deleteFloorPlan(index) {
         if (!confirm('Delete this floor plan?')) return;
-        
+
         const floorPlans = this.project?.floorPlans || [];
         floorPlans.splice(index, 1);
-        
+
         this.showLoading(true);
         await Storage.projects.update(this.projectId, { floorPlans });
         this.project.floorPlans = floorPlans;
@@ -2021,36 +2145,36 @@ const ProjectApp = {
 
     async handleFloorPlanSubmit(e) {
         e.preventDefault();
-        
+
         const name = document.getElementById('floorPlanName')?.value?.trim();
         const typeSelect = document.getElementById('floorPlanType');
         const type = typeSelect?.value || 'Floor Plan';
         const descriptionInput = document.getElementById('floorPlanDescription');
         const description = descriptionInput?.value?.trim() || '';
         const fileInput = document.getElementById('floorPlanFile');
-        
+
         if (!name) {
             this.showToast('Please enter a floor plan name', 'error');
             return;
         }
-        
+
         if (!fileInput?.files?.length) {
             this.showToast('Please select a file', 'error');
             return;
         }
 
         const file = fileInput.files[0];
-        
+
         // Validate file type - only PNG, JPG, PDF allowed
         const allowedTypes = ['image/png', 'image/jpeg', 'image/jpg', 'application/pdf'];
         const fileExtension = file.name.split('.').pop().toLowerCase();
         const allowedExtensions = ['png', 'jpg', 'jpeg', 'pdf'];
-        
+
         if (!allowedTypes.includes(file.type) && !allowedExtensions.includes(fileExtension)) {
             this.showToast('Invalid file type. Only PNG, JPG, and PDF files are allowed.', 'error');
             return;
         }
-        
+
         // Validate file size - max 10MB
         const maxSize = 10 * 1024 * 1024; // 10MB
         if (file.size > maxSize) {
@@ -2107,19 +2231,19 @@ const ProjectApp = {
         const modal = document.getElementById('floorPlanModal');
         const typeSelect = document.getElementById('floorPlanType');
         const descriptionInput = document.getElementById('floorPlanDescription');
-        
+
         // Reset form if it exists
         if (form) form.reset();
-        
+
         // Reset type to default
         if (typeSelect) typeSelect.value = 'Floor Plan';
-        
+
         // Clear description
         if (descriptionInput) descriptionInput.value = '';
-        
+
         // Hide preview
         if (preview) preview.classList.add('hidden');
-        
+
         // Show modal with .active class pattern
         if (modal) {
             modal.classList.remove('hidden');
@@ -2133,14 +2257,14 @@ const ProjectApp = {
 
         const preview = document.getElementById('floorPlanPreview');
         const content = document.getElementById('floorPlanPreviewContent');
-        
+
         if (!preview || !content) return;
 
         // Validate file type
         const allowedTypes = ['image/png', 'image/jpeg', 'image/jpg', 'application/pdf'];
         const fileExtension = file.name.split('.').pop().toLowerCase();
         const allowedExtensions = ['png', 'jpg', 'jpeg', 'pdf'];
-        
+
         if (!allowedTypes.includes(file.type) && !allowedExtensions.includes(fileExtension)) {
             content.innerHTML = `
                 <div class="text-center p-4 bg-red-50 rounded-lg">
@@ -2152,7 +2276,7 @@ const ProjectApp = {
             preview.classList.remove('hidden');
             return;
         }
-        
+
         // Validate file size
         const maxSize = 10 * 1024 * 1024; // 10MB
         if (file.size > maxSize) {
@@ -2221,12 +2345,12 @@ const ProjectApp = {
             method: document.getElementById('clientPaymentMethod').value,
             notes: document.getElementById('clientPaymentNotes').value.trim()
         };
-        
+
         this.showLoading(true);
-        
+
         try {
             let paymentId;
-            
+
             if (id) {
                 // Update existing payment
                 await Storage.clientPayments.update(id, data);
@@ -2235,7 +2359,7 @@ const ProjectApp = {
                 // Add new payment
                 const newPayment = await Storage.clientPayments.add(data);
                 paymentId = newPayment?.id || newPayment;
-                
+
                 // Auto-allocate to fund management system
                 if (window.FundManagement && paymentId && typeof paymentId === 'string') {
                     try {
@@ -2254,7 +2378,7 @@ const ProjectApp = {
                             `Auto-allocated single project payment. ${data.notes || ''}`.trim(),
                             paymentId // Pass the payment ID for linking
                         );
-                        
+
                         console.log(`Auto-allocated payment of ₹${data.amount} to project ${this.projectId}`);
                     } catch (fundError) {
                         console.error('Error auto-allocating payment to fund management:', fundError);
@@ -2263,12 +2387,12 @@ const ProjectApp = {
                     }
                 }
             }
-            
-            this.closeAllModals(); 
+
+            this.closeAllModals();
             await this.renderSummary();
             this.showLoading(false);
             this.showToast('Client payment recorded and auto-allocated to project funds', 'success');
-            
+
         } catch (error) {
             this.showLoading(false);
             console.error('Error recording client payment:', error);
@@ -2285,13 +2409,13 @@ const ProjectApp = {
         // Add null checks for all elements (clientTotalBudget doesn't exist in HTML)
         const receivedEl = document.getElementById('clientTotalReceived');
         const pendingEl = document.getElementById('clientTotalPending');
-        
+
         if (receivedEl) receivedEl.textContent = `₹${Utils.formatNumber(totalReceived)}`;
         if (pendingEl) pendingEl.textContent = `₹${Utils.formatNumber(Math.max(0, pending))}`;
 
         const list = document.getElementById('clientPaymentsList');
         if (!list) return; // Exit if element doesn't exist
-        
+
         if (!payments.length) {
             list.innerHTML = '<p class="text-xs text-slate-500 text-center py-2">No payments received yet</p>';
             return;
@@ -2304,10 +2428,10 @@ const ProjectApp = {
         payments.sort((a, b) => new Date(b.date) - new Date(a.date));
         list.innerHTML = payments.map(p => {
             const isAllocated = allocatedPaymentIds.has(p.id);
-            const allocationBadge = isAllocated 
+            const allocationBadge = isAllocated
                 ? '<span class="inline-block px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full font-medium ml-2">✓ Fund Allocated</span>'
                 : '<span class="inline-block px-2 py-1 bg-yellow-100 text-yellow-800 text-xs rounded-full font-medium ml-2">⚠ Not Allocated</span>';
-            
+
             return `
                 <div class="flex justify-between items-center p-2 bg-white rounded border border-sky-200">
                     <div class="flex-1">
@@ -2329,11 +2453,11 @@ const ProjectApp = {
     async deleteClientPayment(id) {
         if (confirm('Delete this payment record? This will also remove any fund allocations.')) {
             this.showLoading(true);
-            
+
             try {
                 // Check if this payment has fund allocations
                 const allocations = await Storage.paymentAllocations.getByPayment(id);
-                
+
                 if (allocations.length > 0) {
                     // Remove fund allocations and update virtual wallets
                     for (const allocation of allocations) {
@@ -2345,18 +2469,18 @@ const ProjectApp = {
                                 advanceReceived: (wallet.advanceReceived || 0) - allocation.amount
                             });
                         }
-                        
+
                         // Delete the allocation record
                         await Storage.paymentAllocations.delete(allocation.id);
                     }
                 }
-                
+
                 // Delete the payment
                 await Storage.clientPayments.delete(id);
                 await this.renderSummary();
                 this.showLoading(false);
                 this.showToast('Payment and fund allocations deleted', 'success');
-                
+
             } catch (error) {
                 this.showLoading(false);
                 console.error('Error deleting payment:', error);
@@ -2368,13 +2492,13 @@ const ProjectApp = {
     // Summary
     async renderSummary() {
         await this.renderClientPayments();
-        
+
         const budget = await this.getEffectiveBudget();
         const spent = await this.calculateTotalSpent();
-        
+
         // Use FinancialCalculator for precise arithmetic
         const balance = FinancialCalculator.subtract(budget, spent);
-        
+
         // Use FinancialCalculator for budget health calculation
         const health = FinancialCalculator.getBudgetHealth(spent, budget);
 
@@ -2384,7 +2508,7 @@ const ProjectApp = {
         const summaryBalanceEl = document.getElementById('summaryBalance');
         const summaryPercentEl = document.getElementById('summaryPercent');
         const healthIndicatorEl = document.getElementById('healthIndicator');
-        
+
         if (summaryBudgetEl) summaryBudgetEl.textContent = FinancialCalculator.formatCurrencyWithSymbol(budget);
         if (summarySpentEl) summarySpentEl.textContent = FinancialCalculator.formatCurrencyWithSymbol(spent);
         if (summaryBalanceEl) summaryBalanceEl.textContent = FinancialCalculator.formatCurrencyWithSymbol(Math.abs(balance));
@@ -2395,7 +2519,7 @@ const ProjectApp = {
         const card = document.getElementById('summaryBalanceCard');
         if (card) {
             const balanceLabel = card.querySelector('p:first-child');
-            
+
             if (health.isOverBudget) {
                 // Over budget - show danger styling with visual warning
                 card.className = 'summary-card danger';
@@ -2418,7 +2542,7 @@ const ProjectApp = {
                 card.style.animation = '';
             }
         }
-        
+
         await this.renderCharts();
     },
 
@@ -2448,11 +2572,11 @@ const ProjectApp = {
         const budget = await this.getEffectiveBudget();
         const spent = await this.calculateTotalSpent();
         const health = FinancialCalculator.getBudgetHealth(spent, budget);
-        
+
         this.charts.budget = new Chart(document.getElementById('budgetChart'), {
             type: 'bar',
             data: { labels: ['Budget', 'Spent'], datasets: [{ data: [budget, spent], backgroundColor: ['#3B82F6', health.isOverBudget ? '#DC2626' : '#F7B500'], borderRadius: 8 }] },
-            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { ticks: { color: '#9CA3AF', callback: v => '₹' + (v/1000) + 'K' }, grid: { color: '#3a3a3a' } }, x: { ticks: { color: '#9CA3AF' }, grid: { display: false } } } }
+            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { ticks: { color: '#9CA3AF', callback: v => '₹' + (v / 1000) + 'K' }, grid: { color: '#3a3a3a' } }, x: { ticks: { color: '#9CA3AF' }, grid: { display: false } } } }
         });
     },
 
@@ -2471,21 +2595,21 @@ const ProjectApp = {
             document.getElementById('materialPaidAmount').value = '0';
             document.getElementById('materialTotalDisplay').classList.add('hidden');
             document.getElementById('materialBalanceDisplay').classList.add('hidden');
-            
+
             const updateMaterialCalculation = () => {
                 const qty = parseFloat(document.getElementById('materialQty').value) || 0;
                 const rate = parseFloat(document.getElementById('materialRate').value) || 0;
                 const paid = parseFloat(document.getElementById('materialPaidAmount').value) || 0;
                 const total = qty * rate;
                 const balance = total - paid;
-                
+
                 if (total > 0) {
                     document.getElementById('materialTotalDisplay').classList.remove('hidden');
                     document.getElementById('materialTotalAmount').textContent = `₹${Utils.formatNumber(total)}`;
                 } else {
                     document.getElementById('materialTotalDisplay').classList.add('hidden');
                 }
-                
+
                 if (paid > 0 || total > 0) {
                     document.getElementById('materialBalanceDisplay').classList.remove('hidden');
                     document.getElementById('materialPaidDisplay').textContent = `₹${Utils.formatNumber(paid)}`;
@@ -2494,11 +2618,11 @@ const ProjectApp = {
                     document.getElementById('materialBalanceDisplay').classList.add('hidden');
                 }
             };
-            
+
             document.getElementById('materialQty').addEventListener('input', updateMaterialCalculation);
             document.getElementById('materialRate').addEventListener('input', updateMaterialCalculation);
             document.getElementById('materialPaidAmount').addEventListener('input', updateMaterialCalculation);
-            
+
             if (id) {
                 const materials = await Storage.materials.getByProject(this.projectId);
                 const m = materials.find(mat => mat.id === id);
@@ -2529,7 +2653,7 @@ const ProjectApp = {
             const overtimeRateEl = document.getElementById('overtimeRate');
             const newWorkerFieldsEl = document.getElementById('newWorkerFields');
             const workerSelectEl = document.getElementById('workerSelect');
-            
+
             if (labourIdEl) labourIdEl.value = '';
             if (workerIdEl) workerIdEl.value = '';
             if (startDateEl) startDateEl.value = today;
@@ -2539,13 +2663,13 @@ const ProjectApp = {
             if (dailyWageEl) dailyWageEl.value = '';
             if (overtimeRateEl) overtimeRateEl.value = '';
             if (newWorkerFieldsEl) newWorkerFieldsEl.style.display = 'block';
-            
+
             // Load workers dropdown
             if (window.WorkerManagement) {
                 await window.WorkerManagement.loadWorkerDropdown();
             }
             if (workerSelectEl) workerSelectEl.value = '';
-            
+
             if (id) {
                 // Edit existing assignment
                 const assignments = await Storage.workerAssignments.getByProject(this.projectId);
@@ -2564,18 +2688,18 @@ const ProjectApp = {
                     if (endDateEl) endDateEl.value = assignment.endDate || '';
                     if (newWorkerFieldsEl) newWorkerFieldsEl.style.display = 'none';
                 }
-            } else { 
+            } else {
                 const titleEl = document.getElementById('labourModalTitle');
-                if (titleEl) titleEl.textContent = 'Add Worker'; 
+                if (titleEl) titleEl.textContent = 'Add Worker';
             }
         } else if (type === 'vendor') {
             document.getElementById('vendorId').value = '';
-            
+
             // Populate vendor dropdowns
             if (window.VendorManagement) {
                 window.VendorManagement.populateVendorDropdowns();
             }
-            
+
             if (id) {
                 const vendors = await Storage.vendors.getByProject(this.projectId);
                 const vendor = vendors.find(v => v.id === id);
@@ -2588,8 +2712,8 @@ const ProjectApp = {
                     document.getElementById('vendorWorkDescription').value = vendor.workDescription;
                     document.getElementById('vendorAgreedCost').value = vendor.agreedCost;
                 }
-            } else { 
-                document.getElementById('vendorModalTitle').textContent = 'Add Vendor'; 
+            } else {
+                document.getElementById('vendorModalTitle').textContent = 'Add Vendor';
             }
         } else if (type === 'expense') {
             document.getElementById('expenseId').value = '';
@@ -2648,7 +2772,7 @@ const ProjectApp = {
     closeAllModals() {
         // Clean up 3D viewer if it's active
         this.cleanup3DViewer();
-        
+
         // Close all modal overlays
         document.querySelectorAll('.modal-overlay').forEach(m => {
             m.classList.add('hidden');
@@ -2753,25 +2877,25 @@ const ProjectApp = {
         const vendors = await Storage.vendors.getByProject(this.projectId);
         let text = `*${this.project.name} - Vendors*\n\n`;
         let totalCost = 0, totalPaid = 0;
-        
+
         for (const v of vendors) {
             const payments = await Storage.vendorPayments.getByVendorAndProject(v.id, this.projectId);
             const paidAmount = payments.reduce((sum, p) => sum + parseFloat(p.amount), 0);
             const balance = Math.max(0, v.agreedCost - paidAmount);
-            
+
             totalCost += v.agreedCost;
             totalPaid += paidAmount;
-            
+
             text += `• ${v.name} (${v.serviceType}): ₹${Utils.formatNumber(v.agreedCost)} - Paid: ₹${Utils.formatNumber(paidAmount)} - Balance: ₹${Utils.formatNumber(balance)}\n`;
         }
-        
+
         const totalBalance = Math.max(0, totalCost - totalPaid);
         text += `\n*Total Cost: ₹${Utils.formatNumber(totalCost)}*\n*Total Paid: ₹${Utils.formatNumber(totalPaid)}*\n*Total Balance: ₹${Utils.formatNumber(totalBalance)}*\n\n- Maviya Constructions`;
         Utils.shareToWhatsApp(text);
     },
 
     // ===== WORKER MANAGEMENT FUNCTIONS =====
-    
+
     async openAttendanceSheet() {
         console.log('openAttendanceSheet called, WorkerManagement:', !!window.WorkerManagement);
         if (window.WorkerManagement) {
@@ -2857,13 +2981,13 @@ const ProjectApp = {
             Storage.expenses.getByProject(this.projectId),
             Storage.vendors.getByProject(this.projectId)
         ]);
-        
+
         // Calculate each category using FinancialCalculator
         const materialCost = this.calculateMaterialCost(materials);
         const labourCost = this.calculateLabourCost(labour);
         const expenseCost = this.calculateExpenseCost(expenses);
         const vendorCost = this.calculateVendorCost(vendors);
-        
+
         // Combine: Sum all costs using FinancialCalculator
         return FinancialCalculator.sum([materialCost, labourCost, expenseCost, vendorCost]);
     },
@@ -2876,7 +3000,7 @@ const ProjectApp = {
      */
     calculateMaterialCost(materials) {
         if (!Array.isArray(materials)) return 0;
-        
+
         // Calculate used materials cost
         const usedCost = materials
             .filter(m => m.status === 'used')
@@ -2887,7 +3011,7 @@ const ProjectApp = {
                 );
                 return FinancialCalculator.add(sum, itemCost);
             }, 0);
-        
+
         // Calculate recovered materials cost
         const recoveredCost = materials
             .filter(m => m.status === 'recovered')
@@ -2898,7 +3022,7 @@ const ProjectApp = {
                 );
                 return FinancialCalculator.add(sum, itemCost);
             }, 0);
-        
+
         // Net cost = used - recovered (can be negative if more recovered)
         const netCost = FinancialCalculator.subtract(usedCost, recoveredCost);
         return Math.max(0, netCost);
@@ -2912,14 +3036,14 @@ const ProjectApp = {
      */
     calculateLabourCost(labour) {
         if (!Array.isArray(labour)) return 0;
-        
+
         return labour.reduce((sum, l) => {
             // If totalAmount is set, use it directly
             const totalAmount = parseFloat(l.totalAmount) || 0;
             if (totalAmount > 0) {
                 return FinancialCalculator.add(sum, totalAmount);
             }
-            
+
             // Otherwise calculate: (dailyWage × daysWorked) + (overtimeRate × overtimeHours)
             const basePay = FinancialCalculator.multiply(
                 parseFloat(l.dailyWage) || 0,
@@ -2941,7 +3065,7 @@ const ProjectApp = {
      */
     calculateExpenseCost(expenses) {
         if (!Array.isArray(expenses)) return 0;
-        
+
         return expenses.reduce((sum, e) => {
             return FinancialCalculator.add(sum, parseFloat(e.amount) || 0);
         }, 0);
@@ -2954,7 +3078,7 @@ const ProjectApp = {
      */
     calculateVendorCost(vendors) {
         if (!Array.isArray(vendors)) return 0;
-        
+
         return vendors.reduce((sum, v) => {
             return FinancialCalculator.add(sum, parseFloat(v.agreedCost) || 0);
         }, 0);
@@ -2976,7 +3100,7 @@ const ProjectApp = {
     },
 
     // ===== FUND MANAGEMENT INTEGRATION =====
-    
+
     /**
      * Render Fund Status tab with proper error handling and FinancialCalculator formatting
      * Requirements: 8.1, 8.2, 8.4
@@ -2990,7 +3114,7 @@ const ProjectApp = {
                 container.innerHTML = '<div class="flex items-center justify-center py-4"><i class="fas fa-spinner fa-spin text-sky-500 mr-2"></i><span class="text-slate-500 text-sm">Loading...</span></div>';
             }
         });
-        
+
         // Helper to safely set element text with zero fallback
         const setElementValue = (elementId, value, isNegativeAllowed = false) => {
             const el = document.getElementById(elementId);
@@ -3004,7 +3128,7 @@ const ProjectApp = {
             setElementValue('loansGiven', 0);
             setElementValue('loansReceived', 0);
             setElementValue('netAvailable', 0);
-            
+
             // Reset net available styling
             const netAvailableEl = document.getElementById('netAvailable');
             if (netAvailableEl) {
@@ -3017,11 +3141,11 @@ const ProjectApp = {
             // Handle missing FundManagement module gracefully (Requirement 8.2)
             // Check both window.FundManagement and imported FundManagement
             const fundMgmt = window.FundManagement || FundManagement;
-            
+
             if (!fundMgmt) {
                 console.warn('FundManagement module not loaded - displaying zero values');
                 setZeroValues();
-                
+
                 // Clear sub-containers with appropriate messages
                 containers.forEach(id => {
                     const container = document.getElementById(id);
@@ -3035,30 +3159,30 @@ const ProjectApp = {
             // Get OVERALL fund status (single bank account across all projects)
             const overallStatus = await fundMgmt.getOverallFundStatus();
             console.log('Overall Fund Status:', overallStatus);
-            
+
             // Get project-specific data for loans
             const fundSummary = await fundMgmt.getProjectFinancialSummary(this.projectId);
             console.log('Project Fund Summary:', fundSummary);
-            
+
             // Total Virtual Balance = Total money received across ALL projects (single bank account)
             const totalVirtualBalance = FinancialCalculator.parseAmount(overallStatus.totalVirtualBalance);
-            
+
             // Total Spent across ALL projects
             const totalSpentAllProjects = FinancialCalculator.parseAmount(overallStatus.totalSpent);
-            
+
             // Project-specific loans
             const loansGiven = FinancialCalculator.parseAmount(fundSummary.activeLoansGiven);
             const loansReceived = FinancialCalculator.parseAmount(fundSummary.activeLoansReceived);
-            
+
             // Net Available = Total bank balance - Total spent across all projects
             const netAvailable = FinancialCalculator.subtract(totalVirtualBalance, totalSpentAllProjects);
-            
+
             // Update virtual wallet metrics - show GLOBAL balance (single bank account)
             setElementValue('virtualBalance', totalVirtualBalance);
             setElementValue('loansGiven', loansGiven);
             setElementValue('loansReceived', loansReceived);
             setElementValue('netAvailable', netAvailable);
-            
+
             // Color code net available based on positive/negative value (Requirement 8.4)
             const netAvailableEl = document.getElementById('netAvailable');
             if (netAvailableEl) {
@@ -3073,21 +3197,21 @@ const ProjectApp = {
 
             // Render payment allocations (Requirement 8.5)
             await this.renderPaymentAllocations();
-            
+
             // Render loans given (Requirement 8.3)
             await this.renderLoansGiven();
-            
+
             // Render loans received (Requirement 8.3)
             await this.renderLoansReceived();
-            
+
             // Render cross-project expenses
             await this.renderCrossProjectExpenses();
-            
+
         } catch (error) {
             console.error('Error rendering fund status:', error);
             // Display zero values on error (Requirement 8.2)
             setZeroValues();
-            
+
             // Show error message in containers
             containers.forEach(id => {
                 const container = document.getElementById(id);
@@ -3106,18 +3230,18 @@ const ProjectApp = {
         if (!confirm('This will recalculate the wallet balance based on actual payment allocations. Continue?')) {
             return;
         }
-        
+
         this.showToast('Recalculating wallet...', 'info');
-        
+
         try {
             const fundMgmt = window.FundManagement || FundManagement;
-            
+
             if (!fundMgmt || !fundMgmt.recalculateProjectWallet) {
                 throw new Error('Fund Management module not available');
             }
-            
+
             const result = await fundMgmt.recalculateProjectWallet(this.projectId);
-            
+
             if (result.success) {
                 this.showToast('Wallet recalculated successfully!', 'success');
                 // Refresh the fund status display
@@ -3143,10 +3267,10 @@ const ProjectApp = {
     async renderPaymentAllocations() {
         const container = document.getElementById('paymentAllocationsContainer');
         if (!container) return;
-        
+
         try {
             const allocations = await Storage.paymentAllocations.getByProject(this.projectId);
-            
+
             // Handle empty state (Requirement 8.5)
             if (!allocations || !allocations.length) {
                 container.innerHTML = `
@@ -3157,10 +3281,10 @@ const ProjectApp = {
                 `;
                 return;
             }
-            
+
             // Sort by date (newest first) (Requirement 8.5)
             const sortedAllocations = [...allocations].sort((a, b) => new Date(b.date) - new Date(a.date));
-            
+
             const items = await Promise.all(sortedAllocations.map(async (allocation) => {
                 // Get the original payment details
                 let paymentInfo = '';
@@ -3176,10 +3300,10 @@ const ProjectApp = {
                 } catch (e) {
                     // Payment may have been deleted
                 }
-                
+
                 // Use FinancialCalculator for formatting
                 const formattedAmount = FinancialCalculator.formatCurrencyWithSymbol(allocation.amount);
-                
+
                 return `
                     <div class="flex justify-between items-center p-3 bg-emerald-50 rounded-lg border border-emerald-200 hover:bg-emerald-100 transition-colors">
                         <div>
@@ -3194,9 +3318,9 @@ const ProjectApp = {
                     </div>
                 `;
             }));
-            
+
             container.innerHTML = items.join('');
-            
+
         } catch (error) {
             console.error('Error rendering payment allocations:', error);
             container.innerHTML = '<p class="text-rose-500 text-sm">Error loading payment allocations</p>';
@@ -3212,13 +3336,13 @@ const ProjectApp = {
     async renderLoansGiven() {
         const container = document.getElementById('loansGivenContainer');
         if (!container) return;
-        
+
         try {
             const loansGiven = await Storage.crossProjectTransactions.getByLender(this.projectId);
-            
+
             // Filter to show only active (unsettled) loans (Requirement 8.3)
             const activeLoans = (loansGiven || []).filter(loan => loan && loan.status === 'active');
-            
+
             // Handle empty state
             if (!activeLoans.length) {
                 container.innerHTML = `
@@ -3229,10 +3353,10 @@ const ProjectApp = {
                 `;
                 return;
             }
-            
+
             // Sort by date (oldest first - FIFO order)
             const sortedLoans = [...activeLoans].sort((a, b) => new Date(a.date) - new Date(b.date));
-            
+
             const items = await Promise.all(sortedLoans.map(async (loan) => {
                 let borrowerName = 'Unknown Project';
                 try {
@@ -3243,19 +3367,19 @@ const ProjectApp = {
                 } catch (e) {
                     // Project may have been deleted
                 }
-                
+
                 // Calculate outstanding balance, not original amount (Requirement 8.3)
                 const outstandingBalance = FinancialCalculator.calculateOutstandingBalance(
-                    loan.amount, 
+                    loan.amount,
                     loan.settlementAmount || 0
                 );
                 const formattedBalance = FinancialCalculator.formatCurrencyWithSymbol(outstandingBalance);
                 const formattedOriginal = FinancialCalculator.formatCurrencyWithSymbol(loan.amount);
-                
+
                 // Show settlement progress if partially settled
                 const settlementAmount = FinancialCalculator.parseAmount(loan.settlementAmount || 0);
                 const hasPartialSettlement = settlementAmount > 0;
-                
+
                 return `
                     <div class="flex justify-between items-center p-3 bg-amber-50 rounded-lg border border-amber-200 hover:bg-amber-100 transition-colors">
                         <div>
@@ -3272,9 +3396,9 @@ const ProjectApp = {
                     </div>
                 `;
             }));
-            
+
             container.innerHTML = items.join('');
-            
+
         } catch (error) {
             console.error('Error rendering loans given:', error);
             container.innerHTML = '<p class="text-rose-500 text-sm">Error loading loans given</p>';
@@ -3290,13 +3414,13 @@ const ProjectApp = {
     async renderLoansReceived() {
         const container = document.getElementById('loansReceivedContainer');
         if (!container) return;
-        
+
         try {
             const loansReceived = await Storage.crossProjectTransactions.getByBorrower(this.projectId);
-            
+
             // Filter to show only active (unsettled) loans (Requirement 8.3)
             const activeLoans = (loansReceived || []).filter(loan => loan && loan.status === 'active');
-            
+
             // Handle empty state
             if (!activeLoans.length) {
                 container.innerHTML = `
@@ -3307,10 +3431,10 @@ const ProjectApp = {
                 `;
                 return;
             }
-            
+
             // Sort by date (oldest first - FIFO order for settlement priority)
             const sortedLoans = [...activeLoans].sort((a, b) => new Date(a.date) - new Date(b.date));
-            
+
             const items = await Promise.all(sortedLoans.map(async (loan) => {
                 let lenderName = 'Unknown Project';
                 try {
@@ -3321,19 +3445,19 @@ const ProjectApp = {
                 } catch (e) {
                     // Project may have been deleted
                 }
-                
+
                 // Calculate outstanding balance, not original amount (Requirement 8.3)
                 const outstandingBalance = FinancialCalculator.calculateOutstandingBalance(
-                    loan.amount, 
+                    loan.amount,
                     loan.settlementAmount || 0
                 );
                 const formattedBalance = FinancialCalculator.formatCurrencyWithSymbol(outstandingBalance);
                 const formattedOriginal = FinancialCalculator.formatCurrencyWithSymbol(loan.amount);
-                
+
                 // Show settlement progress if partially settled
                 const settlementAmount = FinancialCalculator.parseAmount(loan.settlementAmount || 0);
                 const hasPartialSettlement = settlementAmount > 0;
-                
+
                 return `
                     <div class="flex justify-between items-center p-3 bg-rose-50 rounded-lg border border-rose-200 hover:bg-rose-100 transition-colors">
                         <div>
@@ -3350,9 +3474,9 @@ const ProjectApp = {
                     </div>
                 `;
             }));
-            
+
             container.innerHTML = items.join('');
-            
+
         } catch (error) {
             console.error('Error rendering loans received:', error);
             container.innerHTML = '<p class="text-rose-500 text-sm">Error loading loans received</p>';
@@ -3365,7 +3489,7 @@ const ProjectApp = {
     async renderCrossProjectExpenses() {
         const container = document.getElementById('crossProjectExpensesContainer');
         if (!container) return;
-        
+
         try {
             // Get all materials, labour, and expenses that were paid via cross-project
             const [materials, labour, expenses] = await Promise.all([
@@ -3373,13 +3497,13 @@ const ProjectApp = {
                 Storage.labour.getByProject(this.projectId).catch(() => []),
                 Storage.expenses.getByProject(this.projectId).catch(() => [])
             ]);
-            
+
             const crossProjectItems = [
                 ...(materials || []).filter(m => m && m.paidViaCrossProject),
                 ...(labour || []).filter(l => l && l.paidViaCrossProject),
                 ...(expenses || []).filter(e => e && e.paidViaCrossProject)
             ];
-            
+
             // Handle empty state
             if (!crossProjectItems.length) {
                 container.innerHTML = `
@@ -3390,10 +3514,10 @@ const ProjectApp = {
                 `;
                 return;
             }
-            
+
             // Sort by date (newest first)
             crossProjectItems.sort((a, b) => new Date(b.date) - new Date(a.date));
-            
+
             const items = crossProjectItems.map(item => {
                 // Calculate amount using FinancialCalculator
                 let amount = 0;
@@ -3404,11 +3528,11 @@ const ProjectApp = {
                 } else if (item.totalAmount) {
                     amount = FinancialCalculator.parseAmount(item.totalAmount);
                 }
-                
+
                 const formattedAmount = FinancialCalculator.formatCurrencyWithSymbol(amount);
                 const description = item.name || item.description || (item.workerName ? `${item.workerName} (${item.role})` : 'Unknown');
                 const type = item.name ? 'Material' : item.workerName ? 'Labour' : 'Expense';
-                
+
                 return `
                     <div class="flex justify-between items-center p-3 bg-violet-50 rounded-lg border border-violet-200 hover:bg-violet-100 transition-colors">
                         <div>
@@ -3423,9 +3547,9 @@ const ProjectApp = {
                     </div>
                 `;
             });
-            
+
             container.innerHTML = items.join('');
-            
+
         } catch (error) {
             console.error('Error rendering cross-project expenses:', error);
             container.innerHTML = '<p class="text-rose-500 text-sm">Error loading cross-project expenses</p>';
@@ -3435,11 +3559,11 @@ const ProjectApp = {
     // Generate Fund Status PDF for this project
     async generateFundStatusPDF() {
         this.showToast('Generating fund status PDF...', 'info');
-        
+
         try {
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF();
-            
+
             // Theme Colors (B&B Construction Theme)
             const colors = {
                 primary: [47, 47, 47],
@@ -3453,7 +3577,7 @@ const ProjectApp = {
                 light: [241, 245, 249],
                 white: [255, 255, 255]
             };
-            
+
             if (!window.FundManagement) {
                 throw new Error('Fund Management module not loaded');
             }
@@ -3481,15 +3605,15 @@ const ProjectApp = {
             // Get fund summary
             const fundSummary = await FundManagement.getProjectFinancialSummary(this.projectId);
             const project = this.project;
-            
+
             let y = 15;
-            
+
             // Header bar with B&B theme
             doc.setFillColor(...colors.primary);
             doc.rect(0, 0, 210, 12, 'F');
             doc.setFillColor(...colors.secondary);
             doc.rect(0, 12, 210, 3, 'F');
-            
+
             // Company Logo - B&B brick pattern
             y = 28;
             doc.setFillColor(...colors.primary);
@@ -3498,7 +3622,7 @@ const ProjectApp = {
             doc.rect(32, 20, 8, 8, 'F');
             doc.setFillColor(...colors.primary);
             doc.rect(27, 30, 8, 8, 'F');
-            
+
             // Header
             doc.setFontSize(20);
             doc.setTextColor(...colors.primary);
@@ -3512,7 +3636,7 @@ const ProjectApp = {
             doc.setTextColor(100, 100, 100);
             doc.text(`Generated by: ${userName}`, 50, 37);
             y = 48;
-            
+
             // Title Box
             doc.setFillColor(...colors.accent);
             doc.roundedRect(20, y, 170, 12, 3, 3, 'F');
@@ -3521,7 +3645,7 @@ const ProjectApp = {
             doc.setFont('helvetica', 'bold');
             doc.text('FUND MANAGEMENT STATUS REPORT', 105, y + 8, { align: 'center' });
             y += 20;
-            
+
             // Project Info Box
             doc.setFillColor(...colors.secondary);
             doc.roundedRect(20, y, 170, 10, 2, 2, 'F');
@@ -3529,7 +3653,7 @@ const ProjectApp = {
             doc.setTextColor(...colors.primary);
             doc.text(project.name, 105, y + 7, { align: 'center' });
             y += 15;
-            
+
             // Project Details Card
             doc.setFillColor(...colors.light);
             doc.roundedRect(20, y, 170, 18, 2, 2, 'F');
@@ -3543,7 +3667,7 @@ const ProjectApp = {
             doc.text(`Status: ${project.status}`, 25, y);
             doc.text(`Generated: ${new Date().toLocaleDateString('en-IN')}`, 115, y);
             y += 15;
-            
+
             // Virtual Wallet Summary
             doc.setFillColor(...colors.accent);
             doc.roundedRect(20, y, 170, 8, 2, 2, 'F');
@@ -3551,11 +3675,11 @@ const ProjectApp = {
             doc.setTextColor(...colors.white);
             doc.text('VIRTUAL WALLET SUMMARY', 105, y + 6, { align: 'center' });
             y += 12;
-            
+
             doc.setFillColor(...colors.light);
             doc.roundedRect(20, y, 170, 28, 2, 2, 'F');
             y += 8;
-            
+
             doc.setFontSize(9);
             doc.setTextColor(...colors.dark);
             const col1 = 30, col2 = 115;
@@ -3586,7 +3710,7 @@ const ProjectApp = {
             doc.setFontSize(10);
             doc.text(`Rs. ${Utils.formatNumber(fundSummary.netAvailableBalance)}`, col1 + 40, y);
             y += 18;
-            
+
             // Payment Allocations
             const allocations = await Storage.paymentAllocations.getByProject(this.projectId);
             if (allocations.length > 0) {
@@ -3596,7 +3720,7 @@ const ProjectApp = {
                 doc.setTextColor(...colors.white);
                 doc.text('PAYMENT ALLOCATIONS RECEIVED', 30, y + 6);
                 y += 12;
-                
+
                 const allocationData = await Promise.all(allocations.map(async (alloc) => {
                     let paymentFrom = 'N/A';
                     if (alloc.paymentId && typeof alloc.paymentId === 'string') {
@@ -3610,7 +3734,7 @@ const ProjectApp = {
                         alloc.description || 'Payment allocation'
                     ];
                 }));
-                
+
                 doc.autoTable({
                     startY: y,
                     head: [['Date', 'From', 'Amount', 'Description']],
@@ -3621,10 +3745,10 @@ const ProjectApp = {
                     alternateRowStyles: { fillColor: [240, 253, 244] },
                     margin: { left: 20, right: 20 }
                 });
-                
+
                 y = doc.lastAutoTable.finalY + 12;
             }
-            
+
             // Active Loans Given
             const loansGiven = await Storage.crossProjectTransactions.getByLender(this.projectId);
             const activeLoansGiven = loansGiven.filter(loan => loan.status === 'active');
@@ -3635,7 +3759,7 @@ const ProjectApp = {
                 doc.setTextColor(...colors.white);
                 doc.text('ACTIVE LOANS GIVEN TO OTHER PROJECTS', 30, y + 6);
                 y += 12;
-                
+
                 const loanData = await Promise.all(activeLoansGiven.map(async (loan) => {
                     let borrowerName = 'Unknown';
                     if (loan.borrowerProjectId && typeof loan.borrowerProjectId === 'string') {
@@ -3652,7 +3776,7 @@ const ProjectApp = {
                         loan.description
                     ];
                 }));
-                
+
                 doc.autoTable({
                     startY: y,
                     head: [['Borrower Project', 'Date', 'Original', 'Settled', 'Outstanding', 'Description']],
@@ -3663,10 +3787,10 @@ const ProjectApp = {
                     alternateRowStyles: { fillColor: [255, 251, 235] },
                     margin: { left: 20, right: 20 }
                 });
-                
+
                 y = doc.lastAutoTable.finalY + 12;
             }
-            
+
             // Active Loans Received
             const loansReceived = await Storage.crossProjectTransactions.getByBorrower(this.projectId);
             const activeLoansReceived = loansReceived.filter(loan => loan.status === 'active');
@@ -3677,7 +3801,7 @@ const ProjectApp = {
                 doc.setTextColor(...colors.white);
                 doc.text('ACTIVE LOANS RECEIVED FROM OTHER PROJECTS', 30, y + 6);
                 y += 12;
-                
+
                 const loanData = await Promise.all(activeLoansReceived.map(async (loan) => {
                     let lenderName = 'Unknown';
                     if (loan.lenderProjectId && typeof loan.lenderProjectId === 'string') {
@@ -3694,7 +3818,7 @@ const ProjectApp = {
                         loan.description
                     ];
                 }));
-                
+
                 doc.autoTable({
                     startY: y,
                     head: [['Lender Project', 'Date', 'Original', 'Settled', 'Outstanding', 'Description']],
@@ -3705,21 +3829,21 @@ const ProjectApp = {
                     alternateRowStyles: { fillColor: [254, 242, 242] },
                     margin: { left: 20, right: 20 }
                 });
-                
+
                 y = doc.lastAutoTable.finalY + 12;
             }
-            
+
             // Cross-Project Expenses
             const materials = await Storage.materials.getByProject(this.projectId);
             const labour = await Storage.labour.getByProject(this.projectId);
             const expenses = await Storage.expenses.getByProject(this.projectId);
-            
+
             const crossProjectItems = [
                 ...materials.filter(m => m.paidViaCrossProject),
                 ...labour.filter(l => l.paidViaCrossProject),
                 ...expenses.filter(e => e.paidViaCrossProject)
             ];
-            
+
             if (crossProjectItems.length > 0) {
                 doc.setFillColor(...colors.purple);
                 doc.roundedRect(20, y, 170, 8, 2, 2, 'F');
@@ -3727,12 +3851,12 @@ const ProjectApp = {
                 doc.setTextColor(...colors.white);
                 doc.text('CROSS-PROJECT EXPENSES', 30, y + 6);
                 y += 12;
-                
+
                 const expenseData = crossProjectItems.map(item => {
                     const amount = item.amount || (item.quantity * item.rate) || item.totalAmount || 0;
                     const description = item.name || item.description || `${item.workerName} (${item.role})` || 'Unknown';
                     const type = item.name ? 'Material' : item.workerName ? 'Labour' : 'Expense';
-                    
+
                     return [
                         Utils.formatDate(item.date),
                         type,
@@ -3740,7 +3864,7 @@ const ProjectApp = {
                         `Rs. ${Utils.formatNumber(amount)}`
                     ];
                 });
-                
+
                 doc.autoTable({
                     startY: y,
                     head: [['Date', 'Type', 'Description', 'Amount']],
@@ -3752,7 +3876,7 @@ const ProjectApp = {
                     margin: { left: 20, right: 20 }
                 });
             }
-            
+
             // Footer on all pages
             const pageCount = doc.internal.getNumberOfPages();
             for (let i = 1; i <= pageCount; i++) {
@@ -3764,11 +3888,11 @@ const ProjectApp = {
                 doc.text(`Maviya Constructions - ${project.name} Fund Status`, 20, 291);
                 doc.text(`Generated: ${new Date().toLocaleString('en-IN')}  |  Page ${i} of ${pageCount}`, 190, 291, { align: 'right' });
             }
-            
+
             // Save
             doc.save(`${project.name.replace(/[^a-z0-9]/gi, '_')}_Fund_Status.pdf`);
             this.showToast('Fund status PDF downloaded!', 'success');
-            
+
         } catch (error) {
             console.error('Fund status PDF generation error:', error);
             this.showToast('Failed to generate fund status PDF: ' + error.message, 'error');
@@ -3787,11 +3911,11 @@ const ProjectApp = {
     // PDF Generation - Complete Project Report
     async generatePDF() {
         this.showToast('Generating complete PDF report...', 'info');
-        
+
         try {
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF();
-            
+
             // Theme Colors (B&B Construction Theme)
             const colors = {
                 primary: [47, 47, 47],         // Dark charcoal
@@ -3807,7 +3931,7 @@ const ProjectApp = {
                 light: [241, 245, 249],        // Light gray
                 white: [255, 255, 255]
             };
-            
+
             // Get user profile data
             let companyName = 'B&B Constructions';
             let userName = 'Builder';
@@ -3827,7 +3951,7 @@ const ProjectApp = {
                     }
                 }
             } catch (e) { console.log('Using default company name'); }
-            
+
             // Fetch all data
             const materials = await Storage.materials.getByProject(this.projectId);
             const labour = await Storage.labour.getByProject(this.projectId);
@@ -3835,20 +3959,20 @@ const ProjectApp = {
             const logs = await Storage.logs.getByProject(this.projectId);
             const clientPayments = await Storage.clientPayments.getByProject(this.projectId);
             const documents = await Storage.documents.getByProject(this.projectId);
-            
+
             const spent = await this.calculateTotalSpent();
             const budget = await this.getEffectiveBudget();
             const clientReceived = clientPayments.reduce((s, p) => s + (parseFloat(p.amount) || 0), 0);
-            
+
             let y = 15;
-            
+
             // ===== PAGE 1: COVER & SUMMARY =====
             // Decorative header bar with B&B theme
             doc.setFillColor(...colors.primary);
             doc.rect(0, 0, 210, 12, 'F');
             doc.setFillColor(...colors.secondary);
             doc.rect(0, 12, 210, 3, 'F');
-            
+
             // Company Logo - B&B brick pattern
             y = 28;
             doc.setFillColor(...colors.primary);
@@ -3857,14 +3981,14 @@ const ProjectApp = {
             doc.rect(32, 20, 8, 8, 'F');
             doc.setFillColor(...colors.primary);
             doc.rect(27, 30, 8, 8, 'F');
-            
+
             // Header with company name
             doc.setFontSize(22);
             doc.setTextColor(...colors.primary);
             doc.setFont('helvetica', 'bold');
             doc.text(companyName, 50, y);
             y += 7;
-            
+
             doc.setFontSize(10);
             doc.setTextColor(...colors.dark);
             doc.setFont('helvetica', 'normal');
@@ -3874,7 +3998,7 @@ const ProjectApp = {
             doc.setTextColor(100, 100, 100);
             doc.text(`Generated by: ${userName} | ${userEmail}`, 50, y);
             y += 12;
-            
+
             // Project Name Box with B&B theme
             doc.setFillColor(...colors.accent);
             doc.roundedRect(20, y, 170, 18, 4, 4, 'F');
@@ -3883,14 +4007,14 @@ const ProjectApp = {
             doc.setFont('helvetica', 'bold');
             doc.text(this.project.name, 105, y + 12, { align: 'center' });
             y += 28;
-            
+
             // Project Details Card
             doc.setFillColor(...colors.light);
             doc.roundedRect(20, y, 170, 35, 3, 3, 'F');
             doc.setDrawColor(...colors.accent);
             doc.setLineWidth(0.5);
             doc.roundedRect(20, y, 170, 35, 3, 3, 'S');
-            
+
             y += 10;
             doc.setFontSize(10);
             doc.setTextColor(...colors.dark);
@@ -3904,7 +4028,7 @@ const ProjectApp = {
             doc.text(`Start: ${Utils.formatDate(this.project.startDate)}`, 25, y);
             doc.text(`End: ${Utils.formatDate(this.project.endDate)}`, 115, y);
             y += 20;
-            
+
             // Financial Summary Box
             doc.setFillColor(...colors.accent);
             doc.roundedRect(20, y, 170, 8, 2, 2, 'F');
@@ -3912,11 +4036,11 @@ const ProjectApp = {
             doc.setTextColor(...colors.white);
             doc.text('FINANCIAL SUMMARY', 105, y + 6, { align: 'center' });
             y += 12;
-            
+
             doc.setFillColor(...colors.light);
             doc.roundedRect(20, y, 170, 40, 3, 3, 'F');
             y += 10;
-            
+
             doc.setFontSize(10);
             doc.setTextColor(...colors.dark);
             const col1 = 30, col2 = 115;
@@ -3950,19 +4074,19 @@ const ProjectApp = {
             doc.setTextColor(...colors.danger);
             doc.text(`Rs. ${Utils.formatNumber(budget - clientReceived)}`, col2 + 40, y);
             y += 22;
-            
+
             // Cost Breakdown
             const matTotal = materials.filter(m => m.status === 'used').reduce((s, m) => s + (m.quantity * m.rate), 0);
             const labTotal = labour.reduce((s, l) => s + (parseFloat(l.totalAmount) || 0), 0);
             const expTotal = expenses.reduce((s, e) => s + (parseFloat(e.amount) || 0), 0);
-            
+
             doc.setFillColor(...colors.secondary);
             doc.roundedRect(20, y, 170, 8, 2, 2, 'F');
             doc.setFontSize(11);
             doc.setTextColor(...colors.primary);
             doc.text('COST BREAKDOWN', 105, y + 6, { align: 'center' });
             y += 12;
-            
+
             doc.autoTable({
                 startY: y,
                 head: [['Category', 'Amount', 'Percentage']],
@@ -3980,15 +4104,15 @@ const ProjectApp = {
                 margin: { left: 20, right: 20 },
                 columnStyles: { 0: { cellWidth: 70 }, 1: { cellWidth: 55, halign: 'right' }, 2: { cellWidth: 45, halign: 'center' } }
             });
-            
+
             // ===== PAGE 2: MATERIALS =====
             if (materials.length > 0) {
                 doc.addPage();
-                
+
                 // Header bar
                 doc.setFillColor(...colors.primary);
                 doc.rect(0, 0, 210, 8, 'F');
-                
+
                 y = 20;
                 doc.setFillColor(...colors.primary);
                 doc.roundedRect(20, y, 170, 10, 2, 2, 'F');
@@ -3998,9 +4122,9 @@ const ProjectApp = {
                 doc.setFontSize(10);
                 doc.text(`Total: Rs. ${Utils.formatNumber(matTotal)}`, 170, y + 7, { align: 'right' });
                 y += 15;
-                
+
                 const matPaid = materials.reduce((s, m) => s + (parseFloat(m.paidAmount) || 0), 0);
-                
+
                 doc.autoTable({
                     startY: y,
                     head: [['Material', 'Category', 'Qty', 'Unit', 'Rate', 'Total', 'Paid', 'Balance', 'Status', 'Date']],
@@ -4022,7 +4146,7 @@ const ProjectApp = {
                     alternateRowStyles: { fillColor: [248, 250, 252] },
                     margin: { left: 10, right: 10 }
                 });
-                
+
                 // Materials Summary
                 y = doc.lastAutoTable.finalY + 10;
                 doc.setFillColor(...colors.light);
@@ -4031,15 +4155,15 @@ const ProjectApp = {
                 doc.setTextColor(...colors.dark);
                 doc.text(`Total: Rs. ${Utils.formatNumber(matTotal)}  |  Paid: Rs. ${Utils.formatNumber(matPaid)}  |  Balance: Rs. ${Utils.formatNumber(matTotal - matPaid)}`, 105, y + 8, { align: 'center' });
             }
-            
+
             // ===== PAGE 3: LABOUR =====
             if (labour.length > 0) {
                 doc.addPage();
-                
+
                 // Header bar
                 doc.setFillColor(...colors.success);
                 doc.rect(0, 0, 210, 8, 'F');
-                
+
                 y = 20;
                 doc.setFillColor(...colors.success);
                 doc.roundedRect(20, y, 170, 10, 2, 2, 'F');
@@ -4049,9 +4173,9 @@ const ProjectApp = {
                 doc.setFontSize(10);
                 doc.text(`Total: Rs. ${Utils.formatNumber(labTotal)}`, 170, y + 7, { align: 'right' });
                 y += 15;
-                
+
                 const labPaid = labour.reduce((s, l) => s + (parseFloat(l.paidAmount) || 0), 0);
-                
+
                 doc.autoTable({
                     startY: y,
                     head: [['Worker Name', 'Role', 'Daily Wage', 'Total Amount', 'Paid', 'Balance', 'Start Date', 'End Date']],
@@ -4074,7 +4198,7 @@ const ProjectApp = {
                     alternateRowStyles: { fillColor: [240, 253, 244] },
                     margin: { left: 10, right: 10 }
                 });
-                
+
                 y = doc.lastAutoTable.finalY + 10;
                 doc.setFillColor(...colors.light);
                 doc.roundedRect(20, y, 170, 12, 2, 2, 'F');
@@ -4082,15 +4206,15 @@ const ProjectApp = {
                 doc.setTextColor(...colors.dark);
                 doc.text(`Total Wages: Rs. ${Utils.formatNumber(labTotal)}  |  Paid: Rs. ${Utils.formatNumber(labPaid)}  |  Balance: Rs. ${Utils.formatNumber(labTotal - labPaid)}`, 105, y + 8, { align: 'center' });
             }
-            
+
             // ===== PAGE 4: EXPENSES =====
             if (expenses.length > 0) {
                 doc.addPage();
-                
+
                 // Header bar
                 doc.setFillColor(...colors.purple);
                 doc.rect(0, 0, 210, 8, 'F');
-                
+
                 y = 20;
                 doc.setFillColor(...colors.purple);
                 doc.roundedRect(20, y, 170, 10, 2, 2, 'F');
@@ -4100,7 +4224,7 @@ const ProjectApp = {
                 doc.setFontSize(10);
                 doc.text(`Total: Rs. ${Utils.formatNumber(expTotal)}`, 170, y + 7, { align: 'right' });
                 y += 15;
-                
+
                 doc.autoTable({
                     startY: y,
                     head: [['Description', 'Category', 'Amount', 'Date']],
@@ -4115,15 +4239,15 @@ const ProjectApp = {
                     margin: { left: 20, right: 20 }
                 });
             }
-            
+
             // ===== PAGE 5: CLIENT PAYMENTS =====
             if (clientPayments.length > 0) {
                 doc.addPage();
-                
+
                 // Header bar
                 doc.setFillColor(...colors.warning);
                 doc.rect(0, 0, 210, 8, 'F');
-                
+
                 y = 20;
                 doc.setFillColor(...colors.warning);
                 doc.roundedRect(20, y, 170, 10, 2, 2, 'F');
@@ -4133,7 +4257,7 @@ const ProjectApp = {
                 doc.setFontSize(10);
                 doc.text(`Total: Rs. ${Utils.formatNumber(clientReceived)}`, 170, y + 7, { align: 'right' });
                 y += 15;
-                
+
                 doc.autoTable({
                     startY: y,
                     head: [['Date', 'Amount', 'From', 'Received By', 'Method', 'Notes']],
@@ -4148,15 +4272,15 @@ const ProjectApp = {
                     margin: { left: 20, right: 20 }
                 });
             }
-            
+
             // ===== PAGE 6: DAILY LOGS =====
             if (logs.length > 0) {
                 doc.addPage();
-                
+
                 // Header bar
                 doc.setFillColor(...colors.teal);
                 doc.rect(0, 0, 210, 8, 'F');
-                
+
                 y = 20;
                 doc.setFillColor(...colors.teal);
                 doc.roundedRect(20, y, 170, 10, 2, 2, 'F');
@@ -4164,9 +4288,9 @@ const ProjectApp = {
                 doc.setTextColor(...colors.white);
                 doc.text('DAILY SITE LOGS', 30, y + 7);
                 y += 15;
-                
+
                 logs.sort((a, b) => new Date(b.date) - new Date(a.date));
-                
+
                 doc.autoTable({
                     startY: y,
                     head: [['Date', 'Work Description', 'Issues/Delays', 'Notes']],
@@ -4183,15 +4307,15 @@ const ProjectApp = {
                     columnStyles: { 1: { cellWidth: 60 }, 2: { cellWidth: 40 }, 3: { cellWidth: 40 } }
                 });
             }
-            
+
             // ===== PAGE 7: DOCUMENTS LIST =====
             if (documents.length > 0) {
                 doc.addPage();
-                
+
                 // Header bar
                 doc.setFillColor(...colors.pink);
                 doc.rect(0, 0, 210, 8, 'F');
-                
+
                 y = 20;
                 doc.setFillColor(...colors.pink);
                 doc.roundedRect(20, y, 170, 10, 2, 2, 'F');
@@ -4199,7 +4323,7 @@ const ProjectApp = {
                 doc.setTextColor(...colors.white);
                 doc.text('DOCUMENTS', 30, y + 7);
                 y += 15;
-                
+
                 doc.autoTable({
                     startY: y,
                     head: [['Document Name', 'Category', 'Date', 'File Name', 'Notes']],
@@ -4214,21 +4338,21 @@ const ProjectApp = {
                     margin: { left: 20, right: 20 }
                 });
             }
-            
+
             // ===== PAGE 8: FLOOR PLAN (if available) =====
             if (this.project.floorPlan2D && this.project.floorPlan2D.floors) {
                 const includeFloorPlan = confirm('Include Floor Plan Sketch in PDF?');
                 if (includeFloorPlan) {
                     const floorData = this.project.floorPlan2D.floors;
                     const floorIds = Object.keys(floorData).filter(id => floorData[id].elements && floorData[id].elements.length > 0);
-                    
+
                     if (floorIds.length > 0) {
                         doc.addPage('landscape');
-                        
+
                         // Header bar
                         doc.setFillColor(...colors.primary);
                         doc.rect(0, 0, 297, 8, 'F');
-                        
+
                         y = 20;
                         doc.setFillColor(...colors.primary);
                         doc.roundedRect(20, y, 257, 10, 2, 2, 'F');
@@ -4236,12 +4360,12 @@ const ProjectApp = {
                         doc.setTextColor(...colors.white);
                         doc.text('FLOOR PLAN SKETCH', 30, y + 7);
                         y += 20;
-                        
+
                         // Draw floor plan for each floor
                         for (const floorId of floorIds) {
                             const floor = floorData[floorId];
                             if (!floor.elements || floor.elements.length === 0) continue;
-                            
+
                             // Floor label
                             doc.setFontSize(10);
                             doc.setTextColor(...colors.dark);
@@ -4249,7 +4373,7 @@ const ProjectApp = {
                             const floorNames = { 'GF': 'Ground Floor', 'FF': 'First Floor', 'SF': 'Second Floor', 'TF': 'Third Floor', '4F': 'Fourth Floor' };
                             doc.text(floorNames[floorId] || floorId, 25, y);
                             y += 5;
-                            
+
                             // Calculate bounds
                             let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
                             for (const el of floor.elements) {
@@ -4265,7 +4389,7 @@ const ProjectApp = {
                                     maxY = Math.max(maxY, el.y + 30);
                                 }
                             }
-                            
+
                             // Scale to fit
                             const drawWidth = 240;
                             const drawHeight = 120;
@@ -4274,7 +4398,7 @@ const ProjectApp = {
                             const scale = Math.min(scaleX, scaleY, 0.5);
                             const offsetX = 30 - minX * scale;
                             const offsetY = y - minY * scale;
-                            
+
                             // Draw elements
                             for (const el of floor.elements) {
                                 if (el.type === 'line') {
@@ -4316,9 +4440,9 @@ const ProjectApp = {
                                     }
                                 }
                             }
-                            
+
                             y += drawHeight + 15;
-                            
+
                             // Add new page if needed
                             if (y > 180 && floorIds.indexOf(floorId) < floorIds.length - 1) {
                                 doc.addPage('landscape');
@@ -4330,7 +4454,7 @@ const ProjectApp = {
                     }
                 }
             }
-            
+
             // Footer on all pages
             const pageCount = doc.internal.getNumberOfPages();
             for (let i = 1; i <= pageCount; i++) {
@@ -4343,11 +4467,11 @@ const ProjectApp = {
                 doc.text(`Maviya Constructions - ${this.project.name}`, 20, 291);
                 doc.text(`Generated: ${new Date().toLocaleString('en-IN')}  |  Page ${i} of ${pageCount}`, 190, 291, { align: 'right' });
             }
-            
+
             // Save
             doc.save(`${this.project.name.replace(/[^a-z0-9]/gi, '_')}_Complete_Report.pdf`);
             this.showToast('Complete PDF report downloaded!', 'success');
-            
+
         } catch (error) {
             console.error('PDF generation error:', error);
             this.showToast('Failed to generate PDF: ' + error.message, 'error');
@@ -4356,11 +4480,11 @@ const ProjectApp = {
 
     async generateInvoice(type) {
         this.showToast(`Generating ${type} invoice...`, 'info');
-        
+
         try {
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF();
-            
+
             // Theme Colors
             const colors = {
                 primary: [91, 155, 213],
@@ -4372,14 +4496,14 @@ const ProjectApp = {
                 light: [232, 244, 248],
                 white: [255, 255, 255]
             };
-            
+
             let y = 15;
             let data = [];
             let title = '';
             let headers = [];
             let color = colors.primary;
             let altRowColor = [248, 250, 252];
-            
+
             if (type === 'materials') {
                 title = 'MATERIALS INVOICE';
                 headers = [['Material', 'Qty', 'Unit', 'Rate', 'Total', 'Paid', 'Balance']];
@@ -4428,11 +4552,11 @@ const ProjectApp = {
                 color = colors.warning;
                 altRowColor = [255, 251, 235];
             }
-            
+
             // Header bar
             doc.setFillColor(...color);
             doc.rect(0, 0, 210, 8, 'F');
-            
+
             // Company Logo Area
             doc.setFillColor(...colors.warning);
             doc.circle(30, 22, 10, 'F');
@@ -4442,7 +4566,7 @@ const ProjectApp = {
             doc.setTextColor(...colors.warning);
             doc.setFont('helvetica', 'bold');
             doc.text('MC', 26, 24);
-            
+
             // Header
             doc.setFontSize(20);
             doc.setTextColor(...colors.primary);
@@ -4452,7 +4576,7 @@ const ProjectApp = {
             doc.setFont('helvetica', 'normal');
             doc.text('Construction Management', 50, 27);
             y = 40;
-            
+
             // Invoice Title Box
             doc.setFillColor(...color);
             doc.roundedRect(20, y, 170, 12, 3, 3, 'F');
@@ -4461,14 +4585,14 @@ const ProjectApp = {
             doc.setFont('helvetica', 'bold');
             doc.text(title, 105, y + 8, { align: 'center' });
             y += 20;
-            
+
             // Project Details Card
             doc.setFillColor(...colors.light);
             doc.roundedRect(20, y, 170, 22, 2, 2, 'F');
             doc.setDrawColor(...color);
             doc.setLineWidth(0.5);
             doc.roundedRect(20, y, 170, 22, 2, 2, 'S');
-            
+
             y += 8;
             doc.setFontSize(10);
             doc.setTextColor(...colors.dark);
@@ -4479,7 +4603,7 @@ const ProjectApp = {
             doc.text(`Client: ${this.project.clientName}`, 25, y);
             doc.text(`Location: ${this.project.location}`, 140, y);
             y += 15;
-            
+
             // Table
             if (data.length > 0) {
                 doc.autoTable({
@@ -4492,7 +4616,7 @@ const ProjectApp = {
                     alternateRowStyles: { fillColor: altRowColor },
                     margin: { left: 20, right: 20 }
                 });
-                
+
                 // Total row
                 y = doc.lastAutoTable.finalY + 10;
                 if (type === 'materials' || type === 'labour' || type === 'vendors') {
@@ -4504,7 +4628,7 @@ const ProjectApp = {
                         const paidStr = row[type === 'materials' ? 5 : 3].replace(/[^0-9.-]+/g, '');
                         return sum + (parseFloat(paidStr) || 0);
                     }, 0);
-                    
+
                     doc.setFillColor(...colors.light);
                     doc.roundedRect(20, y, 170, 15, 2, 2, 'F');
                     doc.setFontSize(10);
@@ -4518,7 +4642,7 @@ const ProjectApp = {
                 doc.setTextColor(...colors.dark);
                 doc.text('No records found', 105, y + 18, { align: 'center' });
             }
-            
+
             // Footer
             doc.setFillColor(...colors.light);
             doc.rect(0, 285, 210, 12, 'F');
@@ -4526,11 +4650,11 @@ const ProjectApp = {
             doc.setTextColor(...colors.dark);
             doc.text(`Maviya Constructions - ${this.project.name}`, 20, 291);
             doc.text(`Generated: ${new Date().toLocaleString('en-IN')}`, 190, 291, { align: 'right' });
-            
+
             // Save
             doc.save(`${this.project.name.replace(/[^a-z0-9]/gi, '_')}_${type}_Invoice.pdf`);
             this.showToast('Invoice downloaded!', 'success');
-            
+
         } catch (error) {
             console.error('Invoice generation error:', error);
             this.showToast('Failed to generate invoice', 'error');
@@ -4603,6 +4727,222 @@ const ProjectApp = {
         this.showToast('Expenses CSV downloaded!', 'success');
     },
 
+    // Stock Usage Methods
+    async openStockModal() {
+        const modal = document.getElementById('stockUsageModal');
+        const form = document.getElementById('stockUsageForm');
+        const select = document.getElementById('stockMaterialSelect');
+
+        form.reset();
+        document.getElementById('stockDate').value = new Date().toISOString().split('T')[0];
+        document.getElementById('stockInsufficientWarning').classList.add('hidden');
+        document.getElementById('stockConfirmBtn').innerHTML = '<i class="fas fa-check mr-2"></i>Use Stock';
+
+        try {
+            select.innerHTML = '<option value="">Loading...</option>';
+            const stockItems = await Storage.materialStock.getAll();
+
+            // Filter only items with available stock > 0
+            const availableItems = stockItems.filter(item => (parseFloat(item.available) || 0) > 0);
+
+            if (availableItems.length === 0) {
+                select.innerHTML = '<option value="">No stock available</option>';
+            } else {
+                select.innerHTML = '<option value="">Select Material</option>' +
+                    availableItems.map(item => `<option value="${item.id}">${Utils.escapeHtml(item.name)} (${item.available} ${item.unit})</option>`).join('');
+            }
+
+            // Store full stock data for easy access
+            this.stockCache = stockItems;
+
+        } catch (error) {
+            console.error('Error loading stock:', error);
+            select.innerHTML = '<option value="">Error loading stock</option>';
+        }
+
+        modal.classList.remove('hidden');
+        modal.classList.add('active');
+    },
+
+    handleStockSelection(stockId) {
+        if (!stockId || !this.stockCache) return;
+
+        const item = this.stockCache.find(i => i.id === stockId);
+        if (item) {
+            document.getElementById('stockCategory').value = item.category || '';
+            document.getElementById('stockUnit').value = item.unit || '';
+            document.getElementById('stockAvailableQty').value = item.available || 0;
+            this.checkStockAvailability();
+        }
+    },
+
+    checkStockAvailability() {
+        const available = parseFloat(document.getElementById('stockAvailableQty').value) || 0;
+        const required = parseFloat(document.getElementById('stockRequiredQty').value) || 0;
+        const warningDiv = document.getElementById('stockInsufficientWarning');
+        const confirmBtn = document.getElementById('stockConfirmBtn');
+        const shortageSpan = document.getElementById('stockShortageQty');
+
+        if (required > available) {
+            const shortage = required - available;
+            warningDiv.classList.remove('hidden');
+            shortageSpan.textContent = `${shortage} ${document.getElementById('stockUnit').value}`;
+            document.getElementById('stockPurchaseRate').required = true;
+            confirmBtn.innerHTML = '<i class="fas fa-shopping-cart mr-2"></i>Confirm Purchase & Use';
+            confirmBtn.classList.replace('btn-primary', 'btn-warning');
+        } else {
+            warningDiv.classList.add('hidden');
+            document.getElementById('stockPurchaseRate').required = false;
+            confirmBtn.innerHTML = '<i class="fas fa-check mr-2"></i>Use Stock';
+            if (confirmBtn.classList.contains('btn-warning')) {
+                confirmBtn.classList.replace('btn-warning', 'btn-primary');
+            }
+        }
+    },
+
+    async handleStockUsageSubmit(e) {
+        e.preventDefault();
+
+        const stockId = document.getElementById('stockMaterialSelect').value;
+        const item = this.stockCache?.find(i => i.id === stockId);
+        if (!item) { alert('Please select a material'); return; }
+
+        const requiredQty = parseFloat(document.getElementById('stockRequiredQty').value) || 0;
+        const availableQty = parseFloat(item.available) || 0;
+        const date = document.getElementById('stockDate').value;
+
+        if (requiredQty <= 0) { alert('Check quantity'); return; }
+
+        this.showLoading(true);
+
+        try {
+            // Transaction Data Helper
+            const logTransaction = async (qty, actionType = 'used') => {
+                if (!Storage.materialTransactions) {
+                    console.error('Critical Error: Storage.materialTransactions is missing. Transaction not logged.');
+                    return;
+                }
+                const txData = {
+                    stockId: stockId,
+                    materialName: item.name,
+                    projectId: this.projectId,
+                    projectName: this.project.name || 'Unknown Project',
+                    quantity: qty,
+                    unit: item.unit,
+                    action: actionType,
+                    date: date,
+                    timestamp: new Date().toISOString()
+                };
+                try {
+                    await Storage.materialTransactions.add(txData);
+                } catch (e) {
+                    console.error('Error logging transaction:', e);
+                }
+            };
+
+            // Scenario 1: Sufficient Stock
+            if (requiredQty <= availableQty) {
+                // 1. Deduct from Global Stock
+                await Storage.materialStock.update(stockId, {
+                    available: availableQty - requiredQty,
+                    used: (parseFloat(item.used) || 0) + requiredQty
+                });
+
+                // 2. Add to Project
+                await Storage.materials.add({
+                    projectId: this.projectId,
+                    name: item.name,
+                    category: item.category,
+                    unit: item.unit,
+                    quantity: requiredQty,
+                    rate: item.rate, // Use stock rate (weighted avg ideally, but using stored rate)
+                    status: 'used',
+                    date: date,
+                    supplier: 'From Stock',
+                    paidAmount: requiredQty * item.rate // Fully paid as it's from stock
+                });
+
+                // 3. Log Transaction
+                await logTransaction(requiredQty);
+
+                this.showToast(`${requiredQty} ${item.unit} added from stock`, 'success');
+
+            } else {
+                // Scenario 2: Insufficient Stock (Buy Shortage)
+                const shortage = requiredQty - availableQty;
+                const newRate = parseFloat(document.getElementById('stockPurchaseRate').value);
+                const supplier = document.getElementById('stockSupplier').value;
+
+                if (!newRate) { alert('Please enter rate for new stock'); this.showLoading(false); return; }
+
+                // 1. Consume all existing stock
+                if (availableQty > 0) {
+                    await Storage.materialStock.update(stockId, {
+                        available: 0,
+                        used: (parseFloat(item.used) || 0) + availableQty
+                    });
+
+                    // Add existing stock portion to project
+                    await Storage.materials.add({
+                        projectId: this.projectId,
+                        name: item.name,
+                        category: item.category,
+                        unit: item.unit,
+                        quantity: availableQty,
+                        rate: item.rate,
+                        status: 'used',
+                        date: date,
+                        supplier: 'From Stock',
+                        paidAmount: availableQty * item.rate
+                    });
+
+                    // Log Transaction for the stock portion
+                    await logTransaction(availableQty);
+                }
+
+                // 2. Purchase and use shortage (Direct to project, skip adding to stock logic to keep stock clean)
+                // Actually, logic says "Purchase the shortage". 
+                // Creating a simplified flow: "Direct Purchase" for the shortage.
+
+                await Storage.materials.add({
+                    projectId: this.projectId,
+                    name: item.name,
+                    category: item.category,
+                    unit: item.unit,
+                    quantity: shortage,
+                    rate: newRate,
+                    status: 'used',
+                    date: date,
+                    supplier: supplier || 'Market Purchase',
+                    paidAmount: 0 // New purchase is unpaid by default? Or assume paid? 
+                    // Usually "Buy & Use" implies we just bought it. Let's assume unpaid initially if buying on credit, 
+                    // but the prompt was "Purchase now". Let's leave Paid as 0 so they can record payment in Funds/Expenses.
+                    // Wait, "From Stock" usually implies "Paid Asset". 
+                    // If we buy new, it's an expense.
+                    // Let's set paidAmount to 0. User can trigger payment separately. 
+                    // Or ask user? For simplicity, 0.
+                });
+
+                // Optional: Update Global Stock Rate? 
+                // If we bought new stock, technically we should update the global rate reference if it changed significantly? 
+                // Let's perform a "silent update" to the stock item's rate for future reference
+                await Storage.materialStock.update(stockId, { rate: newRate });
+
+                this.showToast(`Used ${availableQty} from stock & purchased ${shortage}`, 'success');
+            }
+
+            this.closeAllModals();
+            await this.renderMaterials();
+            await this.renderOverview();
+
+        } catch (error) {
+            console.error('Stock transaction error:', error);
+            this.showToast('Error processing stock', 'error');
+        } finally {
+            this.showLoading(false);
+        }
+    },
+
     // Project Switcher Methods
     toggleProjectSwitcher() {
         const switcher = document.getElementById('projectSwitcher');
@@ -4632,7 +4972,7 @@ const ProjectApp = {
 
         try {
             const projects = await Storage.projects.getAll();
-            
+
             if (!projects || projects.length === 0) {
                 listContainer.innerHTML = '<div style="padding: 1rem; text-align: center; color: var(--gray);">No projects found</div>';
                 return;
@@ -4649,7 +4989,7 @@ const ProjectApp = {
                 const isActive = p.id === this.projectId;
                 const statusClass = p.status === 'In Progress' ? 'active' : p.status === 'Completed' ? 'completed' : 'planning';
                 const initial = (p.name || 'P')[0].toUpperCase();
-                
+
                 return `
                     <div class="project-switcher-item ${isActive ? 'active' : ''}" onclick="ProjectApp.switchToProject('${p.id}')">
                         <div class="project-icon">${initial}</div>

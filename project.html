@@ -2080,6 +2080,10 @@
                         class="nav-text">Funds</span></a>
                 <a href="materials.html" class="nav-item" title="Materials"><i class="fas fa-boxes nav-icon"></i><span
                         class="nav-text">Materials</span></a>
+                <a href="economics.html" class="nav-item" title="Economics"><i class="fas fa-coins nav-icon"></i><span
+                        class="nav-text">Economics</span></a>
+                <a href="bid-estimator.html" class="nav-item" title="Bid Estimator"><i
+                        class="fas fa-gavel nav-icon"></i><span class="nav-text">Bid Estimator</span></a>
                 <div class="nav-divider"></div>
                 <a href="hub.html" class="nav-item" title="Hub"><i class="fas fa-home nav-icon"></i><span
                         class="nav-text">Hub</span></a>
@@ -2153,6 +2157,8 @@
                                 style="background: var(--info);"><i class="fas fa-file-invoice text-white"></i></button>
                             <button onclick="ProjectApp.shareMaterialsWhatsApp()" class="btn-icon btn-whatsapp"><i
                                     class="fab fa-whatsapp"></i></button>
+                            <button id="addStockUsageBtn" class="btn btn-secondary" style="margin-right: 0.5rem;"><i
+                                    class="fas fa-dolly"></i> From Stock</button>
                             <button id="addMaterialBtn" class="btn-add"><i class="fas fa-plus"></i> Add
                                 Material</button>
                         </div>
@@ -2440,6 +2446,44 @@
 
             <!-- Summary Tab -->
             <div id="summaryTab" class="tab-content">
+
+                <!-- Health Widget -->
+                <div class="section-card mb-6" style="background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);">
+                    <div class="section-header">
+                        <h2 class="section-title"><i class="fas fa-heartbeat text-rose-500"></i> Project Health</h2>
+                        <div id="healthScoreBadge" class="status-badge status-planning">
+                            Calculating...
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 items-center">
+                        <!-- Score Gauge -->
+                        <div class="flex flex-col items-center justify-center p-4">
+                            <div class="relative w-32 h-32 flex items-center justify-center">
+                                <svg class="w-full h-full transform -rotate-90" style="width: 128px; height: 128px;">
+                                    <circle cx="64" cy="64" r="56" stroke="#f1f5f9" stroke-width="12"
+                                        fill="transparent" />
+                                    <circle id="healthScoreRing" cx="64" cy="64" r="56" stroke="#10b981"
+                                        stroke-width="12" fill="transparent" stroke-dasharray="351.86"
+                                        stroke-dashoffset="351.86" style="transition: stroke-dashoffset 1s ease-out;" />
+                                </svg>
+                                <div class="absolute inset-0 flex flex-col items-center justify-center">
+                                    <span id="healthScoreValue" class="text-3xl font-bold text-slate-700">--</span>
+                                    <span class="text-xs text-slate-500 uppercase font-semibold">Score</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Risks List -->
+                        <div class="md:col-span-2">
+                            <h4 class="text-sm font-semibold text-slate-500 uppercase mb-3 tracking-wider">Risk Factors
+                            </h4>
+                            <div id="healthRisksList" class="space-y-2">
+                                <div class="text-slate-400 text-sm italic">Analyzing project risks...</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="section-card">
                     <h2 class="section-title mb-6"><i class="fas fa-chart-pie"></i> Financial Summary</h2>
                     <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
@@ -3125,7 +3169,7 @@
         import FundManagement from './js/fund-management.js';
         import WorkerManagement from './js/worker-management.js';
         import VendorManagement from './js/vendor-management.js';
-        import { ProjectApp } from './js/project.js?v=4';
+        import { ProjectApp } from './js/project.js?v=5';
         import UserPreferences from './js/user-preferences.js';
         import PhaseManager, { PhaseStatus, ChecklistCategory } from './js/phase-management.js';
 
@@ -3911,6 +3955,87 @@
             });
         });
     </script>
+    <!-- Stock Usage Modal -->
+    <div id="stockUsageModal" class="modal-overlay">
+        <div class="modal-content" style="max-width: 500px;">
+            <div class="modal-header">
+                <h3><i class="fas fa-dolly text-primary mr-2"></i> Use From Stock</h3>
+                <button type="button" class="close-btn modal-close"><i class="fas fa-times"></i></button>
+            </div>
+            <form id="stockUsageForm" class="modal-form">
+                <input type="hidden" id="stockUsageId">
+
+                <div class="form-group">
+                    <label><i class="fas fa-cubes text-primary mr-2"></i>Select Material</label>
+                    <select id="stockMaterialSelect" required
+                        style="width: 100%; padding: 0.75rem; border: 1px solid var(--border); border-radius: 6px;">
+                        <option value="">Loading stock...</option>
+                    </select>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Category</label>
+                        <input type="text" id="stockCategory" readonly class="bg-gray-50" style="background: #f8fafc;">
+                    </div>
+                    <div class="form-group">
+                        <label>Unit</label>
+                        <input type="text" id="stockUnit" readonly class="bg-gray-50" style="background: #f8fafc;">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label><i class="fas fa-warehouse text-primary mr-2"></i>Available in Stock</label>
+                    <input type="number" id="stockAvailableQty" readonly
+                        style="background: #ecfdf5; color: #047857; font-weight: bold;" value="0">
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label><i class="fas fa-clipboard-check text-primary mr-2"></i>Required Qty *</label>
+                        <input type="number" id="stockRequiredQty" required min="0.01" step="0.01">
+                    </div>
+                    <div class="form-group">
+                        <label><i class="far fa-calendar-alt text-primary mr-2"></i>Date</label>
+                        <input type="date" id="stockDate" required>
+                    </div>
+                </div>
+
+                <!-- Insufficient Stock Warning & Purchase Flow -->
+                <div id="stockInsufficientWarning" class="hidden"
+                    style="background: #fffbeb; border: 1px solid #fcd34d; border-radius: 8px; padding: 1rem; margin-top: 1rem;">
+                    <div style="display: flex; gap: 0.75rem; align-items: flex-start; margin-bottom: 1rem;">
+                        <i class="fas fa-exclamation-triangle"
+                            style="color: #d97706; font-size: 1.25rem; margin-top: 2px;"></i>
+                        <div>
+                            <h4 style="font-size: 0.875rem; font-weight: 700; color: #92400e; margin-bottom: 0.25rem;">
+                                Insufficient Stock</h4>
+                            <p style="font-size: 0.75rem; color: #78350f;">You need <span id="stockShortageQty"
+                                    style="font-weight: 800;">0</span> more. Purchase the shortage now?</p>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label><i class="fas fa-rupee-sign text-dark mr-2"></i>Rate for New Stock</label>
+                            <input type="number" id="stockPurchaseRate" min="0" step="0.01"
+                                placeholder="Current market rate">
+                        </div>
+                        <div class="form-group">
+                            <label><i class="fas fa-truck text-dark mr-2"></i>Supplier</label>
+                            <input type="text" id="stockSupplier" placeholder="Optional">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-actions" style="margin-top: 1.5rem;">
+                    <button type="button" class="btn btn-secondary modal-close">Cancel</button>
+                    <button type="submit" id="stockConfirmBtn" class="btn btn-primary"><i
+                            class="fas fa-check mr-2"></i>Use Stock</button>
+                </div>
+            </form>
+        </div>
+    </div>
 </body>
 
 </html>
