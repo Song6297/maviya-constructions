@@ -17,6 +17,7 @@
         href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Nunito:wght@400;600;700;800;900&display=swap"
         rel="stylesheet">
     <link href="css/styles-professional.css" rel="stylesheet">
+    <link href="css/ai-orb.css" rel="stylesheet">
     <style>
         :root {
             --primary-primary: var(--primary);
@@ -650,6 +651,441 @@
                 position: static;
             }
         }
+
+        /* Tab Navigation */
+        .tab-navigation {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 2rem;
+            border-bottom: 2px solid var(--border);
+        }
+
+        .tab-btn {
+            padding: 0.875rem 1.5rem;
+            background: none;
+            border: none;
+            border-bottom: 3px solid transparent;
+            color: var(--gray);
+            font-weight: 600;
+            font-size: 0.9375rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: -2px;
+        }
+
+        .tab-btn:hover {
+            color: var(--primary);
+            background: var(--primary-muted);
+        }
+
+        .tab-btn.active {
+            color: var(--primary);
+            border-bottom-color: var(--primary);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* Chat Container */
+        .chat-container {
+            background: linear-gradient(135deg, #FAFAFA 0%, #F5F5F5 100%);
+            border-radius: 24px;
+            border: 1px solid var(--border);
+            height: calc(100vh - 180px);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .chat-header {
+            padding: 1.5rem 2rem;
+            background: var(--white);
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .chat-header-left {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .chat-header-avatar {
+            width: 48px;
+            height: 48px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .chat-header-avatar .orb-icon-medium {
+            width: 48px;
+            height: 48px;
+        }
+
+        .chat-header-info h3 {
+            font-size: 1.125rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin: 0;
+        }
+
+        .chat-header-info p {
+            font-size: 0.8125rem;
+            color: var(--gray);
+            margin: 0;
+        }
+
+        .chat-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .chat-action-btn {
+            padding: 0.5rem 0.875rem;
+            border: 1.5px solid var(--border);
+            border-radius: 12px;
+            background: var(--white);
+            color: var(--text-primary);
+            font-size: 0.8125rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 0.375rem;
+        }
+
+        .chat-action-btn:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+            background: var(--primary-muted);
+            transform: translateY(-1px);
+        }
+
+        .chat-action-btn i {
+            font-size: 0.875rem;
+        }
+
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 2rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .chat-welcome {
+            text-align: center;
+            padding: 3rem 2rem;
+            color: var(--gray);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+        }
+
+        .chat-robot-container {
+            position: relative;
+            width: 200px;
+            height: 200px;
+            margin-bottom: 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .chat-robot-container .orb-icon-large {
+            width: 200px;
+            height: 200px;
+        }
+
+        .chat-welcome h3 {
+            font-size: 1.5rem;
+            color: var(--text-primary);
+            margin-bottom: 0.75rem;
+            font-weight: 800;
+        }
+
+        .chat-welcome p {
+            font-size: 1rem;
+            max-width: 400px;
+        }
+
+        .chat-message {
+            display: flex;
+            gap: 1rem;
+            max-width: 85%;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .chat-message.user {
+            align-self: flex-end;
+            flex-direction: row-reverse;
+        }
+
+        .chat-message-avatar {
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            overflow: visible;
+        }
+
+        .chat-message-avatar .orb-icon-small {
+            width: 40px;
+            height: 40px;
+        }
+
+        .chat-message-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 50%;
+        }
+
+        .chat-message.user .chat-message-avatar {
+            background: transparent;
+            border: none;
+        }
+
+        .chat-message.user .chat-message-avatar svg {
+            width: 100%;
+            height: 100%;
+        }
+
+        .chat-message-content {
+            background: var(--white);
+            padding: 1rem 1.25rem;
+            border-radius: 20px;
+            font-size: 0.9375rem;
+            line-height: 1.6;
+            color: var(--text-primary);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+            border: 1px solid var(--border);
+        }
+
+        .chat-message.user .chat-message-content {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: #1A1A1A;
+            border: none;
+            box-shadow: 0 4px 12px rgba(247, 181, 0, 0.3);
+        }
+
+        .chat-message-content p {
+            margin: 0 0 0.5rem 0;
+            color: inherit;
+        }
+
+        .chat-message-content p:last-child {
+            margin-bottom: 0;
+        }
+
+        .chat-message.typing .chat-message-content {
+            display: flex;
+            gap: 0.375rem;
+            padding: 1rem 1.25rem;
+        }
+
+        .typing-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--primary);
+            animation: typing 1.4s infinite;
+        }
+
+        .typing-dot:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .typing-dot:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+
+        @keyframes typing {
+            0%, 60%, 100% {
+                transform: translateY(0);
+                opacity: 0.7;
+            }
+            30% {
+                transform: translateY(-10px);
+                opacity: 1;
+            }
+        }
+
+        .chat-input-container {
+            padding: 1.5rem 2rem;
+            background: var(--white);
+            border-top: 1px solid var(--border);
+            display: flex;
+            gap: 1rem;
+            align-items: flex-end;
+        }
+
+        .chat-input-wrapper {
+            flex: 1;
+            position: relative;
+        }
+
+        .chat-input {
+            width: 100%;
+            padding: 1rem 1.25rem;
+            border: 2px solid var(--border);
+            border-radius: 24px;
+            font-size: 0.9375rem;
+            font-family: 'Inter', sans-serif;
+            color: var(--text-primary);
+            background: var(--bg-light);
+            resize: none;
+            max-height: 120px;
+            transition: all 0.2s;
+        }
+
+        .chat-input:focus {
+            outline: none;
+            border-color: var(--primary);
+            background: var(--white);
+            box-shadow: 0 0 0 4px rgba(247, 181, 0, 0.1);
+        }
+
+        .chat-send-btn {
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: #1A1A1A;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+            transition: all 0.3s;
+            flex-shrink: 0;
+            box-shadow: 0 4px 16px rgba(247, 181, 0, 0.4);
+        }
+
+        .chat-send-btn:hover {
+            transform: translateY(-2px) scale(1.05);
+            box-shadow: 0 6px 20px rgba(247, 181, 0, 0.5);
+        }
+
+        .chat-send-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        @media (max-width: 768px) {
+            .chat-container {
+                height: calc(100vh - 180px);
+                border-radius: 16px;
+            }
+
+            .chat-header {
+                padding: 1rem 1.5rem;
+            }
+
+            .chat-messages {
+                padding: 1.5rem;
+            }
+
+            .chat-robot-container {
+                width: 200px;
+                height: 200px;
+            }
+
+            .chat-input-container {
+                padding: 1rem 1.5rem;
+            }
+
+            .tab-navigation {
+                overflow-x: auto;
+            }
+
+            .tab-btn {
+                white-space: nowrap;
+            }
+
+            .chat-actions {
+                flex-wrap: wrap;
+            }
+
+            .chat-action-btn {
+                font-size: 0.75rem;
+                padding: 0.375rem 0.625rem;
+            }
+        }
+
+        /* Small Orb Icon for Sidebars and Icons */
+        .orb-icon-small {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #FFD700 0%, #FFA500 50%, #FF8C00 100%);
+            box-shadow: 
+                0 0 15px rgba(255, 215, 0, 0.5),
+                0 0 25px rgba(255, 165, 0, 0.3),
+                inset 0 0 15px rgba(255, 255, 255, 0.2);
+            animation: orbPulseSmall 3s ease-in-out infinite;
+            position: relative;
+            display: inline-block;
+            vertical-align: middle;
+        }
+
+        .orb-icon-small::after {
+            content: '';
+            position: absolute;
+            top: 15%;
+            left: 15%;
+            width: 35%;
+            height: 35%;
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.9) 0%, transparent 70%);
+            border-radius: 50%;
+            filter: blur(3px);
+        }
+
+        @keyframes orbPulseSmall {
+            0%, 100% {
+                box-shadow: 
+                    0 0 15px rgba(255, 215, 0, 0.5),
+                    0 0 25px rgba(255, 165, 0, 0.3),
+                    inset 0 0 15px rgba(255, 255, 255, 0.2);
+            }
+            50% {
+                box-shadow: 
+                    0 0 20px rgba(255, 215, 0, 0.7),
+                    0 0 35px rgba(255, 165, 0, 0.4),
+                    inset 0 0 20px rgba(255, 255, 255, 0.3);
+            }
+        }
     </style>
 </head>
 
@@ -667,14 +1103,20 @@
         <aside class="sidebar">
             <div class="logo-section">
                 <a href="hub.html" class="logo-link">
-                    <svg class="logo-svg" viewBox="0 0 100 60" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <rect x="5" y="36" width="17" height="17" rx="2" fill="var(--primary)" stroke="#000"
+                    <svg class="logo-svg" viewBox="0 0 140 110" xmlns="http://www.w3.org/2000/svg">
+                        <rect x="0" y="56" width="17" height="17" rx="2" fill="var(--accent)" stroke="#000"
                             stroke-width="1.5" />
-                        <rect x="22" y="36" width="17" height="17" rx="2" fill="var(--primary)" stroke="#000"
+                        <rect x="20" y="56" width="17" height="17" rx="2" fill="var(--primary)" stroke="#000"
                             stroke-width="1.5" />
-                        <rect x="5" y="16" width="17" height="17" rx="2" fill="var(--primary)" stroke="#000"
+                        <rect x="40" y="56" width="17" height="17" rx="2" fill="var(--accent)" stroke="#000"
                             stroke-width="1.5" />
-                        <rect x="40" y="36" width="17" height="17" rx="2" fill="var(--primary)" stroke="#000"
+                        <rect x="60" y="56" width="17" height="17" rx="2" fill="var(--primary)" stroke="#000"
+                            stroke-width="1.5" />
+                        <rect x="80" y="56" width="17" height="17" rx="2" fill="var(--accent)" stroke="#000"
+                            stroke-width="1.5" />
+                        <rect x="20" y="36" width="17" height="17" rx="2" fill="var(--primary)" stroke="#000"
+                            stroke-width="1.5" />
+                        <rect x="40" y="36" width="17" height="17" rx="2" fill="var(--accent)" stroke="#000"
                             stroke-width="1.5" />
                         <rect x="60" y="36" width="17" height="17" rx="2" fill="var(--primary)" stroke="#000"
                             stroke-width="1.5" />
@@ -751,10 +1193,22 @@
         <!-- Main Content -->
         <main class="main-content">
             <div class="page-header">
-                <h1><i class="fas fa-gavel"></i> AI Bid Estimator</h1>
-                <p>Get AI-powered cost estimates and bidding guidance for your construction projects</p>
+                <h1><i class="fas fa-gavel"></i> AI Bid Estimator & Chat</h1>
+                <p>Get AI-powered cost estimates and chat about construction trends</p>
             </div>
 
+            <!-- Tab Navigation -->
+            <div class="tab-navigation">
+                <button class="tab-btn active" data-tab="estimator">
+                    <i class="fas fa-calculator"></i> Bid Estimator
+                </button>
+                <button class="tab-btn" data-tab="chat">
+                    <span class="orb-icon-small"></span> AI Chat
+                </button>
+            </div>
+
+            <!-- Estimator Tab -->
+            <div class="tab-content active" id="estimator-tab">
             <div class="estimator-layout">
                 <!-- Input Form -->
                 <div class="card">
@@ -945,6 +1399,9 @@
 
                                 <!-- Actions -->
                                 <div class="results-actions">
+                                    <button class="btn-action" id="createProjectFromBidBtn">
+                                        <i class="fas fa-plus-circle"></i> Create Project
+                                    </button>
                                     <button class="btn-action" onclick="window.print()">
                                         <i class="fas fa-print"></i> Print
                                     </button>
@@ -957,6 +1414,57 @@
                                 </div>
                             </div>
                         </div>
+                    </div>
+                </div>
+            </div>
+            </div>
+
+            <!-- Chat Tab -->
+            <div class="tab-content" id="chat-tab">
+                <div class="chat-container">
+                    <div class="chat-header">
+                        <div class="chat-header-left">
+                            <div class="chat-header-avatar">
+                                <span class="orb-icon-medium"></span>
+                            </div>
+                            <div class="chat-header-info">
+                                <h3>AI Construction Assistant</h3>
+                                <p>Online • Ready to help</p>
+                            </div>
+                        </div>
+                        <div class="chat-actions">
+                            <button class="chat-action-btn" id="saveConversationBtn" title="Save Conversation">
+                                <i class="fas fa-save"></i> Save
+                            </button>
+                            <button class="chat-action-btn" id="exportDocBtn" title="Export as Document">
+                                <i class="fas fa-file-download"></i> Export
+                            </button>
+                            <button class="chat-action-btn" id="createProjectBtn" title="Create Project from Chat">
+                                <i class="fas fa-plus-circle"></i> Create Project
+                            </button>
+                            <button class="chat-action-btn" id="clearChatBtn" title="Clear Chat">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="chat-messages" id="chatMessages">
+                        <div class="chat-welcome">
+                            <i class="fas fa-robot"></i>
+                            <h3>AI Construction Assistant</h3>
+                            <p>Ask me about construction trends, best practices, materials, or any construction-related questions!</p>
+                        </div>
+                    </div>
+                    <div class="chat-input-container">
+                        <div class="chat-input-wrapper">
+                            <textarea 
+                                id="chatInput" 
+                                class="chat-input" 
+                                placeholder="Ask about construction trends, materials, techniques..."
+                                rows="1"></textarea>
+                        </div>
+                        <button id="sendChatBtn" class="chat-send-btn">
+                            <i class="fas fa-paper-plane"></i>
+                        </button>
                     </div>
                 </div>
             </div>
@@ -981,18 +1489,59 @@
             window.location.href = 'login.html';
         });
 
+        // --- Tab Switching ---
+        const tabBtns = document.querySelectorAll('.tab-btn');
+        const tabContents = document.querySelectorAll('.tab-content');
+
+        tabBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                const tabName = btn.dataset.tab;
+                
+                // Update buttons
+                tabBtns.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                
+                // Update content
+                tabContents.forEach(content => {
+                    if (content.id === `${tabName}-tab`) {
+                        content.classList.add('active');
+                    } else {
+                        content.classList.remove('active');
+                    }
+                });
+            });
+        });
+
         // --- Groq API Key (Secure) ---
+        let cachedApiKey = null; // Cache the API key
+        
         async function getGroqKey() {
+            // Return cached key if available
+            if (cachedApiKey) {
+                return cachedApiKey;
+            }
+            
             try {
+                // Try the existing path first: system_settings/groq_api_key
                 const docRef = doc(db, 'system_settings', 'groq_api_key');
                 const docSnap = await getDoc(docRef);
                 if (docSnap.exists() && docSnap.data().key) {
-                    return docSnap.data().key;
+                    cachedApiKey = docSnap.data().key;
+                    return cachedApiKey;
                 }
-                throw new Error('API key not found. Please add your Groq API key to Firestore: system_settings/groq_api_key → field "key".');
+                
+                // Fallback: Try config/groq path
+                const configRef = doc(db, 'config', 'groq');
+                const configSnap = await getDoc(configRef);
+                if (configSnap.exists() && configSnap.data().apiKey) {
+                    cachedApiKey = configSnap.data().apiKey;
+                    return cachedApiKey;
+                }
+                
+                throw new Error('API key not found in Firestore');
             } catch (e) {
                 console.error('Error fetching Groq key:', e);
-                throw e;
+                throw new Error('Unable to fetch API key from Firestore. Please check your Firestore configuration and permissions.');
             }
         }
 
@@ -1141,6 +1690,12 @@ You MUST respond with ONLY a valid JSON object (no markdown, no text before or a
                 const result = await callGemini(prompt);
                 renderResults(result);
 
+                // Store the last analysis for project creation
+                lastBidAnalysis = {
+                    ...data,
+                    result
+                };
+
                 // Save to Firestore
                 try {
                     const id = 'bid_' + Date.now().toString(36);
@@ -1186,6 +1741,406 @@ You MUST respond with ONLY a valid JSON object (no markdown, no text before or a
             errorDiv.classList.remove('visible');
             window.scrollTo({ top: 0, behavior: 'smooth' });
         });
+
+        // --- Create Project from Bid Analysis ---
+        let lastBidAnalysis = null; // Store the last analysis result
+        
+        document.getElementById('createProjectFromBidBtn').addEventListener('click', async () => {
+            if (!lastBidAnalysis) {
+                alert('No bid analysis available. Please generate an analysis first.');
+                return;
+            }
+
+            const projectName = prompt('Enter project name:', lastBidAnalysis.projectType || 'New Project');
+            if (!projectName) return;
+
+            try {
+                const userId = auth.currentUser?.uid;
+                const projectId = 'proj_' + Date.now().toString(36);
+                
+                await setDoc(doc(db, 'projects', projectId), {
+                    userId,
+                    name: projectName,
+                    type: lastBidAnalysis.projectType,
+                    location: lastBidAnalysis.location,
+                    area: lastBidAnalysis.area,
+                    description: `Created from AI Bid Estimator\n\nEstimated Cost: ${lastBidAnalysis.result.estimatedTotalCost}\nRecommended Bid: ${lastBidAnalysis.result.recommendedBidPrice}\nDuration: ${lastBidAnalysis.result.estimatedDuration}`,
+                    estimatedCost: lastBidAnalysis.result.estimatedTotalCost,
+                    estimatedDuration: lastBidAnalysis.result.estimatedDuration,
+                    status: 'Planning',
+                    bidAnalysis: lastBidAnalysis,
+                    createdAt: new Date().toISOString(),
+                    updatedAt: new Date().toISOString()
+                });
+
+                // Show success and redirect
+                if (confirm('Project created successfully! Would you like to view it?')) {
+                    window.location.href = `project.html?id=${projectId}`;
+                }
+            } catch (error) {
+                console.error('Error creating project:', error);
+                alert('Failed to create project. Please try again.');
+            }
+        });
+
+        // --- Chat Functionality ---
+        const chatMessages = document.getElementById('chatMessages');
+        const chatInput = document.getElementById('chatInput');
+        const sendChatBtn = document.getElementById('sendChatBtn');
+        const saveConversationBtn = document.getElementById('saveConversationBtn');
+        const exportDocBtn = document.getElementById('exportDocBtn');
+        const createProjectBtn = document.getElementById('createProjectBtn');
+        const clearChatBtn = document.getElementById('clearChatBtn');
+        let conversationHistory = [];
+        let conversationId = 'conv_' + Date.now().toString(36);
+
+        // Initialize chat with welcome message
+        function initializeChat() {
+            const welcomeDiv = document.createElement('div');
+            welcomeDiv.className = 'chat-welcome';
+            welcomeDiv.innerHTML = `
+                <div class="chat-robot-container">
+                    <span class="orb-icon-large"></span>
+                </div>
+            `;
+            chatMessages.appendChild(welcomeDiv);
+        }
+        initializeChat();
+
+        // Auto-resize textarea
+        chatInput.addEventListener('input', function() {
+            this.style.height = 'auto';
+            this.style.height = Math.min(this.scrollHeight, 120) + 'px';
+        });
+
+        // Send on Enter (Shift+Enter for new line)
+        chatInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendMessage();
+            }
+        });
+
+        sendChatBtn.addEventListener('click', sendMessage);
+
+        async function sendMessage() {
+            const message = chatInput.value.trim();
+            if (!message) return;
+
+            // Clear input
+            chatInput.value = '';
+            chatInput.style.height = 'auto';
+
+            // Remove welcome message if present
+            const welcome = chatMessages.querySelector('.chat-welcome');
+            if (welcome) welcome.remove();
+
+            // Add user message
+            addMessage(message, 'user');
+
+            // Add typing indicator
+            const typingId = addTypingIndicator();
+
+            // Disable input
+            chatInput.disabled = true;
+            sendChatBtn.disabled = true;
+
+            try {
+                const response = await sendChatToAI(message);
+                removeTypingIndicator(typingId);
+                addMessage(response, 'assistant');
+            } catch (error) {
+                removeTypingIndicator(typingId);
+                addMessage('Sorry, I encountered an error. Please try again.', 'assistant');
+                console.error('Chat error:', error);
+            } finally {
+                chatInput.disabled = false;
+                sendChatBtn.disabled = false;
+                chatInput.focus();
+            }
+        }
+
+        function addMessage(content, role) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `chat-message ${role}`;
+            
+            const avatar = document.createElement('div');
+            avatar.className = 'chat-message-avatar';
+            
+            // Use yellow orb for assistant, B&B logo for user
+            if (role === 'assistant') {
+                avatar.innerHTML = `<span class="orb-icon-small"></span>`;
+            } else {
+                avatar.innerHTML = `
+                    <svg viewBox="0 0 140 110" xmlns="http://www.w3.org/2000/svg">
+                        <rect x="0" y="56" width="17" height="17" rx="2" fill="var(--accent)" stroke="#000" stroke-width="1.5" />
+                        <rect x="20" y="56" width="17" height="17" rx="2" fill="var(--primary)" stroke="#000" stroke-width="1.5" />
+                        <rect x="40" y="56" width="17" height="17" rx="2" fill="var(--accent)" stroke="#000" stroke-width="1.5" />
+                        <rect x="60" y="56" width="17" height="17" rx="2" fill="var(--primary)" stroke="#000" stroke-width="1.5" />
+                        <rect x="80" y="56" width="17" height="17" rx="2" fill="var(--accent)" stroke="#000" stroke-width="1.5" />
+                        <rect x="20" y="36" width="17" height="17" rx="2" fill="var(--primary)" stroke="#000" stroke-width="1.5" />
+                        <rect x="40" y="36" width="17" height="17" rx="2" fill="var(--accent)" stroke="#000" stroke-width="1.5" />
+                        <rect x="60" y="36" width="17" height="17" rx="2" fill="var(--primary)" stroke="#000" stroke-width="1.5" />
+                        <rect x="40" y="16" width="17" height="17" rx="2" fill="var(--primary)" stroke="#000" stroke-width="1.5" />
+                        <rect x="60" y="16" width="17" height="17" rx="2" fill="var(--primary)" stroke="#000" stroke-width="1.5" />
+                    </svg>
+                `;
+            }
+            
+            const contentDiv = document.createElement('div');
+            contentDiv.className = 'chat-message-content';
+            
+            // Format the content with proper line breaks and structure
+            if (role === 'assistant') {
+                // Convert markdown-style formatting to HTML
+                let formattedContent = content
+                    // Convert **bold** to <strong>
+                    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+                    // Convert *italic* to <em>
+                    .replace(/\*(.+?)\*/g, '<em>$1</em>')
+                    // Convert numbered lists
+                    .replace(/^\d+\.\s+(.+)$/gm, '<div style="margin-left: 1rem;">• $1</div>')
+                    // Convert bullet points
+                    .replace(/^[-•]\s+(.+)$/gm, '<div style="margin-left: 1rem;">• $1</div>')
+                    // Convert line breaks to <br>
+                    .replace(/\n/g, '<br>');
+                
+                contentDiv.innerHTML = formattedContent;
+            } else {
+                // User messages - simple text with line breaks
+                contentDiv.innerHTML = content.replace(/\n/g, '<br>');
+            }
+            
+            messageDiv.appendChild(avatar);
+            messageDiv.appendChild(contentDiv);
+            chatMessages.appendChild(messageDiv);
+            
+            // Scroll to bottom
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        function addTypingIndicator() {
+            const id = 'typing-' + Date.now();
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'chat-message assistant typing';
+            messageDiv.id = id;
+            
+            const avatar = document.createElement('div');
+            avatar.className = 'chat-message-avatar';
+            avatar.innerHTML = `<span class="orb-icon-small"></span>`;
+            
+            const contentDiv = document.createElement('div');
+            contentDiv.className = 'chat-message-content';
+            contentDiv.innerHTML = '<div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div>';
+            
+            messageDiv.appendChild(avatar);
+            messageDiv.appendChild(contentDiv);
+            chatMessages.appendChild(messageDiv);
+            
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+            return id;
+        }
+
+        function removeTypingIndicator(id) {
+            const indicator = document.getElementById(id);
+            if (indicator) indicator.remove();
+        }
+
+        async function sendChatToAI(userMessage) {
+            const apiKey = await getGroqKey();
+            const url = 'https://api.groq.com/openai/v1/chat/completions';
+
+            // Add to conversation history
+            conversationHistory.push({ role: 'user', content: userMessage });
+
+            const messages = [
+                { 
+                    role: 'system', 
+                    content: 'You are a helpful construction industry expert assistant built into the Bricks & Bits platform. You provide advice on construction trends, materials, techniques, best practices, and answer questions about the construction industry. Keep responses concise and practical.\n\nIMPORTANT INFORMATION:\n- If asked who developed you or who created the software/platform, respond that it was developed by Bricks and Bits CTO Sulaimaan, a Data Scientist and Software Engineer.\n- If asked whose idea this was or who founded/conceptualized the platform, respond that it was the vision of Mohammed Saqlain, CEO of Bricks and Bits and an MBA graduate.\n- Bricks & Bits is a construction management platform designed to help contractors and construction professionals manage their projects efficiently.'
+                },
+                ...conversationHistory
+            ];
+
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${apiKey}`
+                },
+                body: JSON.stringify({
+                    model: 'llama-3.3-70b-versatile',
+                    messages: messages,
+                    temperature: 0.7,
+                    max_tokens: 1024
+                })
+            });
+
+            if (!response.ok) {
+                const errData = await response.json().catch(() => ({}));
+                throw new Error(errData.error?.message || `API error: ${response.status}`);
+            }
+
+            const data = await response.json();
+            const assistantMessage = data.choices?.[0]?.message?.content;
+
+            if (!assistantMessage) throw new Error('Empty response from AI');
+
+            // Add to conversation history
+            conversationHistory.push({ role: 'assistant', content: assistantMessage });
+
+            // Keep only last 10 messages to avoid token limits
+            if (conversationHistory.length > 10) {
+                conversationHistory = conversationHistory.slice(-10);
+            }
+
+            // Auto-save conversation to Firestore
+            try {
+                const userId = auth.currentUser?.uid;
+                await setDoc(doc(db, 'ai_conversations', conversationId), {
+                    userId,
+                    messages: conversationHistory,
+                    createdAt: conversationHistory.length === 1 ? new Date().toISOString() : undefined,
+                    updatedAt: new Date().toISOString()
+                }, { merge: true });
+            } catch (error) {
+                console.warn('Failed to auto-save conversation:', error);
+            }
+
+            return assistantMessage;
+        }
+
+        // --- Save Conversation to Firestore ---
+        async function saveConversation() {
+            if (conversationHistory.length === 0) {
+                alert('No conversation to save!');
+                return;
+            }
+
+            try {
+                const userId = auth.currentUser?.uid;
+                await setDoc(doc(db, 'ai_conversations', conversationId), {
+                    userId,
+                    messages: conversationHistory,
+                    createdAt: new Date().toISOString(),
+                    updatedAt: new Date().toISOString()
+                });
+                
+                // Show success message
+                const btn = saveConversationBtn;
+                const originalHTML = btn.innerHTML;
+                btn.innerHTML = '<i class="fas fa-check"></i> Saved!';
+                btn.style.borderColor = 'var(--success)';
+                btn.style.color = 'var(--success)';
+                setTimeout(() => {
+                    btn.innerHTML = originalHTML;
+                    btn.style.borderColor = '';
+                    btn.style.color = '';
+                }, 2000);
+            } catch (error) {
+                console.error('Error saving conversation:', error);
+                alert('Failed to save conversation. Please try again.');
+            }
+        }
+
+        // --- Export Conversation as Document ---
+        function exportConversation() {
+            if (conversationHistory.length === 0) {
+                alert('No conversation to export!');
+                return;
+            }
+
+            // Create text content
+            let content = 'Bricks & Bits - AI Construction Assistant Conversation\n';
+            content += '='.repeat(60) + '\n';
+            content += `Date: ${new Date().toLocaleString()}\n`;
+            content += '='.repeat(60) + '\n\n';
+
+            conversationHistory.forEach((msg, index) => {
+                const role = msg.role === 'user' ? 'You' : 'AI Assistant';
+                content += `${role}:\n${msg.content}\n\n`;
+                content += '-'.repeat(60) + '\n\n';
+            });
+
+            // Create and download file
+            const blob = new Blob([content], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `conversation_${new Date().toISOString().split('T')[0]}.txt`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+
+            // Show success message
+            const btn = exportDocBtn;
+            const originalHTML = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-check"></i> Exported!';
+            btn.style.borderColor = 'var(--success)';
+            btn.style.color = 'var(--success)';
+            setTimeout(() => {
+                btn.innerHTML = originalHTML;
+                btn.style.borderColor = '';
+                btn.style.color = '';
+            }, 2000);
+        }
+
+        // --- Create Project from Conversation ---
+        async function createProjectFromChat() {
+            if (conversationHistory.length === 0) {
+                alert('No conversation to create project from!');
+                return;
+            }
+
+            // Extract project details from conversation
+            const conversationText = conversationHistory.map(m => m.content).join(' ');
+            
+            // Simple extraction (you can make this smarter with AI)
+            const projectName = prompt('Enter project name:', 'Project from AI Chat');
+            if (!projectName) return;
+
+            try {
+                const userId = auth.currentUser?.uid;
+                const projectId = 'proj_' + Date.now().toString(36);
+                
+                await setDoc(doc(db, 'projects', projectId), {
+                    userId,
+                    name: projectName,
+                    description: 'Created from AI chat conversation',
+                    conversationId: conversationId,
+                    conversationSummary: conversationText.substring(0, 500),
+                    status: 'Planning',
+                    createdAt: new Date().toISOString(),
+                    updatedAt: new Date().toISOString()
+                });
+
+                // Show success and redirect
+                if (confirm('Project created successfully! Would you like to view it?')) {
+                    window.location.href = `project.html?id=${projectId}`;
+                }
+            } catch (error) {
+                console.error('Error creating project:', error);
+                alert('Failed to create project. Please try again.');
+            }
+        }
+
+        // --- Clear Chat ---
+        function clearChat() {
+            if (conversationHistory.length === 0) return;
+            
+            if (confirm('Are you sure you want to clear this conversation? This cannot be undone.')) {
+                conversationHistory = [];
+                conversationId = 'conv_' + Date.now().toString(36);
+                chatMessages.innerHTML = '';
+                initializeChat();
+            }
+        }
+
+        // --- Event Listeners ---
+        saveConversationBtn.addEventListener('click', saveConversation);
+        exportDocBtn.addEventListener('click', exportConversation);
+        createProjectBtn.addEventListener('click', createProjectFromChat);
+        clearChatBtn.addEventListener('click', clearChat);
     </script>
 </body>
 

@@ -198,6 +198,16 @@ service cloud.firestore {
     }
     
     // =============================================
+    // AI CONVERSATIONS
+    // =============================================
+    
+    match /ai_conversations/{docId} {
+      allow read: if isAuthenticated() && (resource.data.userId == request.auth.uid || isAdmin());
+      allow create: if isAuthenticated();
+      allow update, delete: if isAuthenticated() && (resource.data.userId == request.auth.uid || isAdmin());
+    }
+    
+    // =============================================
     // PHASE MANAGEMENT COLLECTIONS
     // =============================================
     
@@ -272,6 +282,15 @@ service cloud.firestore {
     }
     
     // =============================================
+    // CONFIG COLLECTION (API Keys, etc.)
+    // =============================================
+    
+    match /config/{docId} {
+      allow read: if isAuthenticated();
+      allow write: if isAdmin();
+    }
+    
+    // =============================================
     // ADMIN-ONLY COLLECTIONS
     // =============================================
     
@@ -280,6 +299,15 @@ service cloud.firestore {
     }
     
     match /system_settings/{docId} {
+      allow read: if isAuthenticated();
+      allow write: if isAdmin();
+    }
+    
+    // =============================================
+    // CONFIG COLLECTION (API Keys, etc.)
+    // =============================================
+    
+    match /config/{docId} {
       allow read: if isAuthenticated();
       allow write: if isAdmin();
     }

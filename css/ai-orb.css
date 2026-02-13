@@ -1,0 +1,166 @@
+/* AI Orb Icon Styles - Reusable across all pages */
+
+/* Small Orb Icon for Sidebars, Navigation, and Icons */
+.orb-icon-small {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #FFD700 0%, #FFA500 50%, #FF8C00 100%);
+    box-shadow: 
+        0 0 15px rgba(255, 215, 0, 0.5),
+        0 0 25px rgba(255, 165, 0, 0.3),
+        inset 0 0 15px rgba(255, 255, 255, 0.2);
+    animation: orbPulseSmall 3s ease-in-out infinite;
+    position: relative;
+    display: inline-block;
+    vertical-align: middle;
+}
+
+.orb-icon-small::after {
+    content: '';
+    position: absolute;
+    top: 15%;
+    left: 15%;
+    width: 35%;
+    height: 35%;
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.9) 0%, transparent 70%);
+    border-radius: 50%;
+    filter: blur(3px);
+}
+
+@keyframes orbPulseSmall {
+    0%, 100% {
+        box-shadow: 
+            0 0 15px rgba(255, 215, 0, 0.5),
+            0 0 25px rgba(255, 165, 0, 0.3),
+            inset 0 0 15px rgba(255, 255, 255, 0.2);
+    }
+    50% {
+        box-shadow: 
+            0 0 20px rgba(255, 215, 0, 0.7),
+            0 0 35px rgba(255, 165, 0, 0.4),
+            inset 0 0 20px rgba(255, 255, 255, 0.3);
+    }
+}
+
+/* Medium Orb for Cards */
+.orb-icon-medium {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #FFD700 0%, #FFA500 50%, #FF8C00 100%);
+    box-shadow: 
+        0 0 30px rgba(255, 215, 0, 0.5),
+        0 0 50px rgba(255, 165, 0, 0.3),
+        inset 0 0 30px rgba(255, 255, 255, 0.2);
+    animation: orbPulseMedium 3s ease-in-out infinite;
+    position: relative;
+    display: inline-block;
+}
+
+.orb-icon-medium::after {
+    content: '';
+    position: absolute;
+    top: 15%;
+    left: 15%;
+    width: 35%;
+    height: 35%;
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.9) 0%, transparent 70%);
+    border-radius: 50%;
+    filter: blur(5px);
+}
+
+@keyframes orbPulseMedium {
+    0%, 100% {
+        transform: scale(1);
+        box-shadow: 
+            0 0 30px rgba(255, 215, 0, 0.5),
+            0 0 50px rgba(255, 165, 0, 0.3),
+            inset 0 0 30px rgba(255, 255, 255, 0.2);
+    }
+    50% {
+        transform: scale(1.05);
+        box-shadow: 
+            0 0 40px rgba(255, 215, 0, 0.7),
+            0 0 60px rgba(255, 165, 0, 0.4),
+            inset 0 0 40px rgba(255, 255, 255, 0.3);
+    }
+}
+
+/* Large Orb for Welcome Screens */
+.orb-icon-large {
+    width: 200px;
+    height: 200px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #FFD700 0%, #FFA500 50%, #FF8C00 100%);
+    box-shadow: 
+        0 0 60px rgba(255, 215, 0, 0.4),
+        0 0 100px rgba(255, 165, 0, 0.3),
+        inset 0 0 60px rgba(255, 255, 255, 0.2);
+    animation: orbPulseLarge 3s ease-in-out infinite, orbRotate 20s linear infinite;
+    position: relative;
+    overflow: hidden;
+}
+
+.orb-icon-large::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: linear-gradient(
+        45deg,
+        transparent 30%,
+        rgba(255, 255, 255, 0.3) 50%,
+        transparent 70%
+    );
+    animation: orbShine 3s ease-in-out infinite;
+}
+
+.orb-icon-large::after {
+    content: '';
+    position: absolute;
+    top: 10%;
+    left: 10%;
+    width: 40%;
+    height: 40%;
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.8) 0%, transparent 70%);
+    border-radius: 50%;
+    filter: blur(10px);
+}
+
+@keyframes orbPulseLarge {
+    0%, 100% {
+        transform: scale(1);
+        box-shadow: 
+            0 0 60px rgba(255, 215, 0, 0.4),
+            0 0 100px rgba(255, 165, 0, 0.3),
+            inset 0 0 60px rgba(255, 255, 255, 0.2);
+    }
+    50% {
+        transform: scale(1.05);
+        box-shadow: 
+            0 0 80px rgba(255, 215, 0, 0.6),
+            0 0 120px rgba(255, 165, 0, 0.4),
+            inset 0 0 80px rgba(255, 255, 255, 0.3);
+    }
+}
+
+@keyframes orbRotate {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+@keyframes orbShine {
+    0%, 100% {
+        transform: translateX(-100%) translateY(-100%) rotate(45deg);
+    }
+    50% {
+        transform: translateX(100%) translateY(100%) rotate(45deg);
+    }
+}
